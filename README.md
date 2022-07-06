@@ -59,7 +59,7 @@ This repository contains an ETL [Flink](hhttps://ci.apache.org/projects/flink/fl
 
 - Run with `flink run -m <flink-job-manager-url> target/ozone-etl-flink-1.0-SNAPSHOT.jar`
 
-#### Building Docker image  
+#### Building Docker image  for use with https://github.com/ozone-his/ozone-analytics
 
 `docker build -t mekomsolutions/ozone-flink-jobs .`
 
