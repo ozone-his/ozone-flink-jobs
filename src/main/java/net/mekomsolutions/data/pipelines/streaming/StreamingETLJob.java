@@ -129,8 +129,8 @@ public class StreamingETLJob {
 
 
         String[] sourceTables = {"person", "person_name", "person_address", "patient", "patient_identifier", "patient_identifier_type", "visit", "visit_type", "concept", "concept_name", "concept_reference_map",
-                "concept_reference_term", "concept_reference_source", "obs", "encounter", "encounter_type", "location"};
-        String[] sinkTables = {"visits", "patients", "concepts", "observations"};
+                "concept_reference_term", "concept_reference_source", "obs", "encounter", "encounter_type", "location", "care_setting", "order_type", "orders"};
+        String[] sinkTables = {"visits", "patients", "concepts", "observations", "flattened_orders"};
         setupSourceTables(tEnv, sourceTables, openmrsConnectorOptions);
         setupSinkTables(tEnv, sinkTables, postgresConnectorOptions);
         final ObjectMapper objectMapper = new ObjectMapper();

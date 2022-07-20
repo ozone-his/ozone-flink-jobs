@@ -14,5 +14,9 @@
   {
     "name": "observations",
     "sourceFilePath": "observations.sql"
+  },
+  {
+    "name": "flattened_orders",
+    "sourceFilePath": "flattenedOrders.sql"
   }
 ]

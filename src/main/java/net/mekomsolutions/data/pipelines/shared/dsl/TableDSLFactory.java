@@ -1,10 +1,12 @@
 package net.mekomsolutions.data.pipelines.shared.dsl;
 
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ConceptsFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedOrdersFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ObservationsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.VisitsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Concepts;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedOrders;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Observations;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Patients;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Visits;
@@ -94,6 +96,21 @@ public class TableDSLFactory {
                 break;
             case "patients":
                 tableSQLDSL = new Patients(this.connectorOptions);
+                break;
+            case "care_setting":
+                tableSQLDSL = new CareSetting(this.connectorOptions);
+                break;
+            case "order_type":
+                tableSQLDSL = new OrderType(this.connectorOptions);
+                break;
+            case "orders":
+                tableSQLDSL = new Orders(this.connectorOptions);
+                break;
+            case "flattened_orders":
+                tableSQLDSL = new FlattenedOrders(this.connectorOptions);
+                break;
+            case "flattened_orders_fs":
+                tableSQLDSL = new FlattenedOrdersFs(this.connectorOptions);
                 break;
             case "observations_fs":
                 tableSQLDSL = new ObservationsFs(this.connectorOptions);

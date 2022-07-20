@@ -125,4 +125,51 @@
             <column name="person_void_reason" type="VARCHAR"/>
         </createTable>
     </changeSet>
+    <changeSet author="ruhanga" id="1658321685032-7">
+        <createTable tableName="flattened_orders">
+            <column name="order_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_orders_pkey"/>
+            </column>
+            <column name="patient_id" type="BIGINT"/>
+            <column name="order_type_id" type="BIGINT"/>
+            <column name="order_type_name" type="VARCHAR"/>
+            <column name="order_type_uuid" type="VARCHAR"/>
+            <column name="order_type_java_class_name" type="VARCHAR"/>
+            <column name="concept_id" type="BIGINT"/>
+            <column name="orderer" type="BIGINT"/>
+            <column name="encounter_id" type="BIGINT"/>
+            <column name="encounter_datetime" type="TIMESTAMP"/>
+            <column name="encounter_type_name" type="VARCHAR"/>
+            <column name="encounter_type_uuid" type="VARCHAR"/>
+            <column name="care_setting" type="BIGINT"/>
+            <column name="care_setting_name" type="VARCHAR"/>
+            <column name="care_setting_type" type="VARCHAR"/>
+            <column name="care_setting_uuid" type="VARCHAR"/>
+            <column name="instructions" type="VARCHAR"/>
+            <column name="date_activated" type="TIMESTAMP"/>
+            <column name="auto_expire_date" type="TIMESTAMP"/>
+            <column name="date_stopped" type="TIMESTAMP"/>
+            <column name="order_reason" type="BIGINT"/>
+            <column name="order_reason_non_coded" type="VARCHAR"/>
+            <column name="date_created" type="TIMESTAMP"/>
+            <column name="creator" type="BIGINT"/>
+            <column name="voided_by" type="BIGINT"/>
+            <column name="date_voided" type="TIMESTAMP"/>
+            <column name="void_reason" type="VARCHAR"/>
+            <column name="accession_number" type="VARCHAR"/>
+            <column name="uuid" type="VARCHAR"/>
+            <column name="order_number" type="VARCHAR"/>
+            <column name="previous_order_id" type="BIGINT"/>
+            <column name="order_action" type="VARCHAR"/>
+            <column name="comment_to_fulfiller" type="VARCHAR"/>
+            <column name="scheduled_date" type="TIMESTAMP"/>
+            <column name="order_group_id" type="BIGINT"/>
+            <column name="sort_weight" type="DOUBLE"/>
+            <column name="encounter_voided" type="BOOLEAN"/>
+            <column name="voided" type="BOOLEAN"/>
+            <column name="order_type_retired" type="BOOLEAN"/>
+            <column name="encounter_type_retired" type="BOOLEAN"/>
+            <column name="care_setting_retired" type="BOOLEAN"/>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
