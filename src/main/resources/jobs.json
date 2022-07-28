@@ -18,5 +18,17 @@
   {
     "name": "flattened_orders",
     "sourceFilePath": "flattenedOrders.sql"
+  },
+  {
+    "name": "appointments",
+    "sourceFilePath": "appointments.sql"
+  },
+  {
+    "name": "encounters",
+    "sourceFilePath": "encounters.sql"
+  },
+  {
+    "name": "patient_programs",
+    "sourceFilePath": "patient_programs.sql"
   }
 ]

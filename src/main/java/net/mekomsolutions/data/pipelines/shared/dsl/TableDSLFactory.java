@@ -1,13 +1,19 @@
 package net.mekomsolutions.data.pipelines.shared.dsl;
 
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.AppointmentsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ConceptsFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.EncountersFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedOrdersFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ObservationsFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientProgramsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.VisitsFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Appointments;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Concepts;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Encounters;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedOrders;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Observations;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.PatientPrograms;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Patients;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Visits;
 import net.mekomsolutions.data.pipelines.shared.dsl.source.*;
@@ -123,6 +129,45 @@ public class TableDSLFactory {
                 break;
             case "visits_fs":
                 tableSQLDSL = new VisitsFs(this.connectorOptions);
+                break;
+            case "form":
+                tableSQLDSL = new Form(this.connectorOptions);
+                break;
+            case "encounters":
+                tableSQLDSL = new Encounters(this.connectorOptions);
+                break;
+            case "encounters_fs":
+                tableSQLDSL = new EncountersFs(this.connectorOptions);
+                break;
+            case "appointment_service":
+                tableSQLDSL = new AppointmentService(this.connectorOptions);
+                break;
+            case "appointment_service_type":
+                tableSQLDSL = new AppointmentServiceType(this.connectorOptions);
+                break;
+            case "patient_appointment":
+                tableSQLDSL = new PatientAppointment(this.connectorOptions);
+                break;
+            case "patient_appointment_provider":
+                tableSQLDSL = new PatientAppointmentProvider(this.connectorOptions);
+                break;
+            case "appointments":
+                tableSQLDSL = new Appointments(this.connectorOptions);
+                break;
+            case "appointments_fs":
+                tableSQLDSL = new AppointmentsFs(this.connectorOptions);
+                break;
+            case "patient_program":
+                tableSQLDSL = new PatientProgram(this.connectorOptions);
+                break;
+            case "program":
+                tableSQLDSL = new Program(this.connectorOptions);
+                break;
+            case "patient_programs":
+                tableSQLDSL = new PatientPrograms(this.connectorOptions);
+                break;
+            case "patient_programs_fs":
+                tableSQLDSL = new PatientProgramsFs(this.connectorOptions);
                 break;
             default:
                 LOG.warn("Table DSL not found");
