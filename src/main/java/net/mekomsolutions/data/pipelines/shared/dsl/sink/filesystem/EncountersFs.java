@@ -31,7 +31,7 @@ public class EncountersFs  implements TableSQLDSL {
         		"  `concept_id` int,\n" + 
         		"  `orderer` int,\n" + 
         		"  `encounter_id` int,\n" + 
-        		"  `encounter_datetime` datetime,\n" + 
+        		"  `encounter_datetime` TIMESTAMP,\n" + 
         		"  `encounter_type_name` VARCHAR,\n" + 
         		"  `encounter_type_uuid` VARCHAR,\n" + 
         		"  `care_setting` int,\n" + 

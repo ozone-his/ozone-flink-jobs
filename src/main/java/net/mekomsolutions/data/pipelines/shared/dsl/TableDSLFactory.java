@@ -2,7 +2,9 @@ package net.mekomsolutions.data.pipelines.shared.dsl;
 
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.AppointmentsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ConceptsFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.EncounterDiagnosesFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.EncountersFs;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedConditionsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedOrdersFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ObservationsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientProgramsFs;
@@ -10,7 +12,9 @@ import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.VisitsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Appointments;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Concepts;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.EncounterDiagnoses;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Encounters;
+import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedConditions;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedOrders;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Observations;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.PatientPrograms;
@@ -168,6 +172,24 @@ public class TableDSLFactory {
                 break;
             case "patient_programs_fs":
                 tableSQLDSL = new PatientProgramsFs(this.connectorOptions);
+                break;
+            case "conditions":
+                tableSQLDSL = new Conditions(this.connectorOptions);
+                break;
+            case "flattened_conditions":
+                tableSQLDSL = new FlattenedConditions(this.connectorOptions);
+                break;
+            case "flattened_conditions_fs":
+                tableSQLDSL = new FlattenedConditionsFs(this.connectorOptions);
+                break;
+            case "encounter_diagnosis":
+                tableSQLDSL = new EncounterDiagnosis(this.connectorOptions);
+                break;
+            case "encounter_diagnoses":
+                tableSQLDSL = new EncounterDiagnoses(this.connectorOptions);
+                break;
+            case "encounter_diagnosis_fs":
+                tableSQLDSL = new EncounterDiagnosesFs(this.connectorOptions);
                 break;
             default:
                 LOG.warn("Table DSL not found");

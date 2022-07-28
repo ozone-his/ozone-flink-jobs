@@ -42,7 +42,8 @@ public class Encounter implements TableSQLDSL {
                 "  `changed_by` int,\n" +
                 "  `date_changed` TIMESTAMP,\n" +
                 "  `visit_id` int,\n" +
-                "  `uuid` char)" +
+                "  `uuid` VARCHAR\n"
+                + ")" +
                 " WITH (\n" +
                     ConnectorUtils.propertyJoiner(",","=").apply(this.connectorOptions) +
                 ")";

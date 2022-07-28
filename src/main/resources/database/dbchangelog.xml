@@ -172,10 +172,10 @@
             <column name="care_setting_retired" type="BOOLEAN"/>
         </createTable>
     </changeSet>
-    <changeSet author="ruhanga" id="1658321685032-7">
+    <changeSet author="ruhanga" id="1658321685032-8">
         <createTable tableName="programs">
             <column name="patient_program_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_orders_pkey"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="programs_pkey"/>
             </column>
             <column name="patient_id" type="BIGINT"/>
             <column name="program_id" type="BIGINT"/>
@@ -204,57 +204,64 @@
             <column name="outcomes_concept_uuid" type="VARCHAR"/>
         </createTable>
     </changeSet>
-    <changeSet author="ruhanga" id="1658321685032-7">
+    <changeSet author="ruhanga" id="1658321685032-9">
         <createTable tableName="encounters">
             <column name="encounter_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_orders_pkey"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="encounters_pkey"/>
             </column>
-            <column name="patient_id" type="BIGINT"/>
-            <column name="order_id" type="BIGINT"/>
-            <column name="order_type_id" type="BIGINT"/>
-            <column name="order_type_name" type="VARCHAR"/>
-            <column name="order_type_uuid" type="VARCHAR"/>
-            <column name="order_type_java_class_name" type="VARCHAR"/>
-            <column name="concept_id" type="BIGINT"/>
-            <column name="orderer" type="BIGINT"/>
-            <column name="encounter_datetime" type="datetime"/>
+            <column name="encounter_patient_id" type="BIGINT"/>
+            <column name="encounter_type_id" type="BIGINT"/>
             <column name="encounter_type_name" type="VARCHAR"/>
             <column name="encounter_type_uuid" type="VARCHAR"/>
-            <column name="care_setting" type="BIGINT"/>
-            <column name="care_setting_name" type="VARCHAR"/>
-            <column name="care_setting_type" type="VARCHAR"/>
-            <column name="care_setting_uuid" type="VARCHAR"/>
-            <column name="instructions" type="VARCHAR"/>
-            <column name="date_activated" type="TIMESTAMP"/>
-            <column name="auto_expire_date" type="TIMESTAMP"/>
-            <column name="date_stopped" type="TIMESTAMP"/>
-            <column name="order_reason" type="BIGINT"/>
-            <column name="order_reason_non_coded" type="VARCHAR"/>
-            <column name="date_created" type="TIMESTAMP"/>
-            <column name="creator" type="BIGINT"/>
-            <column name="voided_by" type="BIGINT"/>
-            <column name="date_voided" type="TIMESTAMP"/>
-            <column name="void_reason" type="VARCHAR"/>
-            <column name="accession_number" type="VARCHAR"/>
-            <column name="uuid" type="VARCHAR"/>
-            <column name="order_number" type="VARCHAR"/>
-            <column name="previous_order_id" type="BIGINT"/>
-            <column name="order_action" type="VARCHAR"/>
-            <column name="comment_to_fulfiller" type="VARCHAR"/>
-            <column name="scheduled_date" type="TIMESTAMP"/>
-            <column name="order_group_id" type="BIGINT"/>
-            <column name="sort_weight" type="DOUBLE"/>
-            <column name="encounter_voided" type="BOOLEAN"/>
-            <column name="voided" type="BOOLEAN"/>
-            <column name="order_type_retired" type="BOOLEAN"/>
             <column name="encounter_type_retired" type="BOOLEAN"/>
-            <column name="care_setting_retired" type="BOOLEAN"/>
+            <column name="encounter_datetime" type="TIMESTAMP"/>
+            <column name="encounter_voided" type="BOOLEAN"/>
+            <column name="encounter_visit_id" type="BIGINT"/>
+            <column name="visit_type_name" type="VARCHAR"/>
+            <column name="visit_type_uuid" type="VARCHAR"/>
+            <column name="visit_type_description" type="VARCHAR"/>
+            <column name="visit_date_started" type="TIMESTAMP"/>
+            <column name="visit_date_stopped" type="TIMESTAMP"/>
+            <column name="visit_voided" type="BOOLEAN"/>
+            <column name="visit_type_retired" type="BOOLEAN"/>
+            <column name="encounter_form_id" type="BIGINT"/>
+            <column name="form_name" type="VARCHAR"/>
+            <column name="form_uuid" type="VARCHAR"/>
+            <column name="form_version" type="VARCHAR"/>
+            <column name="form_published" type="BOOLEAN"/>
+            <column name="form_encounter_type" type="BIGINT"/>
+            <column name="form_retired" type="BOOLEAN"/>
+            <column name="encounter_location_id" type="BIGINT"/>
+            <column name="location_name" type="VARCHAR"/>
+            <column name="location_uuid" type="VARCHAR"/>
+            <column name="location_address1" type="VARCHAR"/>
+            <column name="location_retired" type="BOOLEAN"/>
+            <column name="encounter_creator" type="BIGINT"/>
+            <column name="encounter_date_created" type="TIMESTAMP"/>
+            <column name="encounter_voided_by" type="BIGINT"/>
+            <column name="encounter_date_voided" type="TIMESTAMP"/>
+            <column name="encounter_void_reason" type="VARCHAR"/>
+            <column name="encounter_changed_by" type="BIGINT"/>
+            <column name="encounter_date_changed" type="TIMESTAMP"/>
+            <column name="encounter_uuid" type="VARCHAR"/>
+            <column name="encounter_type_description" type="VARCHAR"/>
+            <column name="form_description" type="VARCHAR"/>
+            <column name="form_template" type="VARCHAR"/>
+            <column name="form_build" type="BIGINT"/>
+            <column name="location_description" type="VARCHAR"/>
+            <column name="location_address2" type="VARCHAR"/>
+            <column name="location_city_village" type="VARCHAR"/>
+            <column name="location_state_province" type="VARCHAR"/>
+            <column name="location_postal_code" type="VARCHAR"/>
+            <column name="location_country" type="VARCHAR"/>
+            <column name="location_parent_location" type="BIGINT"/>
+            <column name="location_county_district" type="VARCHAR"/>
         </createTable>
     </changeSet>
-    <changeSet author="ruhanga" id="1658321685032-7">
+    <changeSet author="ruhanga" id="1658321685032-10">
         <createTable tableName="appointments">
             <column name="patient_appointment_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_orders_pkey"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="appointments_pkey"/>
             </column>
             <column name="patient_id" type="BIGINT"/>
             <column name="appointment_number" type="VARCHAR"/>
@@ -295,4 +302,52 @@
             <column name="patient_appointment_provider_response" type="VARCHAR"/>
         </createTable>
     </changeSet>
+    <changeSet author="ruhanga" id="1658321685032-11">
+      <createTable tableName="flattened_conditions">
+         <column name="condition_id" type="BIGINT">
+            <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_conditions_pkey" />
+         </column>
+         <column name="additional_detail" type="VARCHAR" />
+         <column name="previous_version" type="BIGINT" />
+         <column name="condition_coded" type="BIGINT" />
+         <column name="condition_non_coded" type="VARCHAR" />
+         <column name="condition_coded_name" type="BIGINT" />
+         <column name="clinical_status" type="VARCHAR" />
+         <column name="verification_status" type="VARCHAR" />
+         <column name="onset_date" type="TIMESTAMP" />
+         <column name="date_created" type="TIMESTAMP" />
+         <column name="voided" type="BOOLEAN" />
+         <column name="date_voided" type="TIMESTAMP" />
+         <column name="void_reason" type="VARCHAR" />
+         <column name="uuid" type="VARCHAR" />
+         <column name="creator" type="BIGINT" />
+         <column name="voided_by" type="BIGINT" />
+         <column name="changed_by" type="BIGINT" />
+         <column name="patient_id" type="BIGINT" />
+         <column name="end_date" type="TIMESTAMP" />
+         <column name="date_changed" type="TIMESTAMP" />
+         <column name="encounter_id" type="BIGINT" />
+      </createTable>
+   </changeSet>
+   <changeSet author="ruhanga" id="1658321685032-12">
+      <createTable tableName="encounter_diagnoses">
+         <column name="diagnosis_id" type="BIGINT">
+            <constraints nullable="false" primaryKey="true" primaryKeyName="encounter_diagnoses_pkey" />
+         </column>
+         <column name="diagnosis_coded" type="BIGINT" />
+         <column name="diagnosis_non_coded" type="VARCHAR" />
+         <column name="diagnosis_coded_name" type="BIGINT" />
+         <column name="encounter_id" type="BIGINT" />
+         <column name="patient_id" type="BIGINT" />
+         <column name="certainty" type="VARCHAR" />
+         <column name="dx_rank" type="BIGINT" />
+         <column name="uuid" type="VARCHAR" />
+         <column name="creator" type="BIGINT" />
+         <column name="date_created" type="TIMESTAMP" />
+         <column name="voided" type="BOOLEAN" />
+         <column name="voided_by" type="BIGINT" />
+         <column name="date_voided" type="TIMESTAMP" />
+         <column name="void_reason" type="VARCHAR" />
+      </createTable>
+   </changeSet>
 </databaseChangeLog>

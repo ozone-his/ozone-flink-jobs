@@ -27,47 +27,54 @@ public class Encounters  implements TableSQLDSL {
     @Override
     public String getDSL() {
         return "CREATE TABLE `encounters` (\n" + 
-        		"  `order_id` int,\n" + 
-        		"  `patient_id` int,\n" + 
-        		"  `order_type_id` int,\n" + 
-        		"  `order_type_name` VARCHAR,\n" + 
-        		"  `order_type_uuid` VARCHAR,\n" + 
-        		"  `order_type_java_class_name` VARCHAR,\n" + 
-        		"  `concept_id` int,\n" + 
-        		"  `orderer` int,\n" + 
-        		"  `encounter_id` int,\n" + 
-        		"  `encounter_datetime` datetime,\n" + 
+        		"  `encounter_id` int primary key,\n" + 
+        		"  `encounter_patient_id` int,\n" + 
+        		"  `encounter_type_id` int,\n" + 
         		"  `encounter_type_name` VARCHAR,\n" + 
         		"  `encounter_type_uuid` VARCHAR,\n" + 
-        		"  `care_setting` int,\n" + 
-        		"  `care_setting_name` VARCHAR,\n" + 
-        		"  `care_setting_type` VARCHAR,\n" + 
-        		"  `care_setting_uuid` VARCHAR,\n" + 
-        		"  `instructions` VARCHAR,\n" + 
-        		"  `date_activated` TIMESTAMP,\n" + 
-        		"  `auto_expire_date` TIMESTAMP,\n" + 
-        		"  `date_stopped` TIMESTAMP,\n" + 
-        		"  `order_reason` int,\n" + 
-        		"  `order_reason_non_coded` VARCHAR,\n" + 
-        		"  `date_created` TIMESTAMP,\n" + 
-        		"  `creator` int,\n" + 
-        		"  `voided_by` int,\n" + 
-        		"  `date_voided` TIMESTAMP,\n" + 
-        		"  `void_reason` VARCHAR,\n" + 
-        		"  `accession_number` VARCHAR,\n" + 
-        		"  `uuid` VARCHAR,\n" + 
-        		"  `order_number` VARCHAR,\n" + 
-        		"  `previous_order_id` int,\n" + 
-        		"  `order_action` VARCHAR,\n" + 
-        		"  `comment_to_fulfiller` VARCHAR,\n" + 
-        		"  `scheduled_date` TIMESTAMP,\n" + 
-        		"  `order_group_id` int,\n" + 
-        		"  `sort_weight` DOUBLE,\n" + 
-        		"  `encounter_voided` BOOLEAN,\n" + 
-        		"  `voided` BOOLEAN,\n" + 
-        		"  `order_type_retired` BOOLEAN,\n" + 
         		"  `encounter_type_retired` BOOLEAN,\n" + 
-        		"  `care_setting_retired` BOOLEAN\n" + 
+        		"  `encounter_datetime` TIMESTAMP,\n" + 
+        		"  `encounter_voided` BOOLEAN,\n" + 
+        		"  `encounter_visit_id` int,\n" + 
+        		"  `visit_type_name` VARCHAR,\n" + 
+        		"  `visit_type_uuid` VARCHAR,\n" + 
+        		"  `visit_type_description` VARCHAR,\n" + 
+        		"  `visit_date_started` TIMESTAMP,\n" + 
+        		"  `visit_date_stopped` TIMESTAMP,\n" + 
+        		"  `visit_voided` BOOLEAN,\n" + 
+        		"  `visit_type_retired` BOOLEAN,\n" + 
+        		"  `encounter_form_id` int,\n" + 
+        		"  `form_name` VARCHAR,\n" + 
+        		"  `form_uuid` VARCHAR,\n" + 
+        		"  `form_version` VARCHAR,\n" + 
+        		"  `form_published` BOOLEAN,\n" + 
+        		"  `form_encounter_type` int,\n" + 
+        		"  `form_retired` BOOLEAN,\n" + 
+        		"  `encounter_location_id` int,\n" + 
+        		"  `location_name` VARCHAR,\n" + 
+        		"  `location_uuid` VARCHAR,\n" + 
+        		"  `location_address1` VARCHAR,\n" + 
+        		"  `location_retired` BOOLEAN,\n" + 
+        		"  `encounter_creator` int,\n" + 
+        		"  `encounter_date_created` TIMESTAMP,\n" + 
+        		"  `encounter_voided_by` int,\n" + 
+        		"  `encounter_date_voided` TIMESTAMP,\n" + 
+        		"  `encounter_void_reason` VARCHAR,\n" + 
+        		"  `encounter_changed_by` int,\n" + 
+        		"  `encounter_date_changed` TIMESTAMP,\n" + 
+        		"  `encounter_uuid` VARCHAR,\n" + 
+        		"  `encounter_type_description` VARCHAR,\n" + 
+        		"  `form_description` VARCHAR,\n" + 
+        		"  `form_template` VARCHAR,\n" + 
+        		"  `form_build` int,\n" + 
+        		"  `location_description` VARCHAR,\n" + 
+        		"  `location_address2` VARCHAR,\n" + 
+        		"  `location_city_village` VARCHAR,\n" + 
+        		"  `location_state_province` VARCHAR,\n" + 
+        		"  `location_postal_code` VARCHAR,\n" + 
+        		"  `location_country` VARCHAR,\n" + 
+        		"  `location_parent_location` int,\n" + 
+        		"  `location_county_district` VARCHAR\n" + 
         		")\n" +
                 "WITH (\n" +
                     ConnectorUtils.propertyJoiner(",","=").apply(this.connectorOptions) +

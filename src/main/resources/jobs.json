@@ -30,5 +30,13 @@
   {
     "name": "patient_programs",
     "sourceFilePath": "patient_programs.sql"
+  },
+  {
+    "name": "flattened_conditions",
+    "sourceFilePath": "flattened_conditions.sql"
+  },
+  {
+    "name": "encounter_diagnoses",
+    "sourceFilePath": "encounter_diagnoses.sql"
   }
 ]

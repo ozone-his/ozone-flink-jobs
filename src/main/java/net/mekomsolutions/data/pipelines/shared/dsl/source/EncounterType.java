@@ -36,7 +36,7 @@ public class EncounterType implements TableSQLDSL {
                 "  `retired_by` int,\n" +
                 "  `date_retired` TIMESTAMP,\n" +
                 "  `retire_reason` VARCHAR,\n" +
-                "  `uuid` char,\n" +
+                "  `uuid` VARCHAR,\n" +
                 "  `edit_privilege` VARCHAR,\n" +
                 "  `view_privilege` VARCHAR,\n" +
                 "  `changed_by` int,\n" +
