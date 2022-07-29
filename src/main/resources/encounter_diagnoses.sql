@@ -1,19 +1,19 @@
 select
     diagnosis_id,
-    encounter_id,
-    patient_id,
     diagnosis_coded,
     diagnosis_non_coded,
     diagnosis_coded_name,
-    dx_rank,
+    encounter_id,
+    patient_id,
     certainty,
+    dx_rank,
+    uuid,
     creator,
     date_created,
     voided,
     voided_by,
     date_voided,
-    void_reason,
-    uuid
+    void_reason
 from
     encounter_diagnosis
     
