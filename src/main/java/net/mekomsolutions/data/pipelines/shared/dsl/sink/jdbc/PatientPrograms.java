@@ -27,7 +27,7 @@ public class PatientPrograms  implements TableSQLDSL {
     @Override
     public String getDSL() {
         return "CREATE TABLE `patient_programs` (\n" + 
-        		"  `patient_program_id` int,\n" + 
+        		"  `patient_program_id` int primary key,\n" + 
         		"  `patient_id` int,\n" + 
         		"  `program_id` int,\n" + 
         		"  `date_enrolled` TIMESTAMP,\n" + 

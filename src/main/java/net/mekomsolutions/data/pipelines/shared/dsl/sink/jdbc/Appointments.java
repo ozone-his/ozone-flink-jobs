@@ -27,7 +27,7 @@ public class Appointments  implements TableSQLDSL {
     @Override
     public String getDSL() {
         return "CREATE TABLE `appointments` (\n" + 
-        		"  `patient_appointment_id` int,\n" + 
+        		"  `patient_appointment_id` int primary key,\n" + 
         		"  `patient_id` int,\n" + 
         		"  `appointment_number` VARCHAR,\n" + 
         		"  `start_date_time` TIMESTAMP,\n" + 
