@@ -84,7 +84,8 @@ under the License.
 										</filter>
 									</filters>
 									<transformers>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 											<mainClass>net.mekomsolutions.data.pipelines.streaming.StreamingETLJob</mainClass>
 										</transformer>
 									</transformers>
@@ -120,10 +121,10 @@ under the License.
 								<configuration>
 									<artifactSet>
 										<excludes>
-<!--											<exclude>org.apache.flink:force-shading</exclude>-->
-<!--											<exclude>com.google.code.findbugs:jsr305</exclude>-->
-<!--											<exclude>org.slf4j:*</exclude>-->
-<!--											<exclude>org.apache.logging.log4j:*</exclude>-->
+											<!--											<exclude>org.apache.flink:force-shading</exclude>-->
+											<!--											<exclude>com.google.code.findbugs:jsr305</exclude>-->
+											<!--											<exclude>org.slf4j:*</exclude>-->
+											<!--											<exclude>org.apache.logging.log4j:*</exclude>-->
 										</excludes>
 									</artifactSet>
 									<filters>
@@ -139,8 +140,10 @@ under the License.
 										</filter>
 									</filters>
 									<transformers>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-										<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 											<mainClass>net.mekomsolutions.data.pipelines.export.BatchParquetExport</mainClass>
 										</transformer>
 									</transformers>
@@ -309,33 +312,33 @@ under the License.
 					<target>${target.java.version}</target>
 				</configuration>
 			</plugin>
-			
+
 			<!-- Code formatter -->
 			<plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-                <version>2.10.0</version>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>format</goal>
-                        </goals>
-                        <configuration>
-                            <directories>
-                                <directory>.</directory>
-                            </directories>
-                            <configFile>eclipse/OpenMRSFormatter.xml</configFile>
-                            <includes>
-                                <include>**/*.java</include>
-                                <include>**/*.json</include>
-                                <include>**/*.sql</include>
-                                <include>**/*.xml</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+				<groupId>net.revelc.code.formatter</groupId>
+				<artifactId>formatter-maven-plugin</artifactId>
+				<version>2.10.0</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+						<configuration>
+							<directories>
+								<directory>.</directory>
+							</directories>
+							<configFile>eclipse/OpenMRSFormatter.xml</configFile>
+							<includes>
+								<include>**/*.java</include>
+								<include>**/*.json</include>
+								<include>**/*.sql</include>
+								<include>**/*.xml</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
 			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
@@ -372,8 +375,10 @@ under the License.
 								</filter>
 							</filters>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>net.mekomsolutions.data.pipelines.migrations.RunMigrations</mainClass>
 								</transformer>
 							</transformers>
@@ -406,7 +411,7 @@ under the License.
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore/>
+										<ignore />
 									</action>
 								</pluginExecution>
 								<pluginExecution>
@@ -420,12 +425,23 @@ under the License.
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore/>
+										<ignore />
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>net.revelc.code.formatter</groupId>
+					<artifactId>formatter-maven-plugin</artifactId>
+					<dependencies>
+						<dependency>
+							<groupId>org.openmrs.tools</groupId>
+							<artifactId>openmrs-tools</artifactId>
+							<version>2.2.0</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 			</plugins>
 		</pluginManagement>

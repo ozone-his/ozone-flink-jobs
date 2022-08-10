@@ -1,42 +1,42 @@
 [
-  {
-    "name": "visits",
-    "sourceFilePath": "visits.sql"
-  },
-  {
-    "name": "concepts",
-    "sourceFilePath": "concepts.sql"
-  },
-  {
-    "name": "patients",
-    "sourceFilePath": "patients.sql"
-  },
-  {
-    "name": "observations",
-    "sourceFilePath": "observations.sql"
-  },
-  {
-    "name": "_orders",
-    "sourceFilePath": "_orders.sql"
-  },
-  {
-    "name": "appointments",
-    "sourceFilePath": "appointments.sql"
-  },
-  {
-    "name": "encounters",
-    "sourceFilePath": "encounters.sql"
-  },
-  {
-    "name": "patient_programs",
-    "sourceFilePath": "patient_programs.sql"
-  },
-  {
-    "name": "_conditions",
-    "sourceFilePath": "_conditions.sql"
-  },
-  {
-    "name": "encounter_diagnoses",
-    "sourceFilePath": "encounter_diagnoses.sql"
-  }
+    {
+        "name" : "visits",
+        "sourceFilePath" : "visits.sql"
+    },
+    {
+        "name" : "concepts",
+        "sourceFilePath" : "concepts.sql"
+    },
+    {
+        "name" : "patients",
+        "sourceFilePath" : "patients.sql"
+    },
+    {
+        "name" : "observations",
+        "sourceFilePath" : "observations.sql"
+    },
+    {
+        "name" : "_orders",
+        "sourceFilePath" : "_orders.sql"
+    },
+    {
+        "name" : "appointments",
+        "sourceFilePath" : "appointments.sql"
+    },
+    {
+        "name" : "encounters",
+        "sourceFilePath" : "encounters.sql"
+    },
+    {
+        "name" : "patient_programs",
+        "sourceFilePath" : "patient_programs.sql"
+    },
+    {
+        "name" : "_conditions",
+        "sourceFilePath" : "_conditions.sql"
+    },
+    {
+        "name" : "encounter_diagnoses",
+        "sourceFilePath" : "encounter_diagnoses.sql"
+    }
 ]
