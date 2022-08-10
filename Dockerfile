@@ -1,5 +1,5 @@
 
-FROM maven:3.5-jdk-8-alpine as builder
+FROM maven:3.8.6-eclipse-temurin-8 as builder
 # add pom.xml and source code
 ADD ./pom.xml pom.xml
 #cache dependencies
