@@ -14,19 +14,19 @@ public class FlattenedOrders  implements TableSQLDSL {
     private Map<String, String> connectorOptions;
     public FlattenedOrders(Map<String, String> connectorOptions) {
         if(!Objects.equals(connectorOptions.get("connector"), "filesystem")){
-            connectorOptions.put("table-name","flattened_orders");
+            connectorOptions.put("table-name","_orders");
         }else{
-            connectorOptions.put("path","/tmp/analytics/flattened_orders");
+            connectorOptions.put("path","/tmp/analytics/_orders");
         }
         this.connectorOptions = connectorOptions;
     }
 
     /**
-     * @return orders table DSL
+     * @return _orders table DSL
      */
     @Override
     public String getDSL() {
-        return "CREATE TABLE `flattened_orders` (\n" + 
+        return "CREATE TABLE `_orders` (\n" + 
         		"    `order_id` int primary key,\n" + 
         		"    `patient_id` int,\n" + 
         		"    `order_type_id` int,\n" + 

@@ -14,19 +14,19 @@ public class FlattenedConditions  implements TableSQLDSL {
     private Map<String, String> connectorOptions;
     public FlattenedConditions(Map<String, String> connectorOptions) {
         if(!Objects.equals(connectorOptions.get("connector"), "filesystem")){
-            connectorOptions.put("table-name","flattened_conditions");
+            connectorOptions.put("table-name","_conditions");
         }else{
-            connectorOptions.put("path","/tmp/analytics/flattened_conditions");
+            connectorOptions.put("path","/tmp/analytics/_conditions");
         }
         this.connectorOptions = connectorOptions;
     }
 
     /**
-     * @return flattened_conditions table DSL
+     * @return _conditions table DSL
      */
     @Override
     public String getDSL() {
-        return "CREATE TABLE `flattened_conditions` (\n" + 
+        return "CREATE TABLE `_conditions` (\n" + 
         		"  `condition_id` int primary key,\n" + 
         		"  `additional_detail` VARCHAR,\n" + 
         		"  `previous_version` int,\n" + 

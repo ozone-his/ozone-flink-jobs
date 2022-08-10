@@ -116,10 +116,10 @@ public class TableDSLFactory {
             case "orders":
                 tableSQLDSL = new Orders(this.connectorOptions);
                 break;
-            case "flattened_orders":
+            case "_orders":
                 tableSQLDSL = new FlattenedOrders(this.connectorOptions);
                 break;
-            case "flattened_orders_fs":
+            case "_orders_fs":
                 tableSQLDSL = new FlattenedOrdersFs(this.connectorOptions);
                 break;
             case "observations_fs":
@@ -176,10 +176,10 @@ public class TableDSLFactory {
             case "conditions":
                 tableSQLDSL = new Conditions(this.connectorOptions);
                 break;
-            case "flattened_conditions":
+            case "_conditions":
                 tableSQLDSL = new FlattenedConditions(this.connectorOptions);
                 break;
-            case "flattened_conditions_fs":
+            case "_conditions_fs":
                 tableSQLDSL = new FlattenedConditionsFs(this.connectorOptions);
                 break;
             case "encounter_diagnosis":

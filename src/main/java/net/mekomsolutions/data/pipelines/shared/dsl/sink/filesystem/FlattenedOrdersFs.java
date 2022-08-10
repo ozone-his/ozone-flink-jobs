@@ -20,11 +20,11 @@ public class FlattenedOrdersFs implements TableSQLDSL {
     }
 
     /**
-     * @return Orders table DSL
+     * @return _orders table DSL
      */
     @Override
     public String getDSL() {
-        return "CREATE TABLE `flattened_orders` (,\n" + 
+        return "CREATE TABLE `_orders` (,\n" + 
         		"    `order_id` int primary key,\n" + 
         		"    `patient_id` int,\n" + 
         		"    `order_type_id` int,\n" + 

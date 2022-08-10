@@ -13,11 +13,6 @@ import java.util.Objects;
 public class EncounterDiagnosesFs  implements TableSQLDSL {
     private Map<String, String> connectorOptions;
     public EncounterDiagnosesFs(Map<String, String> connectorOptions) {
-        if(!Objects.equals(connectorOptions.get("connector"), "filesystem")){
-            connectorOptions.put("table-name","encounter_diagnoses");
-        }else{
-            connectorOptions.put("path","/tmp/analytics/encounter_diagnoses");
-        }
         this.connectorOptions = connectorOptions;
     }
 

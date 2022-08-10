@@ -16,8 +16,8 @@
     "sourceFilePath": "observations.sql"
   },
   {
-    "name": "flattened_orders",
-    "sourceFilePath": "flattenedOrders.sql"
+    "name": "_orders",
+    "sourceFilePath": "_orders.sql"
   },
   {
     "name": "appointments",
@@ -32,8 +32,8 @@
     "sourceFilePath": "patient_programs.sql"
   },
   {
-    "name": "flattened_conditions",
-    "sourceFilePath": "flattened_conditions.sql"
+    "name": "_conditions",
+    "sourceFilePath": "_conditions.sql"
   },
   {
     "name": "encounter_diagnoses",

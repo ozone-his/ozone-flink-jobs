@@ -126,9 +126,9 @@
         </createTable>
     </changeSet>
     <changeSet author="ruhanga" id="1658321685032-7">
-        <createTable tableName="flattened_orders">
+        <createTable tableName="_orders">
             <column name="order_id" type="BIGINT">
-                <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_orders_pkey"/>
+                <constraints nullable="false" primaryKey="true" primaryKeyName="_orders_pkey"/>
             </column>
             <column name="patient_id" type="BIGINT"/>
             <column name="order_type_id" type="BIGINT"/>
@@ -303,9 +303,9 @@
         </createTable>
     </changeSet>
     <changeSet author="ruhanga" id="1658321685032-11">
-      <createTable tableName="flattened_conditions">
+      <createTable tableName="_conditions">
          <column name="condition_id" type="BIGINT">
-            <constraints nullable="false" primaryKey="true" primaryKeyName="flattened_conditions_pkey" />
+            <constraints nullable="false" primaryKey="true" primaryKeyName="_conditions_pkey" />
          </column>
          <column name="additional_detail" type="VARCHAR" />
          <column name="previous_version" type="BIGINT" />
