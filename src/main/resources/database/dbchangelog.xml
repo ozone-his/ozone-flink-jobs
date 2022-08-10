@@ -173,7 +173,7 @@
         </createTable>
     </changeSet>
     <changeSet author="ruhanga" id="1658321685032-8">
-        <createTable tableName="programs">
+        <createTable tableName="patient_programs">
             <column name="patient_program_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="programs_pkey"/>
             </column>
@@ -340,7 +340,7 @@
          <column name="encounter_id" type="BIGINT" />
          <column name="patient_id" type="BIGINT" />
          <column name="certainty" type="VARCHAR" />
-         <column name="dx_rank" type="BIGINT" />
+         <column name="rank" type="BIGINT" />
          <column name="uuid" type="VARCHAR" />
          <column name="creator" type="BIGINT" />
          <column name="date_created" type="TIMESTAMP" />

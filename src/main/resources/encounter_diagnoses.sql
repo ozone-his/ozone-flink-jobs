@@ -6,7 +6,7 @@ select
     encounter_id,
     patient_id,
     certainty,
-    dx_rank,
+    `rank`,
     uuid,
     creator,
     date_created,

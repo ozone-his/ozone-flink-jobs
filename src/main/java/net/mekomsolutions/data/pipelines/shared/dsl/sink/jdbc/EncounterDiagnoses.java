@@ -34,7 +34,7 @@ public class EncounterDiagnoses  implements TableSQLDSL {
         		"  `encounter_id` int,\n" + 
         		"  `patient_id` int,\n" + 
         		"  `certainty` VARCHAR,\n" + 
-        		"  `dx_rank` int,\n" + 
+        		"  `rank` int,\n" + 
         		"  `uuid` VARCHAR,\n" + 
         		"  `creator` int,\n" + 
         		"  `date_created` TIMESTAMP,\n" + 
