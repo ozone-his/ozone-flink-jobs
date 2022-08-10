@@ -309,6 +309,33 @@ under the License.
 					<target>${target.java.version}</target>
 				</configuration>
 			</plugin>
+			
+			<!-- Code formatter -->
+			<plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.10.0</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <configuration>
+                            <directories>
+                                <directory>.</directory>
+                            </directories>
+                            <configFile>eclipse/OpenMRSFormatter.xml</configFile>
+                            <includes>
+                                <include>**/*.java</include>
+                                <include>**/*.json</include>
+                                <include>**/*.sql</include>
+                                <include>**/*.xml</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
 			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->

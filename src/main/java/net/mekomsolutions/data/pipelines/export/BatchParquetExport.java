@@ -35,7 +35,7 @@ public class BatchParquetExport {
                 {"path", parameterTool.get("output-dir", "/tmp/")},
         }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
-        String[] sourceTables =  {"visits", "patients", "concepts", "observations"};
+        String[] sourceTables =  {"visits", "patients", "concepts", "observations", "_orders", "encounters", "patient_programs", "appointments", "_conditions", "encounter_diagnoses"};
 
         CommonUtils.setupTables(tEnv, sourceTables, postgresConnectorOptions);
 
@@ -44,26 +44,14 @@ public class BatchParquetExport {
                                             .replaceAll("([^/])$","$1/");
         String locationTag = parameterTool.get("location-tag", "");
         String date = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
-
-        fileSystemConnectorOptions.put("path",outPutPath+"/observations/"+locationTag+"/"+date);
+        
         TableDSLFactory tableDSLFactorySink = new TableDSLFactory(fileSystemConnectorOptions);
-        tEnv.executeSql(tableDSLFactorySink.getTable("observations_fs").getDSL());
-
-        fileSystemConnectorOptions.put("path",outPutPath+"/patients/"+locationTag+"/"+date);
-        TableDSLFactory tableDSLFactorySinkPatients = new TableDSLFactory(fileSystemConnectorOptions);
-        tEnv.executeSql(tableDSLFactorySinkPatients.getTable("patients_fs").getDSL());
-
-        fileSystemConnectorOptions.put("path",outPutPath+"/concepts/"+locationTag+"/"+date);
-        TableDSLFactory tableDSLFactorySinkConcepts = new TableDSLFactory(fileSystemConnectorOptions);
-        tEnv.executeSql(tableDSLFactorySinkConcepts.getTable("concepts_fs").getDSL());
-
-        fileSystemConnectorOptions.put("path",outPutPath+"/visits/"+locationTag+"/"+date);
-        TableDSLFactory tableDSLFactorySinkVisits = new TableDSLFactory(fileSystemConnectorOptions);
-        tEnv.executeSql(tableDSLFactorySinkVisits.getTable("visits_fs").getDSL());
-
-        tEnv.executeSql("INSERT into observations_fs SELECT o.*  from observations o");
-        tEnv.executeSql("INSERT into concepts_fs SELECT c.*  from concepts c");
-        tEnv.executeSql("INSERT into patients_fs SELECT p.* from patients p");
-        tEnv.executeSql("INSERT into visits_fs SELECT v.*  from visits v");
+        Stream.of(sourceTables).forEach(table -> {
+        	String tableFs = table + "_fs";
+        	fileSystemConnectorOptions.put("path",outPutPath + "/" + table + "/" + locationTag + "/" + date);
+            
+        	tEnv.executeSql(tableDSLFactorySink.getTable(tableFs).getDSL());
+        	tEnv.executeSql("INSERT into " + tableFs + " SELECT t.*  from " + table + " t");
+        });
     }
 }
