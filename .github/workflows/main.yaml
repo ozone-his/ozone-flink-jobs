@@ -16,6 +16,7 @@ jobs:
       - name: Prepare
         id: prep
         run: |
+          #!/bin/bash
           DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ozone-flink-jobs }
           VERSION=latest
           SHORTREF=${GITHUB_SHA::8}
