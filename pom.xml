@@ -446,4 +446,17 @@ under the License.
 			</plugins>
 		</pluginManagement>
 	</build>
+	
+	<pluginRepositories>
+        <pluginRepository>
+            <id>openmrs-repo</id>
+            <name>OpenMRS Nexus</name>
+            <url>https://mavenrepo.openmrs.org/public</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>openmrs-repo-snapshots</id>
+            <name>OpenMRS Nexus Snapshots</name>
+            <url>https://mavenrepo.openmrs.org/snapshots</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
