@@ -29,13 +29,13 @@ public class FlattenedConditions implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `_conditions` (\n" + "  `condition_id` int primary key,\n" + "  `additional_detail` VARCHAR,\n"
-		        + "  `previous_version` int,\n" + "  `condition_coded` int,\n" + "  `condition_non_coded` VARCHAR,\n"
-		        + "  `condition_coded_name` int,\n" + "  `clinical_status` VARCHAR,\n" + "  `verification_status` VARCHAR,\n"
+		return "CREATE TABLE `_conditions` (\n" + "  `condition_id` BIGINT PRIMARY KEY,\n" + "  `additional_detail` VARCHAR,\n"
+		        + "  `previous_version` BIGINT,\n" + "  `condition_coded` BIGINT,\n" + "  `condition_non_coded` VARCHAR,\n"
+		        + "  `condition_coded_name` BIGINT,\n" + "  `clinical_status` VARCHAR,\n" + "  `verification_status` VARCHAR,\n"
 		        + "  `onset_date` TIMESTAMP,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
 		        + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR,\n" + "  `uuid` VARCHAR,\n"
-		        + "  `creator` int,\n" + "  `voided_by` int,\n" + "  `changed_by` int,\n" + "  `patient_id` int,\n"
-		        + "  `end_date` TIMESTAMP,\n" + "  `date_changed` TIMESTAMP,\n" + "  `encounter_id` int\n" + ")\n"
+		        + "  `creator` BIGINT,\n" + "  `voided_by` BIGINT,\n" + "  `changed_by` BIGINT,\n" + "  `patient_id` BIGINT,\n"
+		        + "  `end_date` TIMESTAMP,\n" + "  `date_changed` TIMESTAMP,\n" + "  `encounter_id` BIGINT\n" + ")\n"
 		        + "WITH (\n" + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	
