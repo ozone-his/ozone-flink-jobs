@@ -3,8 +3,11 @@ package net.mekomsolutions.data.pipelines.export;
 import net.mekomsolutions.data.pipelines.shared.dsl.TableDSLFactory;
 import net.mekomsolutions.data.pipelines.utils.CommonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
+import org.apache.flink.table.api.config.TableConfigOptions;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -40,11 +43,16 @@ public class BatchParquetExport {
 		String date = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
 		
 		TableDSLFactory tableDSLFactorySink = new TableDSLFactory(fileSystemConnectorOptions);
+		
+		// create tables on the file system
 		Stream.of(sourceTables).forEach(table -> {
 			String tableFs = table + "_fs";
 			fileSystemConnectorOptions.put("path", outPutPath + "/" + table + "/" + locationTag + "/" + date);
-			
 			tEnv.executeSql(tableDSLFactorySink.getTable(tableFs).getDSL());
+		});
+		// fill tables with data from query related dsl queries
+		Stream.of(sourceTables).forEach(table -> {
+			String tableFs = table + "_fs";
 			tEnv.executeSql("INSERT into " + tableFs + " SELECT t.*  from " + table + " t");
 		});
 	}
