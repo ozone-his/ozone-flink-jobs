@@ -192,11 +192,11 @@ public class TableDSLFactory {
 			case "encounter_diagnoses":
 				tableSQLDSL = new EncounterDiagnoses(this.connectorOptions);
 				break;
-			case "encounter_diagnosis_fs":
+			case "encounter_diagnoses_fs":
 				tableSQLDSL = new EncounterDiagnosesFs(this.connectorOptions);
 				break;
 			default:
-				LOG.warn("Table DSL not found");
+				LOG.warn("Table DSL not found: '" + tableName + "'");
 		}
 		return tableSQLDSL;
 	}

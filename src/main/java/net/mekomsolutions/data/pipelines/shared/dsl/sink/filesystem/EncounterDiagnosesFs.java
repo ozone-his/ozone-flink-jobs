@@ -24,13 +24,11 @@ public class EncounterDiagnosesFs implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `encounter_diagnoses` (\n" + "  `diagnosis_id` int primary key,\n"
+		return "CREATE TABLE `encounter_diagnoses_fs` (\n" + "  `diagnosis_id` int primary key,\n"
 		        + "  `diagnosis_coded` int,\n" + "  `diagnosis_non_coded` VARCHAR,\n" + "  `diagnosis_coded_name` int,\n"
-		        + "  `encounter_id` int,\n" + "  `patient_id` int,\n" + "  `condition_id` int,\n"
-		        + "  `certainty` VARCHAR,\n" + "  `rank` int,\n" + "  `uuid` VARCHAR,\n" + "  `creator` int,\n"
-		        + "  `date_created` TIMESTAMP,\n" + "  `changed_by` int,\n" + "  `date_changed` TIMESTAMP,\n"
-		        + "  `voided` BOOLEAN,\n" + "  `voided_by` int,\n" + "  `date_voided` TIMESTAMP,\n"
-		        + "  `void_reason` VARCHAR\n" + ")\n" + "WITH (\n"
+		        + "  `encounter_id` int,\n" + "  `patient_id` int,\n" + "  `certainty` VARCHAR,\n" + "  `rank` int,\n"
+		        + "  `uuid` VARCHAR,\n" + "  `creator` int,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
+		        + "  `voided_by` int,\n" + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	

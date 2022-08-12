@@ -24,7 +24,7 @@ public class PatientProgramsFs implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `patient_programs` (\n" + "  `patient_program_id` int,\n" + "  `patient_id` int,\n"
+		return "CREATE TABLE `patient_programs_fs` (\n" + "  `patient_program_id` int,\n" + "  `patient_id` int,\n"
 		        + "  `program_id` int,\n" + "  `date_enrolled` TIMESTAMP,\n" + "  `date_completed` TIMESTAMP,\n"
 		        + "  `location_id` int,\n" + "  `outcome_concept_id` int,\n" + "  `creator` int,\n"
 		        + "  `date_created` TIMESTAMP,\n" + "  `changed_by` int,\n" + "  `date_changed` TIMESTAMP,\n"

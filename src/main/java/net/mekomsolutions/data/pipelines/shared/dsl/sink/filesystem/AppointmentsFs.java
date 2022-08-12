@@ -24,7 +24,7 @@ public class AppointmentsFs implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `appointments` (\n" + "  `patient_appointment_id` int,\n" + "  `patient_id` int,\n"
+		return "CREATE TABLE `appointments_fs` (\n" + "  `patient_appointment_id` int,\n" + "  `patient_id` int,\n"
 		        + "  `appointment_number` VARCHAR,\n" + "  `start_date_time` TIMESTAMP,\n" + "  `location_id` int,\n"
 		        + "  `end_date_time` TIMESTAMP,\n" + "  `appointment_service_id` int,\n"
 		        + "  `appointment_service_type_id` int,\n" + "  `status` VARCHAR,\n" + "  `appointment_kind` VARCHAR,\n"
