@@ -20,6 +20,9 @@ public class BatchParquetExport {
 	public static void main(String[] args) throws Exception {
 		EnvironmentSettings settings = EnvironmentSettings.newInstance().inBatchMode().build();
 		TableEnvironment tEnv = TableEnvironment.create(settings);
+		Configuration synchronousConfig = new Configuration();
+		synchronousConfig.setBoolean(TableConfigOptions.TABLE_DML_SYNC, true);
+		tEnv.getConfig().addConfiguration(synchronousConfig);
 		final ParameterTool parameterTool = ParameterTool.fromArgs(args);
 		Map<String, String> postgresConnectorOptions = Stream
 		        .of(new String[][] { { "connector", "jdbc" }, { "url", parameterTool.get("jdbc-url", "") },
@@ -33,7 +36,7 @@ public class BatchParquetExport {
 		                { "path", parameterTool.get("output-dir", "/tmp/") }, })
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		
-		String[] sourceTables = { "visits", "patients", "concepts", "observations", "_orders", "encounters",
+		String[] sourceTables = { "patients", "visits", "concepts", "observations", "_orders", "encounters",
 		        "patient_programs", "appointments", "_conditions", "encounter_diagnoses" };
 		
 		CommonUtils.setupTables(tEnv, sourceTables, postgresConnectorOptions);
