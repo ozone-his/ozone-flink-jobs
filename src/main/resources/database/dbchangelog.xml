@@ -122,7 +122,7 @@
 			<column name="dead" type="BOOLEAN" />
 			<column name="death_date" type="DATE" />
 			<column name="cause_of_death" type="BIGINT" />
-			<column name="creator" type="BIGINT" />
+			<column name="creator" type="INT" />
 			<column name="date_created" type="TIMESTAMP" />
 			<column name="person_voided" type="BOOLEAN" />
 			<column name="person_void_reason" type="VARCHAR" />
