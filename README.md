@@ -5,7 +5,7 @@
 
   
 
-This repository contains an ETL [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) [job](https://ci.apache.org/projects/flink/flink-docs-master/docs/internals/job_scheduling/#:~:text=A%20Flink%20job%20is%20first,it%20cancels%20all%20running%20tasks) for flattening [Ozone HIS](https://github.com/ozone-his) data.
+This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) [jobs](https://ci.apache.org/projects/flink/flink-docs-master/docs/internals/job_scheduling/#:~:text=A%20Flink%20job%20is%20first,it%20cancels%20all%20running%20tasks) for flattening [Ozone HIS](https://github.com/ozone-his) data.
 
 ## Features
 
@@ -15,15 +15,27 @@ This repository contains an ETL [Flink](hhttps://ci.apache.org/projects/flink/fl
 
 - Currently flattens OpenMRS to output reporting friendly tables for:
 
-- patients
+  - patients
 
-- observations
+  - observations
 
-- visits
+  - visits
 
-- concepts
+  - concepts
 
-  
+  - encounters
+
+  - orders
+
+  - conditions
+
+  - diagnoses
+
+  - appointments
+
+  - patient programs
+
+
 
 ## Tech
 
@@ -41,7 +53,7 @@ This repository contains an ETL [Flink](hhttps://ci.apache.org/projects/flink/fl
 
 - A running Flink [installation](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/try-flink/local_installation/)
 
-- A running OpenMRS installation
+- A running OpenMRS installation (based on the [openmrs-reference-application 3.x ](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/3.x) distribution database)
 
 - A running PostgreSQL installation
 
