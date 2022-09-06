@@ -48,12 +48,14 @@
 			</column>
 			<column name="person_id" type="BIGINT" />
 			<column name="concept_name" type="TEXT" />
+			<column name="concept_uuid" type="TEXT" />
 			<column name="concept_id" type="BIGINT" />
 			<column name="obs_group_id" type="BIGINT" />
 			<column name="accession_number" type="TEXT" />
 			<column name="form_namespace_and_path" type="TEXT" />
 			<column name="value_coded" type="BIGINT" />
 			<column name="value_coded_name" type="TEXT" />
+			<column name="value_coded_uuid" type="TEXT" />
 			<column name="value_coded_name_id" type="BIGINT" />
 			<column name="value_drug" type="BIGINT" />
 			<column name="value_datetime" type="TIMESTAMP WITHOUT TIME ZONE" />
@@ -119,6 +121,10 @@
 			<column name="birthdate" type="DATE" />
 			<column name="birthdate_estimated" type="BOOLEAN" />
 			<column name="city" type="VARCHAR" />
+			<column name="address1" type="VARCHAR" />
+			<column name="address2" type="VARCHAR" />
+			<column name="state_province" type="VARCHAR" />
+			<column name="country" type="VARCHAR" />
 			<column name="dead" type="BOOLEAN" />
 			<column name="death_date" type="DATE" />
 			<column name="cause_of_death" type="BIGINT" />

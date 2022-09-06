@@ -30,9 +30,9 @@ public class Observations implements TableSQLDSL {
 	@Override
 	public String getDSL() {
 		return "CREATE TABLE observations (\n" + "    obs_id BIGINT PRIMARY KEY,\n" + "    person_id BIGINT,\n"
-		        + "    concept_name VARCHAR,\n" + "    concept_id BIGINT,\n" + "    obs_group_id BIGINT,\n"
+		        + "    concept_name VARCHAR,\n" + "    concept_uuid VARCHAR,\n" +  "    concept_id BIGINT,\n" + "    obs_group_id BIGINT,\n"
 		        + "    accession_number VARCHAR,\n" + "    form_namespace_and_path VARCHAR,\n" + "    value_coded BIGINT,\n"
-		        + "    value_coded_name VARCHAR,\n" + "    value_coded_name_id BIGINT,\n" + "    value_drug BIGINT,\n"
+		        + "    value_coded_name VARCHAR,\n" + "    value_coded_uuid VARCHAR,\n" + "    value_coded_name_id BIGINT,\n" + "    value_drug BIGINT,\n"
 		        + "    value_datetime TIMESTAMP,\n" + "    value_numeric DOUBLE,\n" + "    value_modifier VARCHAR,\n"
 		        + "    value_text VARCHAR,\n" + "    value_complex VARCHAR,\n" + "    comments VARCHAR,\n"
 		        + "    creator BIGINT,\n" + "    date_created TIMESTAMP,\n" + "    obs_voided BOOLEAN,\n"

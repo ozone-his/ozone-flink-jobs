@@ -31,7 +31,7 @@ public class Patients implements TableSQLDSL {
 	public String getDSL() {
 		return "CREATE TABLE `patients` (\n" + "patient_id BIGINT PRIMARY KEY,\n" + "given_name VARCHAR,\n"
 		        + "middle_name VARCHAR,\n" + "family_name VARCHAR,\n" + "identifier VARCHAR,\n" + "gender VARCHAR,\n"
-		        + "birthdate DATE,\n" + "birthdate_estimated BOOLEAN,\n" + "city VARCHAR,\n" + "dead BOOLEAN,\n"
+		        + "birthdate DATE,\n" + "birthdate_estimated BOOLEAN,\n" + "city VARCHAR,\n" + "address1 VARCHAR,\n" + "address2 VARCHAR,\n" + "state_province VARCHAR,\n" + "country VARCHAR,\n" + "dead BOOLEAN,\n"
 		        + "death_date TIMESTAMP,\n" + "cause_of_death BIGINT,\n" + "creator INT,\n" + "date_created TIMESTAMP,\n"
 		        + "person_voided BOOLEAN,\n" + "person_void_reason VARCHAR\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
