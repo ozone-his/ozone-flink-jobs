@@ -35,13 +35,14 @@ public class AppointmentsFs implements TableSQLDSL {
 		        + "  `appointment_service_description` VARCHAR,\n" + "  `appointment_service_voided` BOOLEAN,\n"
 		        + "  `appointment_service_uuid` VARCHAR,\n" + "  `appointment_service_color` VARCHAR,\n"
 		        + "  `appointment_service_start_time` TIMESTAMP,\n" + "  `appointment_service_end_time` TIMESTAMP,\n"
-		        + "  `appointment_service_speciality_id` BIGINT,\n" + "  `appointment_service_max_appointments_limit` BIGINT,\n"
+		        + "  `appointment_service_speciality_id` BIGINT,\n"
+		        + "  `appointment_service_max_appointments_limit` BIGINT,\n"
 		        + "  `appointment_service_duration_mins` BIGINT,\n"
 		        + "  `appointment_service_initial_appointment_status` VARCHAR,\n"
 		        + "  `appointment_service_type_name` VARCHAR,\n" + "  `appointment_service_type_duration_mins` BIGINT,\n"
 		        + "  `appointment_service_type_voided` BOOLEAN,\n" + "  `appointment_service_type_uuid` VARCHAR,\n"
-		        + "  `patient_appointment_provider` BIGINT,\n" + "  `patient_appointment_provider_response` VARCHAR\n" + ")\n"
-		        + "WITH (\n" + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
+		        + "  `patient_appointment_provider` BIGINT,\n" + "  `patient_appointment_provider_response` VARCHAR\n"
+		        + ")\n" + "WITH (\n" + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	
 }

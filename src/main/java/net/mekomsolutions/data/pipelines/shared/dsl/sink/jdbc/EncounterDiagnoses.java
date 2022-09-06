@@ -30,10 +30,11 @@ public class EncounterDiagnoses implements TableSQLDSL {
 	@Override
 	public String getDSL() {
 		return "CREATE TABLE `encounter_diagnoses` (\n" + "  `diagnosis_id` BIGINT PRIMARY KEY,\n"
-		        + "  `diagnosis_coded` BIGINT,\n" + "  `diagnosis_non_coded` VARCHAR,\n" + "  `diagnosis_coded_name` BIGINT,\n"
-		        + "  `encounter_id` BIGINT,\n" + "  `patient_id` BIGINT,\n" + "  `certainty` VARCHAR,\n" + "  `rank` BIGINT,\n"
-		        + "  `uuid` VARCHAR,\n" + "  `creator` BIGINT,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
-		        + "  `voided_by` BIGINT,\n" + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR\n" + ")\n" + "WITH (\n"
+		        + "  `diagnosis_coded` BIGINT,\n" + "  `diagnosis_non_coded` VARCHAR,\n"
+		        + "  `diagnosis_coded_name` BIGINT,\n" + "  `encounter_id` BIGINT,\n" + "  `patient_id` BIGINT,\n"
+		        + "  `certainty` VARCHAR,\n" + "  `rank` BIGINT,\n" + "  `uuid` VARCHAR,\n" + "  `creator` BIGINT,\n"
+		        + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n" + "  `voided_by` BIGINT,\n"
+		        + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	
