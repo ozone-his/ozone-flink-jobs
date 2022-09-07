@@ -35,7 +35,7 @@ public class ObservationsFs implements TableSQLDSL {
 		        + "    value_numeric DOUBLE,\n" + "    value_modifier VARCHAR,\n" + "    value_text VARCHAR,\n"
 		        + "    value_complex VARCHAR,\n" + "    comments VARCHAR,\n" + "    creator BIGINT,\n"
 		        + "    date_created TIMESTAMP,\n" + "    obs_voided BOOLEAN,\n" + "    obs_void_reason VARCHAR,\n"
-		        + "    previous_version BIGINT,\n" + "    encounter_id BIGINT,\n" + "    voided_2 BOOLEAN,\n"
+		        + "    previous_version BIGINT,\n" + "    encounter_id BIGINT,\n" + "    encounter_voided BOOLEAN,\n"
 		        + "    visit_id BIGINT,\n" + "    visit_date_started TIMESTAMP,\n" + "    visit_date_stopped TIMESTAMP,\n"
 		        + "    location_id BIGINT,\n" + "    encounter_type_name VARCHAR,\n"
 		        + "    encounter_type_description VARCHAR,\n" + "    encounter_type_retired BOOLEAN,\n"

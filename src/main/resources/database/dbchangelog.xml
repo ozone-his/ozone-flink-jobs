@@ -70,7 +70,7 @@
 			<column name="obs_void_reason" type="TEXT" />
 			<column name="previous_version" type="BIGINT" />
 			<column name="encounter_id" type="BIGINT" />
-			<column name="voided_2" type="BOOLEAN" />
+			<column name="encounter_voided" type="BOOLEAN" />
 			<column name="visit_id" type="BIGINT" />
 			<column name="visit_date_started" type="TIMESTAMP WITHOUT TIME ZONE" />
 			<column name="visit_date_stopped" type="TIMESTAMP WITHOUT TIME ZONE" />
