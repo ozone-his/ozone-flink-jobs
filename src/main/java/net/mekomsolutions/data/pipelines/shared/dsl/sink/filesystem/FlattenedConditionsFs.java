@@ -30,8 +30,7 @@ public class FlattenedConditionsFs implements TableSQLDSL {
 		        + "  `clinical_status` VARCHAR,\n" + "  `verification_status` VARCHAR,\n" + "  `onset_date` TIMESTAMP,\n"
 		        + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n" + "  `date_voided` TIMESTAMP,\n"
 		        + "  `void_reason` VARCHAR,\n" + "  `uuid` VARCHAR,\n" + "  `creator` BIGINT,\n" + "  `voided_by` BIGINT,\n"
-		        + "  `changed_by` BIGINT,\n" + "  `patient_id` BIGINT,\n" + "  `end_date` TIMESTAMP,\n"
-		        + "  `date_changed` TIMESTAMP,\n" + "  `encounter_id` BIGINT\n" + ")\n" + "WITH (\n"
+		        + "  `changed_by` BIGINT,\n" + "  `patient_id` BIGINT,\n" + "  `end_date` TIMESTAMP\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	
