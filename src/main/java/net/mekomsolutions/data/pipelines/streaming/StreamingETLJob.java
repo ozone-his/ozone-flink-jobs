@@ -109,7 +109,7 @@ public class StreamingETLJob {
 		tEnv.getConfig().getConfiguration().setString("taskmanager.network.numberOfBuffers", "20");
 		tEnv.getConfig() // access high-level configuration
 		        .getConfiguration() // set low-level key-value options
-		        .setString("table.exec.resource.default-parallelism", "6");
+		        .setString("table.exec.resource.default-parallelism", parameter.get("table.exec.resource.default-parallelism", "6") );
 		// set the checkpoint directory, which is required by the RocksDB statebackend
 		
 		String[] sourceTables = { "person", "person_name", "person_address", "patient", "patient_identifier",
