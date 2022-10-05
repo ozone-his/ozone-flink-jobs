@@ -1,5 +1,5 @@
 ---
-name: 'CI batch image'
+name: 'CI Parquet Export image'
 
 on:
   push:
