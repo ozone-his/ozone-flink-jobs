@@ -1,5 +1,5 @@
 ---
-name: 'CI batch image'
+name: 'CI Parquet Export image'
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
         id: prep
         run: |
           #!/bin/bash
-          DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ozone-flink-jobs-batch
+          DOCKER_IMAGE=${{ secrets.DOCKER_USERNAME }}/ozone-flink-parquet-export
           VERSION=latest
           SHORTREF=${GITHUB_SHA::8}
 
@@ -59,7 +59,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: .
-          file: ./Dockerfile_batch
+          file: ./Dockerfile_parquet_export
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.prep.outputs.tags }}

@@ -7,9 +7,9 @@ RUN mvn clean install -Pbatch
 
 FROM eclipse-temurin:8-jre
 ENV OUTPUT_DIR=/parquet
-COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-batch-etl.jar batch-etl.jar
+COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-etl-export.jar etl-export.jar
 COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
-ADD batch-etl.sh ./batch-etl.sh
+ADD parquet-export.sh ./parquet-export.sh
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
-CMD [ "/bin/sh","./batch-etl.sh" ]
+CMD [ "/bin/sh",".parquet-export.sh" ]
