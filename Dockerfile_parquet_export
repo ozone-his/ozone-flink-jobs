@@ -12,4 +12,4 @@ COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-etl-migrations.jar /opt/
 ADD parquet-export.sh ./parquet-export.sh
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
-CMD [ "/bin/sh",".parquet-export.sh" ]
+CMD [ "/bin/sh","./parquet-export.sh" ]
