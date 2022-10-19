@@ -3,7 +3,10 @@ package net.mekomsolutions.data.pipelines.export;
 import net.mekomsolutions.data.pipelines.shared.dsl.TableDSLFactory;
 import net.mekomsolutions.data.pipelines.utils.CommonUtils;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
@@ -22,17 +25,21 @@ public class BatchParquetExport {
 		TableEnvironment tEnv = TableEnvironment.create(settings);
 		Configuration synchronousConfig = new Configuration();
 		synchronousConfig.setBoolean(TableConfigOptions.TABLE_DML_SYNC, true);
+
 		tEnv.getConfig().addConfiguration(synchronousConfig);
 		final ParameterTool parameterTool = ParameterTool.fromArgs(args);
 		Map<String, String> postgresConnectorOptions = Stream
-		        .of(new String[][] { { "connector", "jdbc" }, { "url", parameterTool.get("jdbc-url", "") },
+		        .of(new String[][] { { "connector", "jdbc" },
+						{ "url", parameterTool.get("jdbc-url", "") },
 		                { "username", parameterTool.get("jdbc-username", "") },
-		                { "password", parameterTool.get("jdbc-password", "") }, { "sink.buffer-flush.max-rows", "1000" },
-		                { "sink.buffer-flush.interval", "1s" } })
+		                { "password", parameterTool.get("jdbc-password", "") },
+						{ "sink.buffer-flush.max-rows", "1000" },
+		                { "sink.buffer-flush.interval", "1s" },
+						{ "scan.fetch-size", "2000" }  })
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		
 		final Map<String, String> fileSystemConnectorOptions = Stream
-		        .of(new String[][] { { "connector", "filesystem" }, { "format", "parquet" },
+		        .of(new String[][] { { "connector", "filesystem" }, { "format", "parquet" },{ "sink.rolling-policy.file-size", "10MB" },
 		                { "path", parameterTool.get("output-dir", "/tmp/") }, })
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		

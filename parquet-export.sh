@@ -4,4 +4,4 @@
 : ${JDBC_PASSWORD:?"Need to set JDBC_PASSWORDy"}
 : ${OUTPUT_DIR:?"Need to set OUTPUT_DIR"}
 : ${LOCATION_TAG:?"Need to set LOCATION_TAG"}
-java -jar etl-export.jar --jdbc-url $JDBC_URL --jdbc-username $JDBC_USERNAME --jdbc-password $JDBC_PASSWORD --output-dir $OUTPUT_DIR --location-tag $LOCATION_TAG
+java $JAVA_OPTS -jar etl-export.jar --jdbc-url $JDBC_URL --jdbc-username $JDBC_USERNAME --jdbc-password $JDBC_PASSWORD --output-dir $OUTPUT_DIR --location-tag $LOCATION_TAG
