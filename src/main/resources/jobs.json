@@ -20,6 +20,10 @@
         "sourceFilePath" : "_orders.sql"
     },
     {
+        "name" : "appointments",
+        "sourceFilePath" : "appointments.sql"
+    },
+    {
         "name" : "encounters",
         "sourceFilePath" : "encounters.sql"
     },
