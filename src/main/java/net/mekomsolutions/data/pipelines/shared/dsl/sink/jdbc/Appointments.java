@@ -29,9 +29,9 @@ public class Appointments implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `appointments` (\n" + "  `patient_appointment_id` BIGINT PRIMARY KEY,\n" + "  `patient_id` BIGINT,\n"
-		        + "  `appointment_number` VARCHAR,\n" + "  `start_date_time` TIMESTAMP,\n" + "  `location_id` BIGINT,\n"
-		        + "  `end_date_time` TIMESTAMP,\n" + "  `appointment_service_id` BIGINT,\n"
+		return "CREATE TABLE `appointments` (\n" + "  `patient_appointment_id` BIGINT PRIMARY KEY,\n"
+		        + "  `patient_id` BIGINT,\n" + "  `appointment_number` VARCHAR,\n" + "  `start_date_time` TIMESTAMP,\n"
+		        + "  `location_id` BIGINT,\n" + "  `end_date_time` TIMESTAMP,\n" + "  `appointment_service_id` BIGINT,\n"
 		        + "  `appointment_service_type_id` BIGINT,\n" + "  `status` VARCHAR,\n" + "  `appointment_kind` VARCHAR,\n"
 		        + "  `comments` VARCHAR,\n" + "  `related_appointment_id` BIGINT,\n" + "  `creator` BIGINT,\n"
 		        + "  `date_created` TIMESTAMP,\n" + "  `changed_by` BIGINT,\n" + "  `date_changed` TIMESTAMP,\n"
@@ -40,13 +40,14 @@ public class Appointments implements TableSQLDSL {
 		        + "  `appointment_service_description` VARCHAR,\n" + "  `appointment_service_voided` BOOLEAN,\n"
 		        + "  `appointment_service_uuid` VARCHAR,\n" + "  `appointment_service_color` VARCHAR,\n"
 		        + "  `appointment_service_start_time` TIMESTAMP,\n" + "  `appointment_service_end_time` TIMESTAMP,\n"
-		        + "  `appointment_service_speciality_id` BIGINT,\n" + "  `appointment_service_max_appointments_limit` BIGINT,\n"
+		        + "  `appointment_service_speciality_id` BIGINT,\n"
+		        + "  `appointment_service_max_appointments_limit` BIGINT,\n"
 		        + "  `appointment_service_duration_mins` BIGINT,\n"
 		        + "  `appointment_service_initial_appointment_status` VARCHAR,\n"
 		        + "  `appointment_service_type_name` VARCHAR,\n" + "  `appointment_service_type_duration_mins` BIGINT,\n"
 		        + "  `appointment_service_type_voided` BOOLEAN,\n" + "  `appointment_service_type_uuid` VARCHAR,\n"
-		        + "  `patient_appointment_provider` BIGINT,\n" + "  `patient_appointment_provider_response` VARCHAR\n" + ")\n"
-		        + "WITH (\n" + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
+		        + "  `patient_appointment_provider` BIGINT,\n" + "  `patient_appointment_provider_response` VARCHAR\n"
+		        + ")\n" + "WITH (\n" + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	
 }

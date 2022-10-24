@@ -17,9 +17,7 @@ select
   `voided_by`,
   `changed_by`,
   `patient_id`,
-  `end_date`,
-  `date_changed`,
-  `encounter_id`
+  `end_date`
 from
   conditions
   

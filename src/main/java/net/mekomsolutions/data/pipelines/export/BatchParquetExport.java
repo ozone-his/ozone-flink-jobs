@@ -25,22 +25,19 @@ public class BatchParquetExport {
 		TableEnvironment tEnv = TableEnvironment.create(settings);
 		Configuration synchronousConfig = new Configuration();
 		synchronousConfig.setBoolean(TableConfigOptions.TABLE_DML_SYNC, true);
-
+		
 		tEnv.getConfig().addConfiguration(synchronousConfig);
 		final ParameterTool parameterTool = ParameterTool.fromArgs(args);
 		Map<String, String> postgresConnectorOptions = Stream
-		        .of(new String[][] { { "connector", "jdbc" },
-						{ "url", parameterTool.get("jdbc-url", "") },
+		        .of(new String[][] { { "connector", "jdbc" }, { "url", parameterTool.get("jdbc-url", "") },
 		                { "username", parameterTool.get("jdbc-username", "") },
-		                { "password", parameterTool.get("jdbc-password", "") },
-						{ "sink.buffer-flush.max-rows", "1000" },
-		                { "sink.buffer-flush.interval", "1s" },
-						{ "scan.fetch-size", "2000" }  })
+		                { "password", parameterTool.get("jdbc-password", "") }, { "sink.buffer-flush.max-rows", "1000" },
+		                { "sink.buffer-flush.interval", "1s" }, { "scan.fetch-size", "2000" } })
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		
 		final Map<String, String> fileSystemConnectorOptions = Stream
-		        .of(new String[][] { { "connector", "filesystem" }, { "format", "parquet" },{ "sink.rolling-policy.file-size", "10MB" },
-		                { "path", parameterTool.get("output-dir", "/tmp/") }, })
+		        .of(new String[][] { { "connector", "filesystem" }, { "format", "parquet" },
+		                { "sink.rolling-policy.file-size", "10MB" }, { "path", parameterTool.get("output-dir", "/tmp/") }, })
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		
 		String[] sourceTables = { "patients", "visits", "concepts", "observations", "_orders", "encounters",
