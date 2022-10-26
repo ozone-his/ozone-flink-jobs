@@ -17,8 +17,7 @@ public class CommonUtils {
 	        "patient_identifier_type", "visit", "visit_type", "concept", "concept_name", "concept_reference_map",
 	        "concept_reference_term", "concept_reference_source", "obs", "encounter", "encounter_type", "location",
 	        "care_setting", "order_type", "orders", "appointment_service", "appointment_service_type", "form",
-	        "patient_appointment", "patient_appointment_provider", "patient_program", "program", "conditions",
-	        "encounter_diagnosis" };;
+	        "patient_appointment", "patient_appointment_provider", "patient_program", "program", "conditions" };
 	
 	public static String SINK_TABLES[] = { "visits", "patients", "concepts", "observations", "_orders", "encounters",
 	        "patient_programs", "appointments", "_conditions", "encounter_diagnoses" };

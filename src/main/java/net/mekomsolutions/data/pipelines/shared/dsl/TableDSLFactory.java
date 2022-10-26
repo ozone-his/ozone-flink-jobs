@@ -2,7 +2,6 @@ package net.mekomsolutions.data.pipelines.shared.dsl;
 
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.AppointmentsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.ConceptsFs;
-import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.EncounterDiagnosesFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.EncountersFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedConditionsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.FlattenedOrdersFs;
@@ -12,7 +11,6 @@ import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.PatientsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.filesystem.VisitsFs;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Appointments;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Concepts;
-import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.EncounterDiagnoses;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.Encounters;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedConditions;
 import net.mekomsolutions.data.pipelines.shared.dsl.sink.jdbc.FlattenedOrders;
@@ -186,15 +184,7 @@ public class TableDSLFactory {
 			case "_conditions_fs":
 				tableSQLDSL = new FlattenedConditionsFs(this.connectorOptions);
 				break;
-			case "encounter_diagnosis":
-				tableSQLDSL = new EncounterDiagnosis(this.connectorOptions);
-				break;
-			case "encounter_diagnoses":
-				tableSQLDSL = new EncounterDiagnoses(this.connectorOptions);
-				break;
-			case "encounter_diagnoses_fs":
-				tableSQLDSL = new EncounterDiagnosesFs(this.connectorOptions);
-				break;
+
 			default:
 				LOG.warn("Table DSL not found: '" + tableName + "'");
 		}
