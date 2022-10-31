@@ -184,7 +184,7 @@ public class TableDSLFactory {
 			case "_conditions_fs":
 				tableSQLDSL = new FlattenedConditionsFs(this.connectorOptions);
 				break;
-
+			
 			default:
 				LOG.warn("Table DSL not found: '" + tableName + "'");
 		}

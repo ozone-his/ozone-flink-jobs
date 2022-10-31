@@ -1,23 +1,21 @@
 select
   `condition_id`,
-  `additional_detail`,
-  `previous_version`,
-  `condition_coded`,
+  `previous_condition_id`,
+  `patient_id`,
+  `status`,
+  `concept_id`,
   `condition_non_coded`,
-  `condition_coded_name`,
-  `clinical_status`,
-  `verification_status`,
   `onset_date`,
+  `additional_detail`,
+  `end_date`,
+  `end_reason`,
+  `creator`,
   `date_created`,
   `voided`,
+  `voided_by`,
   `date_voided`,
   `void_reason`,
-  `uuid`,
-  `creator`,
-  `voided_by`,
-  `changed_by`,
-  `patient_id`,
-  `end_date`
+  `uuid`
 from
   conditions
   

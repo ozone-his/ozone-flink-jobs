@@ -41,7 +41,7 @@ public class BatchParquetExport {
 		        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 		
 		String[] sourceTables = { "patients", "visits", "concepts", "observations", "_orders", "encounters",
-		        "patient_programs", "appointments", "_conditions", "encounter_diagnoses" };
+		        "patient_programs", "appointments", "_conditions"};
 		
 		CommonUtils.setupTables(tEnv, sourceTables, postgresConnectorOptions);
 		

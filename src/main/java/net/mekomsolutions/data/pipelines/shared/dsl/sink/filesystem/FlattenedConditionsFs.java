@@ -24,25 +24,13 @@ public class FlattenedConditionsFs implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `_conditions_fs` (\n" + 
-				"  `condition_id` int primary key,\n" + 
-				"  `previous_condition_id` BIGINT,\n" + 
-				"  `patient_id` BIGINT,\n" + 
-				"  `status` VARCHAR,\n" + 
-				"  `concept_id` BIGINT,\n" + 
-				"  `condition_non_coded` VARCHAR,\n" + 
-				"  `onset_date` TIMESTAMP,\n" + 
-				"  `additional_detail` VARCHAR,\n" + 
-				"  `end_date` TIMESTAMP,\n" + 
-				"  `end_reason` BIGINT,\n" + 
-				"  `creator` BIGINT,\n" + 
-				"  `date_created` TIMESTAMP,\n" + 
-				"  `voided` BOOLEAN,\n" + 
-				"  `voided_by` BIGINT,\n" + 
-				"  `date_voided` TIMESTAMP,\n" + 
-				"  `void_reason` VARCHAR,\n" + 
-				"  `uuid` VARCHAR\n" + 
-				")\n" + "WITH (\n"
+		return "CREATE TABLE `_conditions_fs` (\n" + "  `condition_id` int primary key,\n"
+		        + "  `previous_condition_id` BIGINT,\n" + "  `patient_id` BIGINT,\n" + "  `status` VARCHAR,\n"
+		        + "  `concept_id` BIGINT,\n" + "  `condition_non_coded` VARCHAR,\n" + "  `onset_date` TIMESTAMP,\n"
+		        + "  `additional_detail` VARCHAR,\n" + "  `end_date` TIMESTAMP,\n" + "  `end_reason` BIGINT,\n"
+		        + "  `creator` BIGINT,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
+		        + "  `voided_by` BIGINT,\n" + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR,\n"
+		        + "  `uuid` VARCHAR\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}
 	

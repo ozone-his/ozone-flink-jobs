@@ -355,7 +355,7 @@ under the License.
 			</plugin>
 
 			<!-- Code formatter -->
-			<plugin>
+			<!-- <plugin>
 				<groupId>net.revelc.code.formatter</groupId>
 				<artifactId>formatter-maven-plugin</artifactId>
 				<version>2.10.0</version>
@@ -379,7 +379,7 @@ under the License.
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin> -->
 
 			<!-- We use the maven-shade plugin to create a fat jar that contains all necessary dependencies. -->
 			<!-- Change the value of <mainClass>...</mainClass> if your program entry point changes. -->
@@ -487,8 +487,8 @@ under the License.
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<pluginRepositories>
+	<!-- Commenting this out because login is prompted to access artifacts from openmrs jfrog -->
+	<!-- <pluginRepositories>
 		<pluginRepository>
 			<id>openmrs-repo</id>
 			<name>OpenMRS Nexus</name>
@@ -499,5 +499,5 @@ under the License.
 			<name>OpenMRS Nexus Snapshots</name>
 			<url>https://mavenrepo.openmrs.org/snapshots</url>
 		</pluginRepository>
-	</pluginRepositories>
+	</pluginRepositories> -->
 </project>

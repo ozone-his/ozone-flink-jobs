@@ -20,7 +20,7 @@ public class CommonUtils {
 	        "patient_appointment", "patient_appointment_provider", "patient_program", "program", "conditions" };
 	
 	public static String SINK_TABLES[] = { "visits", "patients", "concepts", "observations", "_orders", "encounters",
-	        "patient_programs", "appointments", "_conditions", "encounter_diagnoses" };
+	        "patient_programs", "appointments", "_conditions" };
 	
 	public static void setupTables(TableEnvironment tableEnv, String[] tables, Map<String, String> connectorOptions) {
 		
