@@ -1,4 +1,6 @@
 
+ARG JAR_VERSION=1.0.0-SNAPSHOT
+
 FROM maven:3.8.6-eclipse-temurin-8 as builder
 # add pom.xml and source code
 ADD ./pom.xml pom.xml
@@ -17,8 +19,8 @@ RUN  wget https://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.
 RUN  wget https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.15/httpcore-4.4.15.jar -O /opt/flink/lib/httpcore-4.4.15.jar
 RUN  wget https://repo1.maven.org/maven2/com/ecwid/consul/consul-api/1.4.5/consul-api-1.4.5.jar -O /opt/flink/lib/consul-api-1.4.5.jar
 RUN  wget https://repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar  -O /opt/flink/lib/gson-2.9.0.jar
-COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-etl-streaming.jar /opt/flink/usrlib/streaming-etl-job.jar
-COPY --from=builder target/ozone-etl-flink-1.0-SNAPSHOT-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
+COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-etl-streaming.jar /opt/flink/usrlib/streaming-etl-job.jar
+COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
