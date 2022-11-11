@@ -72,3 +72,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.prep.outputs.tags }}
+          build-args: JAR_VERSION=${{ steps.get_version.outputs.version }}
