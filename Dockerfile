@@ -1,6 +1,3 @@
-
-ARG JAR_VERSION=1.0.0-SNAPSHOT
-
 FROM maven:3.8.6-eclipse-temurin-8 as builder
 # add pom.xml and source code
 ADD ./pom.xml pom.xml
@@ -10,6 +7,7 @@ ADD ./src src/
 RUN mvn clean package
 
 FROM flink:1.14.5-scala_2.12-java8
+ARG JAR_VERSION=1.0.0-SNAPSHOT
 RUN  wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc_2.12/1.14.5/flink-connector-jdbc_2.12-1.14.5.jar -O /opt/flink/lib/flink-connector-jdbc_2.12-1.14.5.jar 
 RUN  wget https://repo1.maven.org/maven2/org/apache/flink/flink-parquet_2.12/1.14.5/flink-parquet_2.12-1.14.5.jar -O /opt/flink/lib/flink-parquet_2.12-1.14.5.jar
 RUN  wget https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-10.0/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar -O /opt/flink/lib/flink-shaded-hadoop-2-uber-2.8.3-10.0.jar

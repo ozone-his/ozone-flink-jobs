@@ -1,4 +1,3 @@
-ARG JAR_VERSION=1.0.0-SNAPSHOT
 FROM  maven:3.8.6-eclipse-temurin-8 as builder
 # add pom.xml and source code
 ADD ./pom.xml pom.xml
@@ -7,6 +6,7 @@ ADD ./src src/
 RUN mvn clean install -Pbatch
 
 FROM eclipse-temurin:8-jre
+ARG JAR_VERSION=1.0.0-SNAPSHOT
 ENV OUTPUT_DIR=/parquet
 COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-batch-etl.jar batch-etl.jar
 COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
