@@ -8,8 +8,8 @@ RUN mvn clean install -Pbatch
 FROM eclipse-temurin:8-jre
 ARG JAR_VERSION=1.0.0-SNAPSHOT
 ENV OUTPUT_DIR=/parquet
-COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-etl-export.jar etl-export.jar
-COPY --from=builder target/ozone-etl-flink-${JAR_VERSION}-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
+COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-export.jar etl-export.jar
+COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
 ADD parquet-export.sh ./parquet-export.sh
 COPY run.sh /run.sh
 RUN chmod +x /run.sh

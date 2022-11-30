@@ -69,7 +69,7 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 - Retrieve and apply the [Liquibase file](https://github.com/ozone-his/ozonepro-docker/tree/master/flink/liquidbase) needed to create tables on the analytics database (more on installation and usage of Liquibase see [liquibase](https://www.liquibase.org/get-started/quickstart))
 
-- Run with `flink run -m <flink-job-manager-url> target/ozone-etl-flink-1.0-SNAPSHOT.jar`
+- Run with `flink run -m <flink-job-manager-url> target/flink-jobs-1.0-SNAPSHOT.jar`
 
 #### Building Docker image  for use with https://github.com/ozone-his/ozone-analytics
 
