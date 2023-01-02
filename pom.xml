@@ -9,6 +9,17 @@
 	<packaging>jar</packaging>
 	<name>Ozone ETL Pipelines</name>
 
+	<organization>
+	    <name>Ozone HIS</name>
+	    <url>https://www.ozone-his.com</url>
+	</organization>
+	<developers>
+	    <developer>
+	        <name>Mekom Solutions</name>
+	        <url>https://www.mekomsolutions.com</url>
+	    </developer>
+	</developers>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.14.4</flink.version>
