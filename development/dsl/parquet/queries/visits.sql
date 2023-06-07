@@ -1,0 +1,1 @@
+INSERT into visits SELECT t.*  from  analytics.analytics.visits t

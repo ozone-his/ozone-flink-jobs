@@ -1,0 +1,22 @@
+CREATE TABLE `person` (
+  `person_id` int,
+  `gender` VARCHAR,
+  `birthdate` DATE ,
+  `birthdate_estimated` BOOLEAN,
+  `dead` BOOLEAN,
+  `death_date` TIMESTAMP,
+  `cause_of_death` BIGINT,
+  `creator` int,
+  `date_created` TIMESTAMP,
+  `changed_by` int,
+  `date_changed` TIMESTAMP,
+  `voided` BOOLEAN,
+  `voided_by` int,
+  `date_voided` TIMESTAMP,
+  `void_reason` VARCHAR,
+  `uuid` char,
+  `deathdate_estimated` BOOLEAN,
+  `birthtime` time,
+  `cause_of_death_non_coded` VARCHAR,
+  PRIMARY KEY (`person_id`) NOT ENFORCED
+)

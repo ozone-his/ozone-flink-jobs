@@ -1,0 +1,1 @@
+INSERT into _conditions SELECT t.*  from  analytics.analytics._conditions t

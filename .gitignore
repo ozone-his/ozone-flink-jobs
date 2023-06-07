@@ -20,6 +20,7 @@ target/
 **/.classpath
 **/.project
 **/.settings/*
+.vscode/*
 
 # AWS User-specific
 .idea/**/aws.xml

@@ -1,0 +1,21 @@
+CREATE TABLE `form` (
+  `form_id` int,
+  `name` VARCHAR,
+  `version` VARCHAR,
+  `build` int,
+  `published` BOOLEAN,
+  `xslt` VARCHAR,
+  `template` VARCHAR,
+  `description` VARCHAR,
+  `encounter_type` int,
+  `creator` int,
+  `date_created` TIMESTAMP,
+  `changed_by` int,
+  `date_changed` TIMESTAMP,
+  `retired` BOOLEAN,
+  `retired_by` int,
+  `date_retired` TIMESTAMP,
+  `retired_reason` VARCHAR,
+  `uuid` VARCHAR,
+  PRIMARY KEY (`form_id`) NOT ENFORCED
+)

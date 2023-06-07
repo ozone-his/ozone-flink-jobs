@@ -1,0 +1,20 @@
+CREATE TABLE `encounter_diagnosis` (
+  `diagnosis_id` int,
+  `diagnosis_coded` int,
+  `diagnosis_non_coded` VARCHAR,
+  `diagnosis_coded_name` int,
+  `encounter_id` int,
+  `patient_id` int,
+  `condition_id` int,
+  `certainty` VARCHAR,
+  `uuid` VARCHAR,
+  `creator` int,
+  `date_created` TIMESTAMP,
+  `changed_by` int,
+  `date_changed` TIMESTAMP,
+  `voided` BOOLEAN,
+  `voided_by` int,
+  `date_voided` TIMESTAMP,
+  `void_reason` VARCHAR,
+  PRIMARY KEY (`diagnosis_id`) NOT ENFORCED
+)
