@@ -43,7 +43,14 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 - [Kafka connect](https://docs.confluent.io/platform/current/connect/index.html) - For CDC
 - [Kafka](https://kafka.apache.org/) - For streaming data
 
- ### Development
+### Development
+
+#### DSL
+
+The project contains reference DSLs for defining the ETL jobs. The DSLs are located in the `development/dsl` directory.
+- [Flattening DSL](development/dsl/flattening/README.md) - For flattening data from OpenMRS
+- [Parquet Export DSL](development/dsl/parquet/README.md) - For exporting data to parquet files
+
 
 #### Step1:  startup backing services
 
