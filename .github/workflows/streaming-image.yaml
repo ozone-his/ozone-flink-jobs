@@ -43,9 +43,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ secrets.DOCKER_USERNAME }}/ozone-flink-jobs-batch
-        tags: |
-            type=ref,event=tag
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/ozone-flink-parquet-export
+          tags: |
+              type=ref,event=tag
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
