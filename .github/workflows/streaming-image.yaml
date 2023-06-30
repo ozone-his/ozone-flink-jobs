@@ -39,7 +39,13 @@ jobs:
           # Set output parameters.
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=docker_image::${DOCKER_IMAGE}
-
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/ozone-flink-jobs-batch
+        tags: |
+            type=ref,event=tag
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
         with:
@@ -64,4 +70,4 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
