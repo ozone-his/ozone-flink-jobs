@@ -31,11 +31,11 @@ public class Conditions implements TableSQLDSL {
 	@Override
 	public String getDSL() {
 		return "CREATE TABLE `conditions` (\n" + "  `condition_id` int primary key,\n"
-		        + "  `previous_condition_id` BIGINT,\n" + "  `patient_id` BIGINT,\n" + "  `status` VARCHAR,\n"
-		        + "  `concept_id` BIGINT,\n" + "  `condition_non_coded` VARCHAR,\n" + "  `onset_date` TIMESTAMP,\n"
-		        + "  `additional_detail` VARCHAR,\n" + "  `end_date` TIMESTAMP,\n" + "  `end_reason` BIGINT,\n"
-		        + "  `creator` BIGINT,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
-		        + "  `voided_by` BIGINT,\n" + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR,\n"
+		        + "  `previous_condition_id` INT,\n" + "  `patient_id` INT,\n" + "  `status` VARCHAR,\n"
+		        + "  `concept_id` INT,\n" + "  `condition_non_coded` VARCHAR,\n" + "  `onset_date` TIMESTAMP,\n"
+		        + "  `additional_detail` VARCHAR,\n" + "  `end_date` TIMESTAMP,\n" + "  `end_reason` INT,\n"
+		        + "  `creator` INT,\n" + "  `date_created` TIMESTAMP,\n" + "  `voided` BOOLEAN,\n"
+		        + "  `voided_by` INT,\n" + "  `date_voided` TIMESTAMP,\n" + "  `void_reason` VARCHAR,\n"
 		        + "  `uuid` VARCHAR\n" + ")\n" + " WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
 	}

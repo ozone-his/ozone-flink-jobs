@@ -1,0 +1,20 @@
+CREATE TABLE `concept` (
+  `concept_id` int,
+  `retired` BOOLEAN,
+  `short_name` VARCHAR,
+  `description` VARCHAR,
+  `form_text` VARCHAR,
+  `datatype_id` int,
+  `class_id` int,
+  `is_set` BOOLEAN,
+  `creator` int,
+  `date_created` TIMESTAMP,
+  `version` VARCHAR,
+  `changed_by` int,
+  `date_changed` TIMESTAMP,
+  `retired_by` int,
+  `date_retired` TIMESTAMP,
+  `retire_reason` VARCHAR,
+  `uuid` char,
+  PRIMARY KEY (`concept_id`) NOT ENFORCED
+)

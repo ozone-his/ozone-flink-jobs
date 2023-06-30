@@ -29,14 +29,14 @@ public class Visits implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE `visits` (\n" + "  visit_id BIGINT PRIMARY KEY,\n" + "  patient_id BIGINT,\n"
+		return "CREATE TABLE `visits` (\n" + "  visit_id INT PRIMARY KEY,\n" + "  patient_id INT,\n"
 		        + "  visit_type_uuid VARCHAR,\n" + "  visit_type VARCHAR,\n" + "  date_started TIMESTAMP,\n"
-		        + "  date_stopped TIMESTAMP,\n" + "  indication_concept_id BIGINT,\n" + "  location_id BIGINT,\n"
-		        + "  visit_voided BOOLEAN,\n" + "  visit_uuid VARCHAR,\n" + "  person_id BIGINT,\n" +
-				// " number_occurences BIGINT,\n" +
+		        + "  date_stopped TIMESTAMP,\n" + "  indication_concept_id INT,\n" + "  location_id INT,\n"
+		        + "  visit_voided BOOLEAN,\n" + "  visit_uuid VARCHAR,\n" + "  person_id INT,\n" +
+				// " number_occurences INT,\n" +
 		        "  gender VARCHAR,\n" + "  birthdate DATE,\n" + "  birthdate_estimated BOOLEAN,\n"
-		        + "  age_at_visit_group_profile_1 VARCHAR,\n" + "  age_at_visit BIGINT,\n" + "  dead BOOLEAN,\n"
-		        + "  death_date TIMESTAMP,\n" + "  cause_of_death BIGINT,\n" + "  person_voided BOOLEAN,\n"
+		        + "  age_at_visit_group_profile_1 VARCHAR,\n" + "  age_at_visit INT,\n" + "  dead BOOLEAN,\n"
+		        + "  death_date TIMESTAMP,\n" + "  cause_of_death INT,\n" + "  person_voided BOOLEAN,\n"
 		        + "  person_uuid VARCHAR\n" + ")\n" + "WITH (\n"
 		        + ConnectorUtils.propertyJoiner(",", "=").apply(this.connectorOptions) + ")";
 	}

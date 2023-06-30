@@ -29,7 +29,7 @@ public class Concepts implements TableSQLDSL {
 	 */
 	@Override
 	public String getDSL() {
-		return "CREATE TABLE concepts (\n" + "    concept_id BIGINT PRIMARY KEY,\n" + "    concept_mapping_source VARCHAR,\n"
+		return "CREATE TABLE concepts (\n" + "    concept_id INT PRIMARY KEY,\n" + "    concept_mapping_source VARCHAR,\n"
 		        + "    concept_mapping_code VARCHAR,\n" + "    concept_mapping_name VARCHAR,\n" + "    name VARCHAR,\n"
 		        + "    locale VARCHAR,\n" + "    locale_preferred BOOLEAN,\n" + "    retired BOOLEAN,\n"
 		        + "    uuid VARCHAR\n" + ")\n" + "WITH (\n"

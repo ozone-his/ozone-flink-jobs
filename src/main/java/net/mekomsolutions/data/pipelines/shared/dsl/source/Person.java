@@ -31,7 +31,7 @@ public class Person implements TableSQLDSL {
 	public String getDSL() {
 		return "CREATE TABLE `person` (\n" + "  `person_id` int primary key,\n" + "  `gender` VARCHAR,\n"
 		        + "  `birthdate` DATE ,\n" + "  `birthdate_estimated` BOOLEAN,\n" + "  `dead` BOOLEAN,\n"
-		        + "  `death_date` TIMESTAMP,\n" + "  `cause_of_death` BIGINT,\n" + "  `creator` int,\n"
+		        + "  `death_date` TIMESTAMP,\n" + "  `cause_of_death` INT,\n" + "  `creator` int,\n"
 		        + "  `date_created` TIMESTAMP,\n" + "  `changed_by` int,\n" + "  `date_changed` TIMESTAMP,\n"
 		        + "  `voided` BOOLEAN,\n" + "  `voided_by` int,\n" + "  `date_voided` TIMESTAMP,\n"
 		        + "  `void_reason` VARCHAR,\n" + "  `uuid` char,\n" + "  `deathdate_estimated` BOOLEAN,\n"

@@ -1,0 +1,23 @@
+CREATE TABLE `appointment_service` (
+  `appointment_service_id` int,
+  `name` VARCHAR,
+  `description` VARCHAR,
+  `start_time` TIMESTAMP,
+  `end_time` TIMESTAMP,
+  `location_id` int,
+  `speciality_id` int,
+  `max_appointments_limit` int,
+  `duration_mins` int,
+  `color` VARCHAR,
+  `date_created` TIMESTAMP,
+  `creator` int,
+  `date_changed` TIMESTAMP,
+  `changed_by` int,
+  `voided` BOOLEAN,
+  `voided_by` int,
+  `date_voided` TIMESTAMP,
+  `void_reason` VARCHAR,
+  `uuid` VARCHAR,
+  `initial_appointment_status` VARCHAR,
+  PRIMARY KEY (`appointment_service_id`) NOT ENFORCED
+)
