@@ -1,1 +1,0 @@
-INSERT into _orders SELECT t.*  from  analytics.analytics._orders t

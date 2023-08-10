@@ -1,6 +1,6 @@
 set -e
 echo "Waiting for source database to be ready-----"
-/opt/wait-for-it.sh $SOURCE_DB_HOST:3306
+/opt/wait-for-it.sh $SOURCE_DB_HOST:$SOURCE_DB_PORT
 /opt/wait-for-it.sh $ODOO_DB_HOST:$ODOO_DB_PORT
 
 echo "Waiting for connect to be ready-----"
@@ -41,7 +41,10 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                 "plugin.name": "pgoutput",
                 "database.server.name": "odoo",
                 "table.include.list": "public.(.*)",
+                "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+                "key.converter.schemas.enable": "true",
                 "heartbeat.interval.ms": "5000",
                 "slot.name": "odoo_debezium",
-                "publication.name": "odoo_publication"
+                "publication.name": "odoo_publication",
+                "decimal.handling.mode": "double"
     }'

@@ -53,18 +53,34 @@ The project contains reference DSLs for defining the ETL jobs. The DSLs are loca
 
 
 #### Step1:  startup backing services
+The project assumes you already have an Ozone HIS instance running. If not please follow the instructions [here](https://github.com/ozone-his/ozone-docker) or [here](https://github.com/ozone-his/ozonepro-docker) to get one up and running.
 
 ```cd development```
+##### Export environment variables
+```bash
+export ANALYTICS_DB_HOST=gateway.docker.internal \
+export ANALYTICS_DB_PORT=5432 \
+export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal \
+export CONNECT_MYSQL_PORT=3306 \
+export CONNECT_MYSQL_USER=root \
+export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey \
+export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal \
+export CONNECT_ODOO_DB_PORT=5432 \
+export CONNECT_ODOO_DB_NAME=odoo \
+export CONNECT_ODOO_DB_USER=postgres \
+export CONNECT_ODOO_DB_PASSWORD=password
+```
+
 ```docker-compose up -d```
 ```cd ../```
+***Note***: The `gateway.docker.internal` is a special DNS name that resolves to the host machine from within containers. It is only available for Mac and Windows. For Linux, use the docker host IP by default ```172.17.0.1```
 
-#### Step2: Configure ENV vars
-#### Step3: Compile
+#### Step 2: Compile
 ```mvn clean install compile```
 
-#### Step3:
+#### Step 3:
 ##### Run Streaming job
-```
+``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
@@ -87,7 +103,7 @@ export ODOO_DB_PORT=5432;
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.streaming.StreamingETLJob" -Dexec.classpathScope="compile"```
 
 ##### Run Batch job
-```
+```bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
@@ -110,7 +126,7 @@ export ODOO_DB_PORT=5432;
 
 ##### Run Parquet Export job
 ```mkdir -p development/data/parquet/```
-```
+``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\

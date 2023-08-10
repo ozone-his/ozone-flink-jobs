@@ -1,0 +1,9 @@
+select
+    `id`,
+    `amount_total`,
+    `invoice_status`,
+    `name`,
+    `note`,
+    `state`
+from
+    sale_order

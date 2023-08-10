@@ -27,15 +27,16 @@ public class CommonUtils {
 	public static List<QueryFile> getSQL(String directory) {
 		
 		try {
-			return Files.walk(Paths.get(directory)).filter(Files::isRegularFile).map(path -> {
-				try {
-					return new QueryFile(path.toFile().getParentFile().getName(), getBaseName(path.getFileName().toString()),
-					        readFile(path));
-				}
-				catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}).collect(Collectors.toList());
+			return Files.walk(Paths.get(directory)).filter(Files::isRegularFile)
+			        .filter(p -> p.getFileName().toString().endsWith(".sql")).map(path -> {
+				        try {
+					        return new QueryFile(path.toFile().getParentFile().getName(),
+					                getBaseName(path.getFileName().toString()), readFile(path));
+				        }
+				        catch (IOException e) {
+					        throw new RuntimeException(e);
+				        }
+			        }).collect(Collectors.toList());
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);

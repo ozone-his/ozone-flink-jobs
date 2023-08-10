@@ -16,8 +16,6 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
     volumes:
       - kafka-data:/kafka/data
-    depends_on:
-      - mysql
     healthcheck:
       test:
         [
@@ -30,9 +28,7 @@ services:
     restart: on-failure
     image: debezium/connect:${DEBEZIUM_VERSION}
     ports:
-      - 8083:8083
-    depends_on:
-      - mysql
+      - 8383:8083
     volumes:
       - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-mysql/TimestampConverter-1.2.4-SNAPSHOT.jar
     environment:
@@ -47,9 +43,9 @@ services:
       - CONNECT_CONFIG_PROVIDERS_FILE_CLASS=org.apache.kafka.common.config.provider.FileConfigProvider
       - CONNECT_MYSQL_HOSTNAME=${CONNECT_MYSQL_HOSTNAME:-mysql}
       - CONNECT_MYSQL_USERNAME=${CONNECT_MYSQL_USERNAME:-root}
-      - CONNECT_MYSQL_PASSWORD=${CONNECT_MYSQL_PASSWORD:-${MYSQL_ROOT_PASSWORD}}
+      - CONNECT_MYSQL_PASSWORD=${CONNECT_MYSQL_PASSWORD:-${CONNECT_MYSQL_PASSWORD}}
       - CONNECT_MYSQL_PORT=${CONNECT_MYSQL_PORT:-${CONNECT_MYSQL_PORT}}
-      - CONNECT_MYSQL_SERVER_ID=2
+      - CONNECT_MYSQL_SERVER_ID=65535
       - CONNECT_MYSQL_SERVER_NAME=openmrs
       - CONNECT_MYSQL_INCLUDE_LIST=openmrs
       - CONNECT_TABLE_EXCLUDE_LIST=openmrs.audit_log
@@ -66,13 +62,11 @@ services:
     restart: on-failure
     build: ./setup-connect
     depends_on:
-      - postgresql
-      - mysql
       - connect
     environment:
       - CONNECT_HOST=connect
-      - ANALYTICS_DB_HOST=${ANALYTICS_DB_HOST}
       - SOURCE_DB_HOST=${CONNECT_MYSQL_HOSTNAME}
+      - SOURCE_DB_PORT=${CONNECT_MYSQL_PORT}
       - ODOO_DB_HOST=${ODOO_DB_HOST:-${CONNECT_ODOO_DB_HOSTNAME}}
       - ODOO_DB_PORT=${ODOO_DB_PORT:-${CONNECT_ODOO_DB_PORT}}
       - FLINK_JOBMANAGER_HOST=jobmanager
@@ -97,58 +91,23 @@ services:
     depends_on:
       - "kafka"
       - "connect"
-
-  mysql:
-    restart: on-failure
-    image: mariadb:10.3
-    command: "mysqld --character-set-server=utf8 --collation-server=utf8_general_ci --log-bin --binlog-format=ROW  --server-id=0 --max_connections=1024"
-    environment:
-      MYSQL_DATABASE: ${MYSQL_DB:-openmrs}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Admin123}
-      MYSQL_USER: ${MYSQL_USER:-openmrs}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Admin123}
-    ports:
-      - "3306:3306"
-    healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD
-    volumes:
-      - ${MYSQL_DATADIR:-mysql-data}:/var/lib/mysql:rw
-      - ./data/openmrs-data/openmrs.sql:/docker-entrypoint-initdb.d/openmrs.sql
-  postgresql:
-    restart: on-failure
-    image: postgres:13
-    command: postgres -c wal_level=logical -c max_wal_senders=10 -c max_replication_slots=10
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    environment:
-      POSTGRES_DB: odoo
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      # Analystics
-      ANALYTICS_DB_NAME: ${ANALYTICS_DB_NAME}
-      ANALYTICS_DB_USER: ${ANALYTICS_DB_USER}
-      ANALYTICS_DB_PASSWORD: ${ANALYTICS_DB_PASSWORD}
-    volumes:
-      - ${POSTGRES_DATADIR:-postgresql-data}:/var/lib/postgresql/data
-      - "${SQL_SCRIPTS_PATH:-./sqls}/postgresql:/docker-entrypoint-initdb.d"
-    ports:
-      - "5432:5432"
-  liquibase:
+  odoo-replica-identity-migration:
     image: liquibase/liquibase
     restart: on-failure
     volumes:
-      - ./liquibase/db/changeLog/:/liquibase/changelog/
-    command: update --username=${ANALYTICS_DB_NAME} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://postgresql:5432/
-
+      - ./liquibase/odoo/:/liquibase/changelog/
+    command: update -Dtables='databasechangelog,account_account' --username=${CONNECT_ODOO_DB_USER} --password=${CONNECT_ODOO_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${CONNECT_ODOO_DB_HOSTNAME}:${CONNECT_ODOO_DB_PORT}/${CONNECT_ODOO_DB_NAME}
     environment:
-      INSTALL_POSTGRESQL: 'true'
-    depends_on:
-      - postgresql
+      - INSTALL_POSTGRESQL='true'
+      - TABLES=${ODOO_ANALYTICS_TABLES}
+  analytics-migration:
+    image: liquibase/liquibase
+    restart: on-failure
+    volumes:
+      - ./liquibase/analytics/:/liquibase/changelog/
+    command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
+    environment:
+      - INSTALL_POSTGRESQL='true'
 
 volumes:
-  mysql-data:
-  postgresql-data: ~
   kafka-data: ~
