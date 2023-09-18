@@ -1,0 +1,1 @@
+INSERT into encounters SELECT t.*  from analytics.analytics.encounters t

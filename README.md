@@ -39,62 +39,107 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 ## Tech
 
-- [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/)
+- [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) - For ETL
+- [Kafka connect](https://docs.confluent.io/platform/current/connect/index.html) - For CDC
+- [Kafka](https://kafka.apache.org/) - For streaming data
 
-- [Flink CDC connectors](https://github.com/ververica/flink-cdc-connectors) - For streaming
+### Development
 
-  
+#### DSL
 
-## Building and Installation
+The project contains reference DSLs for defining the ETL jobs. The DSLs are located in the `development/dsl` directory.
+- [Flattening DSL](development/dsl/flattening/README.md) - For flattening data from OpenMRS
+- [Parquet Export DSL](development/dsl/parquet/README.md) - For exporting data to parquet files
 
-  
 
-### Prerequisites
+#### Step1:  startup backing services
+The project assumes you already have an Ozone HIS instance running. If not please follow the instructions [here](https://github.com/ozone-his/ozone-docker) or [here](https://github.com/ozone-his/ozonepro-docker) to get one up and running.
 
-- A running Flink [installation](https://ci.apache.org/projects/flink/flink-docs-release-1.13/docs/try-flink/local_installation/)
+```cd development```
+##### Export environment variables
+```bash
+export ANALYTICS_DB_HOST=gateway.docker.internal \
+export ANALYTICS_DB_PORT=5432 \
+export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal \
+export CONNECT_MYSQL_PORT=3306 \
+export CONNECT_MYSQL_USER=root \
+export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey \
+export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal \
+export CONNECT_ODOO_DB_PORT=5432 \
+export CONNECT_ODOO_DB_NAME=odoo \
+export CONNECT_ODOO_DB_USER=postgres \
+export CONNECT_ODOO_DB_PASSWORD=password
+```
 
-- A running OpenMRS installation (based on the [openmrs-reference-application 3.x ](https://github.com/openmrs/openmrs-distro-referenceapplication/tree/3.x) distribution database)
+```docker-compose up -d```
+```cd ../```
+***Note***: The `gateway.docker.internal` is a special DNS name that resolves to the host machine from within containers. It is only available for Mac and Windows. For Linux, use the docker host IP by default ```172.17.0.1```
 
-- A running PostgreSQL installation
+#### Step 2: Compile
+```mvn clean install compile```
 
-- A liquibase installation
+#### Step 3:
+##### Run Streaming job
+``` bash
+export ANALYTICS_DB_USER=analytics;\
+export ANALYTICS_DB_PASSWORD=password;\
+export ANALYTICS_DB_HOST=localhost;\
+export ANALYTICS_DB_PORT=5432;\
+export ANALYTICS_DB_NAME=analytics;\
+export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
+export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
+export OPENMRS_DB_NAME=openmrs;\
+export OPENMRS_DB_USER=root;\
+export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
+export OPENMRS_DB_HOST=localhost;\
+export OPENMRS_DB_PORT=3306;\
+export ODOO_DB_NAME=odoo;\
+export ODOO_DB_USER=postgres;\
+export ODOO_DB_PASSWORD=password;\
+export ODOO_DB_HOST=localhost;\
+export ODOO_DB_PORT=5432;
+```
 
-  
+```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.streaming.StreamingETLJob" -Dexec.classpathScope="compile"```
 
-### Build and install
+##### Run Batch job
+```bash
+export ANALYTICS_DB_USER=analytics;\
+export ANALYTICS_DB_PASSWORD=password;\
+export ANALYTICS_DB_HOST=localhost;\
+export ANALYTICS_DB_PORT=5432;\
+export ANALYTICS_DB_NAME=analytics;\
+export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
+export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
+export OPENMRS_DB_NAME=openmrs;\
+export OPENMRS_DB_USER=root;\
+export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
+export OPENMRS_DB_HOST=localhost;\
+export OPENMRS_DB_PORT=3306;\
+export ODOO_DB_NAME=odoo;\
+export ODOO_DB_USER=postgres;\
+export ODOO_DB_PASSWORD=password;\
+export ODOO_DB_HOST=localhost;\
+export ODOO_DB_PORT=5432;
+```
+```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```
 
-- Update the [job.properties](./job.properties) files with the details for your OpenMRS MySQL database and the analytics PostgreSQL database
+##### Run Parquet Export job
+```mkdir -p development/data/parquet/```
+``` bash
+export ANALYTICS_DB_USER=analytics;\
+export ANALYTICS_DB_PASSWORD=password;\
+export ANALYTICS_DB_HOST=localhost;\
+export ANALYTICS_DB_PORT=5432;\
+export ANALYTICS_DB_NAME=analytics;\
+export EXPORT_DESTINATION_TABLES_PATH=$(pwd)/development/dsl/parquet/tables/;\
+export EXPORT_SOURCE_QUERIES_PATH=$(pwd)/development/dsl/parquet/queries;\
+export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
+export EXPORT_OUTPUT_TAG=h1;
+```
+```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchParquetExport" -Dexec.classpathScope="compile"```
 
-- Build with `mvn clean package`
 
-- Retrieve and apply the [Liquibase file](https://github.com/ozone-his/ozonepro-docker/tree/master/flink/liquidbase) needed to create tables on the analytics database (more on installation and usage of Liquibase see [liquibase](https://www.liquibase.org/get-started/quickstart))
-
-- Run with `flink run -m <flink-job-manager-url> target/flink-jobs-1.0-SNAPSHOT.jar`
-
-#### Building Docker image  for use with https://github.com/ozone-his/ozone-analytics
-
-`docker build -t mekomsolutions/ozone-flink-jobs .`
-
-### Layout
-
-src/main/java/net/mekomsolutions/data/pipelines/batch
-
-src/main/java/net/mekomsolutions/data/pipelines/export
-
-src/main/java/net/mekomsolutions/data/pipelines/streaming
-
-src/main/java/net/mekomsolutions/data/pipelines/utils
-
-src/main/java/net/mekomsolutions/data/pipelines/shared
-
-  
-
-### Adding new jobs
-#### Sources and Sinks
-This project uses flink's [Table API & SQL](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/table/overview/) ,for you to access data you need to setup [temporary](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/table/sql/create/) tables both for data sources and data sinks. For most cases all the tables you will every need for writting OpenMRS data processing jobs are already added under `src/main/java/net/mekomsolutions/data/pipelines/shared/dsl` . But incase you need to add more you can add them to either `src/main/java/net/mekomsolutions/data/pipelines/shared/dsl/source` or  `src/main/java/net/mekomsolutions/data/pipelines/shared/dsl/sink`   You will then need to register them in factory class `src/main/java/net/mekomsolutions/data/pipelines/shared/dsl/TableDSLFactory.java` . See `src/main/java/net/mekomsolutions/data/pipelines/streaming/StreamingETLJob.java` for an example of how to use the factory to setup sources and sinks. 
-
-#### Setting up jobs
-Assuming you already have all the source and sink tables setup adding new jobs involves;
-
- - Adding your SQL files to `src/main/resources`
- - Registering the jobs in `flink-jobs/src/main/resources/jobs.json`
+## Gotchas
+When streaming data from Postgres See
+[consuming-data-produced-by-debezium-postgres-connector](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/formats/debezium/#consuming-data-produced-by-debezium-postgres-connector)

@@ -1,0 +1,23 @@
+CREATE TABLE `visits` (
+    visit_id BIGINT,
+    patient_id BIGINT,
+    visit_type_uuid VARCHAR,
+    visit_type VARCHAR,
+    date_started TIMESTAMP,
+    date_stopped TIMESTAMP,
+    indication_concept_id BIGINT,
+    location_id BIGINT,
+    visit_voided BOOLEAN,
+    visit_uuid VARCHAR,
+    person_id BIGINT,
+    gender VARCHAR,
+    birthdate DATE,
+    birthdate_estimated BOOLEAN,
+    age_at_visit_group_profile_1 VARCHAR,
+    age_at_visit BIGINT,
+    dead BOOLEAN,
+    death_date TIMESTAMP,
+    cause_of_death BIGINT,
+    person_voided BOOLEAN,
+    person_uuid VARCHAR
+)

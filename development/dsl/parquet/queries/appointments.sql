@@ -1,0 +1,1 @@
+INSERT into appointments SELECT t.*  from analytics.analytics.appointments t

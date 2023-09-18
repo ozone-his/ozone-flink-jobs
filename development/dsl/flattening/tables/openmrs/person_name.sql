@@ -1,0 +1,23 @@
+CREATE TABLE `person_name` (
+`person_name_id` int,
+`preferred` BOOLEAN,
+`person_id` int,
+`prefix` VARCHAR,
+`given_name` VARCHAR,
+`middle_name` VARCHAR,
+`family_name_prefix` VARCHAR,
+`family_name` VARCHAR,
+`family_name2` VARCHAR,
+`family_name_suffix` VARCHAR,
+`degree` VARCHAR,
+`creator` int,
+`date_created` TIMESTAMP,
+`voided` BOOLEAN,
+`voided_by` int,
+`date_voided` TIMESTAMP,
+`void_reason` VARCHAR,
+`changed_by` int,
+`date_changed` TIMESTAMP,
+`uuid` char,
+PRIMARY KEY (`person_name_id`) NOT ENFORCED
+)

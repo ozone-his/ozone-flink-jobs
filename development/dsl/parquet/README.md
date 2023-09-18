@@ -1,0 +1,3 @@
+This directory contains the DSL for exporting flattened data from the analytics database to parquet files. The folder is divided into:
+- `tables` - Contains the table definitions for destination tables for holding data before its exported to parquet files.- `queries` - Contains the queries for exporting the data to parquet files.
+***Note***: We don't have source tables  because the data is read directly from the analytics database via [JDBC Catalog](https://ci.apache.org/projects/flink/flink-docs-stable/dev/table/connectors/jdbc.html#jdbc-catalog).

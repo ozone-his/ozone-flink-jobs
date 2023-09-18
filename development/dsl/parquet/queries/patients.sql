@@ -1,0 +1,1 @@
+INSERT into patients SELECT t.*  from analytics.analytics.patients t

@@ -1,0 +1,113 @@
+version: '3.8'
+services:
+  kafka:
+    restart: on-failure
+    image: debezium/kafka:${DEBEZIUM_VERSION}
+    ports:
+      - 9092:9092
+      - 29092:29092
+    environment:
+      - CLUSTER_ID=5Yr1SIgYQz-b-dgRabWx4g
+      - BROKER_ID=1
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      # - CREATE_TOPICS=${CREATE_TOPICS}
+      - KAFKA_LISTENERS=PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    volumes:
+      - kafka-data:/kafka/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/bin/bash",
+          "-c",
+          "./bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list"
+        ]
+  connect:
+    restart: on-failure
+    image: debezium/connect:${DEBEZIUM_VERSION}
+    ports:
+      - 8383:8083
+    volumes:
+      - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-mysql/TimestampConverter-1.2.4-SNAPSHOT.jar
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+      - CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=false
+      - CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=false
+      - CONNECT_CONFIG_PROVIDERS=file
+      - CONNECT_CONFIG_PROVIDERS_FILE_CLASS=org.apache.kafka.common.config.provider.FileConfigProvider
+      - CONNECT_MYSQL_HOSTNAME=${CONNECT_MYSQL_HOSTNAME:-mysql}
+      - CONNECT_MYSQL_USERNAME=${CONNECT_MYSQL_USERNAME:-root}
+      - CONNECT_MYSQL_PASSWORD=${CONNECT_MYSQL_PASSWORD:-${CONNECT_MYSQL_PASSWORD}}
+      - CONNECT_MYSQL_PORT=${CONNECT_MYSQL_PORT:-${CONNECT_MYSQL_PORT}}
+      - CONNECT_MYSQL_SERVER_ID=37991
+      - CONNECT_MYSQL_SERVER_NAME=openmrs
+      - CONNECT_MYSQL_INCLUDE_LIST=openmrs
+      - CONNECT_TABLE_EXCLUDE_LIST=openmrs.audit_log
+      - CONNECT_MYSQL_HISTROY_TOPIC=dbhistory.openmrs
+      - CONNECT_MYSQL_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - CONNECT_ODOO_DB_HOSTNAME=${CONNECT_ODOO_DB_HOSTNAME:-postgresql}
+      - CONNECT_ODOO_DB_USERNAME=${CONNECT_ODOO_DB_USERNAME:-${POSTGRES_USER}}
+      - CONNECT_ODOO_DB_PASSWORD=${CONNECT_ODOO_DB_PASSWORD:-${POSTGRES_PASSWORD}}
+      - CONNECT_ODOO_DB_PORT=${CONNECT_ODOO_DB_PORT:-5432}
+      - CONNECT_ODOO_DB_SERVER_NAME=odoo
+      - CONNECT_ODOO_DB_INCLUDE_LIST=odoo
+
+  connect-setup:
+    restart: on-failure
+    build: ./setup-connect
+    depends_on:
+      - connect
+    environment:
+      - CONNECT_HOST=connect
+      - SOURCE_DB_HOST=${CONNECT_MYSQL_HOSTNAME}
+      - SOURCE_DB_PORT=${CONNECT_MYSQL_PORT}
+      - ODOO_DB_HOST=${ODOO_DB_HOST:-${CONNECT_ODOO_DB_HOSTNAME}}
+      - ODOO_DB_PORT=${ODOO_DB_PORT:-${CONNECT_ODOO_DB_PORT}}
+      - FLINK_JOBMANAGER_HOST=jobmanager
+  kowl:
+    image: rsmnarts/kowl
+    container_name: "kowl"
+    restart: on-failure
+    entrypoint: /bin/sh
+    command: -c "echo \"$$KOWL_CONFIG_FILE\" > /tmp/config.yml; /app/kowl"
+    ports:
+      - "8282:8080"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      KOWL_CONFIG_FILE: |
+        kafka:
+          brokers: ["kafka:9092"]
+        connect:
+          enabled: true
+          clusters:
+            - name: Ozone
+              url: http://connect:8083
+    depends_on:
+      - "kafka"
+      - "connect"
+  odoo-replica-identity-migration:
+    image: liquibase/liquibase
+    restart: on-failure
+    volumes:
+      - ./liquibase/odoo/:/liquibase/changelog/
+    command: update -Dtables='databasechangelog,account_account' --username=${CONNECT_ODOO_DB_USER} --password=${CONNECT_ODOO_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${CONNECT_ODOO_DB_HOSTNAME}:${CONNECT_ODOO_DB_PORT}/${CONNECT_ODOO_DB_NAME}
+    environment:
+      - INSTALL_POSTGRESQL='true'
+      - TABLES=${ODOO_ANALYTICS_TABLES}
+  analytics-migration:
+    image: liquibase/liquibase
+    restart: on-failure
+    volumes:
+      - ./liquibase/analytics/:/liquibase/changelog/
+    command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
+    environment:
+      - INSTALL_POSTGRESQL='true'
+
+volumes:
+  kafka-data: ~
