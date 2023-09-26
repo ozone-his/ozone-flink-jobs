@@ -1,1 +1,0 @@
-INSERT into observations SELECT t.*  from analytics.analytics.observations t

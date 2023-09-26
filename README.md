@@ -47,9 +47,9 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 #### DSL
 
-The project contains reference DSLs for defining the ETL jobs. The DSLs are located in the `development/dsl` directory.
-- [Flattening DSL](development/dsl/flattening/README.md) - For flattening data from OpenMRS
-- [Parquet Export DSL](development/dsl/parquet/README.md) - For exporting data to parquet files
+The project provides for defining ETL jobs for reporting. The underlying DSLs usable for the jobs are categorised as:
+- [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS
+- [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/parquet/README.md) - For exporting data to parquet files
 
 
 #### Step1:  startup backing services
@@ -80,14 +80,19 @@ export CONNECT_ODOO_DB_PASSWORD=password
 
 #### Step 3:
 ##### Run Streaming job
+
+```bash
+export ANALYTICS_SOURCE_TABLES_PATH= path_to_folder_containing_source_tables_to_query_from;\
+export ANALYTICS_QUERIES_PATH= path_to_folder_containing_sql_flattening_queries;\
+export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_liquibase_destination_tables_migrations;\
+```
+
 ``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
 export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
-export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
-export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
 export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
@@ -109,8 +114,6 @@ export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
 export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
-export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
-export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
 export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\

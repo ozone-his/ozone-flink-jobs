@@ -1,1 +1,0 @@
-INSERT into encounter_diagnoses SELECT t.*  from  analytics.analytics.encounter_diagnoses t

@@ -104,7 +104,7 @@ services:
     image: liquibase/liquibase
     restart: on-failure
     volumes:
-      - ./liquibase/analytics/:/liquibase/changelog/
+      - ${ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH:-analytics-migrations}:/liquibase/changelog/
     command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
     environment:
       - INSTALL_POSTGRESQL='true'
