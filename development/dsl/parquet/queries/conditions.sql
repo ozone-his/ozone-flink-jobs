@@ -1,1 +1,0 @@
-INSERT into conditions SELECT t.*  from  analytics.analytics.conditions t

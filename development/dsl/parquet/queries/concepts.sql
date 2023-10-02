@@ -1,1 +1,0 @@
-INSERT into concepts SELECT t.*  from  analytics.analytics.concepts t

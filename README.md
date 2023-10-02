@@ -47,27 +47,42 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 #### DSL
 
-The project contains reference DSLs for defining the ETL jobs. The DSLs are located in the `development/dsl` directory.
-- [Flattening DSL](development/dsl/flattening/README.md) - For flattening data from OpenMRS
-- [Parquet Export DSL](development/dsl/parquet/README.md) - For exporting data to parquet files
+The project provides for defining ETL jobs for reporting. The underlying DSLs usable for the jobs are categorised as:
+- [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS. Note that these are related to the liquibase migration scripts that are used to create destination tables found [here](https://github.com/ozone-his/ozonepro-distro/analytics_config/liquibase/analytics/).
+- [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/export/README.md) - For exporting data to parquet files
 
 
 #### Step1:  startup backing services
 The project assumes you already have an Ozone HIS instance running. If not please follow the instructions [here](https://github.com/ozone-his/ozone-docker) or [here](https://github.com/ozone-his/ozonepro-docker) to get one up and running.
 
+The project also assumes you have the required migration scripts and destination table creation sripts with their queries scripts located somewhere you know. They can be downloaded as part of the project [here](https://github.com/ozone-his/ozonepro-distro) in the `analytics_config` directory, for example, the following `env` variable would be exported as below;
+
+```bash
+export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/tables/;
+export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/queries/;
+export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/liquibase/analytics/;
+export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/tables/;
+export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/queries;
+
+```
+
 ```cd development```
 ##### Export environment variables
+
 ```bash
-export ANALYTICS_DB_HOST=gateway.docker.internal \
-export ANALYTICS_DB_PORT=5432 \
-export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal \
-export CONNECT_MYSQL_PORT=3306 \
-export CONNECT_MYSQL_USER=root \
-export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey \
-export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal \
-export CONNECT_ODOO_DB_PORT=5432 \
-export CONNECT_ODOO_DB_NAME=odoo \
-export CONNECT_ODOO_DB_USER=postgres \
+export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_liquibase_destination_tables_migrations;\
+```
+```bash
+export ANALYTICS_DB_HOST=gateway.docker.internal; \
+export ANALYTICS_DB_PORT=5432; \
+export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal; \
+export CONNECT_MYSQL_PORT=3306; \
+export CONNECT_MYSQL_USER=root; \
+export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey; \
+export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal; \
+export CONNECT_ODOO_DB_PORT=5432; \
+export CONNECT_ODOO_DB_NAME=odoo; \
+export CONNECT_ODOO_DB_USER=postgres; \
 export CONNECT_ODOO_DB_PASSWORD=password
 ```
 
@@ -80,14 +95,18 @@ export CONNECT_ODOO_DB_PASSWORD=password
 
 #### Step 3:
 ##### Run Streaming job
+
+```bash
+export ANALYTICS_SOURCE_TABLES_PATH=path_to_folder_containing_source_tables_to_query_from;\
+export ANALYTICS_QUERIES_PATH=path_to_folder_containing_sql_flattening_queries;\
+```
+
 ``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
 export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
-export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
-export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
 export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
@@ -109,8 +128,6 @@ export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
 export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
-export ANALYTICS_SOURCE_TABLES_PATH=$(pwd)/development/dsl/flattening/tables/;\
-export ANALYTICS_QUERIES_PATH=$(pwd)/development/dsl/flattening/queries/;\
 export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
@@ -126,6 +143,12 @@ export ODOO_DB_PORT=5432;
 
 ##### Run Parquet Export job
 ```mkdir -p development/data/parquet/```
+
+```bash
+export EXPORT_DESTINATION_TABLES_PATH=path_to_folder_containing_parquet_source_tables_to_query_from;
+export EXPORT_SOURCE_QUERIES_PATH=path_to_folder_containing_sql_parquet_queries;
+```
+
 ``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
