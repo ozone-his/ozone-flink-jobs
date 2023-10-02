@@ -49,7 +49,7 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 The project provides for defining ETL jobs for reporting. The underlying DSLs usable for the jobs are categorised as:
 - [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS. Note that these are related to the liquibase migration scripts that are used to create destination tables found [here](https://github.com/ozone-his/ozonepro-distro/analytics_config/liquibase/analytics/).
-- [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/parquet/README.md) - For exporting data to parquet files
+- [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/export/README.md) - For exporting data to parquet files
 
 
 #### Step1:  startup backing services
@@ -61,6 +61,9 @@ The project also assumes you have the required migration scripts and destination
 export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/tables/;
 export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/queries/;
 export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/liquibase/analytics/;
+export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/tables/;
+export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/queries;
+
 ```
 
 ```cd development```
@@ -140,6 +143,12 @@ export ODOO_DB_PORT=5432;
 
 ##### Run Parquet Export job
 ```mkdir -p development/data/parquet/```
+
+```bash
+export EXPORT_DESTINATION_TABLES_PATH=path_to_folder_containing_parquet_source_tables_to_query_from;
+export EXPORT_SOURCE_QUERIES_PATH=path_to_folder_containing_sql_parquet_queries;
+```
+
 ``` bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
