@@ -155,8 +155,6 @@ export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
 export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
-export EXPORT_DESTINATION_TABLES_PATH=$(pwd)/development/dsl/parquet/tables/;\
-export EXPORT_SOURCE_QUERIES_PATH=$(pwd)/development/dsl/parquet/queries;\
 export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
 export EXPORT_OUTPUT_TAG=h1;
 ```
