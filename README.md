@@ -60,9 +60,9 @@ The project also assumes you have the required migration scripts and destination
 ```bash
 export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/tables/;
 export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/queries/;
-export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/liquibase/analytics/;
-export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/tables/;
-export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-demo/ozonepro-distro/analytics_config/dsl/export/queries;
+export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-distro/analytics_config/liquibase/analytics/;
+export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/export/tables/;
+export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/export/queries;
 
 ```
 
@@ -145,7 +145,7 @@ export ODOO_DB_PORT=5432;
 ```mkdir -p development/data/parquet/```
 
 ```bash
-export EXPORT_DESTINATION_TABLES_PATH=path_to_folder_containing_parquet_source_tables_to_query_from;
+export EXPORT_DESTINATION_TABLES_PATH=path_to_folder_containing_parquet_destination_tables_to_query_to;
 export EXPORT_SOURCE_QUERIES_PATH=path_to_folder_containing_sql_parquet_queries;
 ```
 
