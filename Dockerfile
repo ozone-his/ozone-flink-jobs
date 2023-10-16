@@ -18,7 +18,6 @@ RUN  wget https://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.
 RUN  wget https://repo1.maven.org/maven2/com/ecwid/consul/consul-api/1.4.5/consul-api-1.4.5.jar -O /opt/flink/lib/consul-api-1.4.5.jar
 RUN  wget https://repo1.maven.org/maven2/com/google/code/gson/gson/2.9.0/gson-2.9.0.jar  -O /opt/flink/lib/gson-2.9.0.jar
 COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-streaming.jar /opt/flink/usrlib/streaming-etl-job.jar
-COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-migrations.jar /opt/flink/usrlib/ozone-etl-migrations.jar
 COPY run.sh /run.sh
 RUN chmod +x /run.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
