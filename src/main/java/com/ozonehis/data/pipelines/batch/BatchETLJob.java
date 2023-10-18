@@ -30,6 +30,10 @@ import com.ozonehis.data.pipelines.utils.QueryFile;
 import com.ozonehis.data.pipelines.utils.ConnectorUtils;
 import com.ozonehis.data.pipelines.utils.Environment;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -75,9 +79,19 @@ public class BatchETLJob {
 		String odooDBurl = String.format("jdbc:postgresql://%s:%s/%s?sslmode=disable", odooDBhost, odooDBport, odooDBName);
 		
 		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		JdbcCatalog catalog = new JdbcCatalog(name, defaultDatabase, username, password, baseUrl);
+		List<File> jars = Arrays.asList(new File("/opt/flink/lib/"));
+        URL[] urls = new URL[jars.size()];
+		for (int i = 0; i < jars.size(); i++) {
+			try {
+				urls[i] = jars.get(i).toURI().toURL();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+        URLClassLoader classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+		JdbcCatalog catalog = new JdbcCatalog(classLoader,name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
-		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "")).stream();
+		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source_tables")).stream();
 		tables.forEach(s -> {
 			Map<String, String> connectorOptions = null;
 			if (s.parent.equals("openmrs")) {
@@ -95,7 +109,7 @@ public class BatchETLJob {
 			        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
 			tableEnv.executeSql(queryDSL);
 		});
-		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_QUERIES_PATH", ""));
+		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_QUERIES_PATH", "/analytics/queries"));
 		StatementSet stmtSet = tableEnv.createStatementSet();
 		for (QueryFile query : queries) {
 			String queryDSL = "INSERT INTO  `analytics`.`analytics`.`" + query.fileName + "`\n" + query.content;

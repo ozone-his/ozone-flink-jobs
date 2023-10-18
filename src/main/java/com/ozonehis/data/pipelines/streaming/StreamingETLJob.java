@@ -18,6 +18,10 @@
 
 package com.ozonehis.data.pipelines.streaming;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,21 +63,31 @@ public class StreamingETLJob {
 		String baseUrl = String.format("jdbc:postgresql://%s:%s", Environment.getEnv("ANALYTICS_DB_HOST", "localhost"),
 		    Environment.getEnv("ANALYTICS_DB_PORT", "5432"));
 		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		JdbcCatalog catalog = new JdbcCatalog(name, defaultDatabase, username, password, baseUrl);
+		List<File> jars = Arrays.asList(new File("/opt/flink/lib/"));
+        URL[] urls = new URL[jars.size()];
+		for (int i = 0; i < jars.size(); i++) {
+			try {
+				urls[i] = jars.get(i).toURI().toURL();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+        URLClassLoader childClassLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+		JdbcCatalog catalog = new JdbcCatalog(childClassLoader,name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
-		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "")).stream();
+		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source-tables")).stream();
 		tables.forEach(s -> {
 			Map<String, String> connectorOptions = null;
 			if (s.parent.equals("openmrs")) {
 				connectorOptions = Stream.of(
-				    new String[][] { { "connector", "kafka" }, { "properties.bootstrap.servers", "localhost:29092" },
+				    new String[][] { { "connector", "kafka" }, { "properties.bootstrap.servers", Environment.getEnv("ANALYTICS_KAFKA_URL", "localhost:29092") },
 				            { "properties.group.id", "flink" }, { "topic", String.format("openmrs.openmrs.%s", s.fileName) },
 				            { "scan.startup.mode", "earliest-offset" },
 				            { "value.debezium-json.ignore-parse-errors", "true" }, { "value.format", "debezium-json" }, })
 				        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 			} else if (s.parent.equals("odoo")) {
 				connectorOptions = Stream.of(new String[][] { { "connector", "kafka" },
-				        { "properties.bootstrap.servers", "localhost:29092" }, { "properties.group.id", "flink" },
+				        { "properties.bootstrap.servers", Environment.getEnv("ANALYTICS_KAFKA_URL", "localhost:29092") }, { "properties.group.id", "flink" },
 				        { "topic", String.format("odoo.public.%s", s.fileName) }, { "scan.startup.mode", "earliest-offset" },
 				        { "value.debezium-json.ignore-parse-errors", "true" }, { "value.format", "debezium-json" }, })
 				        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
@@ -82,7 +96,7 @@ public class StreamingETLJob {
 			        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
 			tableEnv.executeSql(queryDSL);
 		});
-		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_QUERIES_PATH", ""));
+		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_QUERIES_PATH", "/analytics/queries"));
 		StatementSet stmtSet = tableEnv.createStatementSet();
 		for (QueryFile query : queries) {
 			String queryDSL = "INSERT INTO  `analytics`.`analytics`.`" + query.fileName + "`\n" + query.content;

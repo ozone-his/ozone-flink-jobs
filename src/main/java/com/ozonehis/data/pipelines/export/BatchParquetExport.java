@@ -5,8 +5,12 @@ import com.ozonehis.data.pipelines.utils.CommonUtils;
 import com.ozonehis.data.pipelines.utils.QueryFile;
 import com.ozonehis.data.pipelines.utils.Environment;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,15 +34,25 @@ public class BatchParquetExport {
 		String baseUrl = String.format("jdbc:postgresql://%s:%s", Environment.getEnv("ANALYTICS_DB_HOST", "localhost"),
 		    Environment.getEnv("ANALYTICS_DB_PORT", "5432"));
 		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		JdbcCatalog catalog = new JdbcCatalog(name, defaultDatabase, username, password, baseUrl);
+		List<File> jars = Arrays.asList(new File("/opt/flink/lib/"));
+        URL[] urls = new URL[jars.size()];
+		for (int i = 0; i < jars.size(); i++) {
+			try {
+				urls[i] = jars.get(i).toURI().toURL();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+        URLClassLoader classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+		JdbcCatalog catalog = new JdbcCatalog(classLoader,name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
-		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("EXPORT_DESTINATION_TABLES_PATH", "")).stream();
+		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("EXPORT_DESTINATION_TABLES_PATH", "/export/destination-tables")).stream();
 		tables.forEach(s -> {
 			Map<String, String> connectorOptions = Stream
 			        .of(new String[][] { { "connector", "filesystem" }, { "format", "parquet" },
 			                { "sink.rolling-policy.file-size", "10MB" },
 			                { "path",
-			                        Environment.getEnv("EXPORT_OUTPUT_PATH", "/tmp") + "/" + s.fileName + "/"
+			                        Environment.getEnv("EXPORT_OUTPUT_PATH", "/parquet") + "/" + s.fileName + "/"
 			                                + Environment.getEnv("EXPORT_OUTPUT_TAG", "location1") + "/"
 			                                + DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()) }, })
 			        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
@@ -46,7 +60,7 @@ public class BatchParquetExport {
 			        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
 			tableEnv.executeSql(queryDSL);
 		});
-		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("EXPORT_SOURCE_QUERIES_PATH", ""));
+		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("EXPORT_SOURCE_QUERIES_PATH", "/export/queries"));
 		StatementSet stmtSet = tableEnv.createStatementSet();
 		for (QueryFile query : queries) {
 			// String queryDSL = "INSERT INTO `analytics`.`analytics`.`" + query.fileName +
