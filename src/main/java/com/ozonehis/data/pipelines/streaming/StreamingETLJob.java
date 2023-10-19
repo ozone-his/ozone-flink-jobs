@@ -63,15 +63,6 @@ public class StreamingETLJob {
 		String baseUrl = String.format("jdbc:postgresql://%s:%s", Environment.getEnv("ANALYTICS_DB_HOST", "localhost"),
 		    Environment.getEnv("ANALYTICS_DB_PORT", "5432"));
 		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		List<File> jars = Arrays.asList(new File("/opt/flink/lib/"));
-        URL[] urls = new URL[jars.size()];
-		for (int i = 0; i < jars.size(); i++) {
-			try {
-				urls[i] = jars.get(i).toURI().toURL();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 		JdbcCatalog catalog = new JdbcCatalog(ClassLoader.getSystemClassLoader(),name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
 		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source-tables")).stream();
