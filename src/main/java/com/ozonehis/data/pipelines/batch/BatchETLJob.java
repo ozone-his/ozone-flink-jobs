@@ -79,17 +79,7 @@ public class BatchETLJob {
 		String odooDBurl = String.format("jdbc:postgresql://%s:%s/%s?sslmode=disable", odooDBhost, odooDBport, odooDBName);
 		
 		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		List<File> jars = Arrays.asList(new File("/opt/flink/lib/"));
-        URL[] urls = new URL[jars.size()];
-		for (int i = 0; i < jars.size(); i++) {
-			try {
-				urls[i] = jars.get(i).toURI().toURL();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-        URLClassLoader classLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
-		JdbcCatalog catalog = new JdbcCatalog(classLoader,name, defaultDatabase, username, password, baseUrl);
+		JdbcCatalog catalog = new JdbcCatalog(ClassLoader.getSystemClassLoader(),name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
 		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source_tables")).stream();
 		tables.forEach(s -> {

@@ -72,8 +72,7 @@ public class StreamingETLJob {
 				e.printStackTrace();
 			}
 		}
-        URLClassLoader childClassLoader = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
-		JdbcCatalog catalog = new JdbcCatalog(childClassLoader,name, defaultDatabase, username, password, baseUrl);
+		JdbcCatalog catalog = new JdbcCatalog(ClassLoader.getSystemClassLoader(),name, defaultDatabase, username, password, baseUrl);
 		tableEnv.registerCatalog("analytics", catalog);
 		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source-tables")).stream();
 		tables.forEach(s -> {
