@@ -23,7 +23,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
-public class BatchParquetExport {
+public class BatchExport {
 	
 	private static String configFilePath = Environment.getEnv("ANALYTICS_CONFIG_FILE_PATH", "/etc/analytics/config.yaml");
 	
@@ -46,7 +46,7 @@ public class BatchParquetExport {
 	
 	private static void registerCatalogs() {
 		for (JdbcCatalogConfig catalogConfig : CommonUtils.getConfig(configFilePath).getJdbcCatalogs()) {
-			JdbcCatalog catalog = new JdbcCatalog(BatchParquetExport.class.getClassLoader(), catalogConfig.getName(),
+			JdbcCatalog catalog = new JdbcCatalog(BatchExport.class.getClassLoader(), catalogConfig.getName(),
 			        catalogConfig.getDefaultDatabase(), catalogConfig.getUsername(), catalogConfig.getPassword(),
 			        catalogConfig.getBaseUrl());
 			tableEnv.registerCatalog(catalogConfig.getName(), catalog);
