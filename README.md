@@ -63,7 +63,6 @@ export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/
 export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-distro/analytics_config/liquibase/analytics/;
 export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/export/tables/;
 export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/export/queries;
-
 ```
 
 ```cd development```
@@ -76,7 +75,7 @@ export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_l
 export ANALYTICS_DB_HOST=gateway.docker.internal; \
 export ANALYTICS_DB_PORT=5432; \
 export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal; \
-export CONNECT_MYSQL_PORT=3306; \
+export CONNECT_MYSQL_PORT=3307; \
 export CONNECT_MYSQL_USER=root; \
 export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey; \
 export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal; \
@@ -94,6 +93,9 @@ export CONNECT_ODOO_DB_PASSWORD=password
 ```mvn clean install compile```
 
 #### Step 3:
+***Note***: The `ANALYTICS_CONFIG_FILE_PATH` env var provides the location of the co figuration file require by all jobs. The file an example file is provided at `development/data/config.yaml`
+
+```bash
 ##### Run Streaming job
 
 ```bash
@@ -111,12 +113,15 @@ export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
 export OPENMRS_DB_HOST=localhost;\
-export OPENMRS_DB_PORT=3306;\
+export OPENMRS_DB_PORT=3307;\
 export ODOO_DB_NAME=odoo;\
 export ODOO_DB_USER=postgres;\
 export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
-export ODOO_DB_PORT=5432;
+export ODOO_DB_PORT=5432;\
+export ZOOKEEPER_URL=localhost:2181;\
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
+export ANALYTICS_KAFKA_URL=localhost:29092
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.streaming.StreamingETLJob" -Dexec.classpathScope="compile"```
@@ -138,6 +143,7 @@ export ODOO_DB_USER=postgres;\
 export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```
 
@@ -157,6 +163,7 @@ export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
 export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
 export EXPORT_OUTPUT_TAG=h1;
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchParquetExport" -Dexec.classpathScope="compile"```
 

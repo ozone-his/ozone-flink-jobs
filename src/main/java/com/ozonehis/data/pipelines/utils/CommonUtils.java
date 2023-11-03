@@ -1,5 +1,6 @@
 package com.ozonehis.data.pipelines.utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -7,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.ozonehis.data.pipelines.config.AppConfiguration;
+import com.ozonehis.data.pipelines.config.ConfigurationLoader;
 
 public class CommonUtils {
 	
@@ -42,5 +46,11 @@ public class CommonUtils {
 			throw new RuntimeException(e);
 		}
 		
+	}
+	
+	public static AppConfiguration getConfig(String configPath) {
+		ConfigurationLoader configLoader = new ConfigurationLoader();
+		AppConfiguration config = configLoader.loadConfiguration(new File(configPath), AppConfiguration.class);
+		return config;
 	}
 }
