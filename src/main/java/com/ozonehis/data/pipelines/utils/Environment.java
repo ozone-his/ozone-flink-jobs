@@ -12,9 +12,15 @@ import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.apache.flink.runtime.minicluster.MiniClusterConfiguration;
-import org.apache.flink.streaming.api.environment.RemoteStreamEnvironment;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ozonehis.data.pipelines.streaming.StreamingETLJob;
 
 public class Environment {
+	
+	private static Logger logger = LoggerFactory.getLogger(StreamingETLJob.class);
 	
 	public static String getEnv(String key, String defaultValue) {
 		String value = System.getenv(key);
@@ -71,7 +77,7 @@ public class Environment {
 					Boolean[] jobStatuses = jobs.stream().map(job -> job.getJobState().isGloballyTerminalState())
 					        .toArray(Boolean[]::new);
 					if (Stream.of(jobStatuses).allMatch(Boolean::valueOf)) {
-						System.out.println("All jobs are completed. Exiting...");
+						logger.info("All jobs are completed. Exiting...");
 						System.exit(0);
 					}
 				}

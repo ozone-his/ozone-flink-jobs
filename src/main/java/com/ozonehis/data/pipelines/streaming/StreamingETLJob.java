@@ -25,6 +25,9 @@ import java.util.stream.Stream;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.flink.connector.jdbc.catalog.JdbcCatalog;
 
 import org.apache.flink.runtime.minicluster.MiniCluster;
@@ -55,8 +58,6 @@ import com.ozonehis.data.pipelines.utils.Environment;
  */
 public class StreamingETLJob {
 	
-	// private static final Logger LOG = new
-	// Log4jLoggerFactory().getLogger(StreamingETLJob.class.getName());
 	private static String configFilePath = Environment.getEnv("ANALYTICS_CONFIG_FILE_PATH", "/etc/analytics/config.yaml");
 	
 	private static StreamTableEnvironment tableEnv = null;
