@@ -41,9 +41,9 @@ We utilize the following technologies to power our ETL pipelines:
 
 ### Development
 
-#### DSL
+#### Domain Specific Languages (DSLs)
 
-The project provides for defining ETL jobs for reporting. The underlying DSLs usable for the jobs are categorized as:
+. The project generates Flink jobs based on SQL DSLs. The DSLs are categorized into two:
 - [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS. Note that these are related to the Liquibase migration scripts that are used to create destination tables found [here](https://github.com/ozone-his/ozonepro-distro/analytics_config/liquibase/analytics/).
 - [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/export/README.md) - For exporting data to parquet files
 
