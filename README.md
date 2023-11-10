@@ -7,7 +7,7 @@ This repository contains the ETL pipelines that are used to transform data from 
 ## Features
 The project provides the following features:
 
-- Support for [**Batch**](https://nightlies.apache.org/flink/flink-docs-master/docs/ops/batch/batch_shuffle/) and [**Streaming**](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/concepts/overview/) ETL
+- Support for [**Batch Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/ops/batch/batch_shuffle/) and [**Streaming Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/concepts/overview/) ETL
 
 - Flattening of data from Ozone HIS Components into a format that is easy to query and analyze.:
 The data that is flattened depends on project needs. For example, our Reference Distro provides flattening queries that produce the following tables:
