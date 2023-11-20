@@ -1,20 +1,16 @@
+# Ozone Analytics ETL Pipelines
 
-# Ozone ETL pipelines
+## Overview
 
-## Flink
-
-  
-
-This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) [jobs](https://ci.apache.org/projects/flink/flink-docs-master/docs/internals/job_scheduling/#:~:text=A%20Flink%20job%20is%20first,it%20cancels%20all%20running%20tasks) for flattening [Ozone HIS](https://github.com/ozone-his) data.
+This repository contains the ETL pipelines that are used to transform data from all Ozone components into a format that is easy to query and analyze. The pipelines are written in [Apache Flink](https://ci.apache.org/projects/flink/flink-docs-master/), a powerful framework that supports both batch and real-time data processing.
 
 ## Features
+The project provides the following features:
 
-  
+- Support for [**Batch Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/ops/batch/batch_shuffle/) and [**Streaming Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/concepts/overview/) ETL
 
-- Provides both [batch]() and [streaming]() modes
-
-- Currently flattens OpenMRS to output reporting friendly tables for:
-
+- Flattening of data from Ozone HIS Components into a format that is easy to query and analyze.:
+The data that is flattened depends on project needs. For example, our Reference Distro provides flattening queries that produce the following tables:
   - patients
 
   - observations
@@ -37,25 +33,24 @@ This repository contains ETL [Flink](hhttps://ci.apache.org/projects/flink/flink
 
 
 
-## Tech
-
-- [Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) - For ETL
-- [Kafka connect](https://docs.confluent.io/platform/current/connect/index.html) - For CDC
-- [Kafka](https://kafka.apache.org/) - For streaming data
+## Technologies
+We utilize the following technologies to power our ETL pipelines:
+- [Apache Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) - For orchestrating the ETL jobs.
+- [Kafka Connect](https://docs.confluent.io/platform/current/connect/index.html) - for Change Data Capture (CDC).
+- [Apache Kafka](https://kafka.apache.org/) - For managing data streams.
 
 ### Development
 
-#### DSL
+#### Domain Specific Languages (DSLs)
 
-The project provides for defining ETL jobs for reporting. The underlying DSLs usable for the jobs are categorised as:
-- [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS. Note that these are related to the liquibase migration scripts that are used to create destination tables found [here](https://github.com/ozone-his/ozonepro-distro/analytics_config/liquibase/analytics/).
+. The project generates Flink jobs based on SQL DSLs. The DSLs are categorized into two:
+- [Flattening DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/flattening/README.md) - For flattening data from OpenMRS. Note that these are related to the Liquibase migration scripts that are used to create destination tables found [here](https://github.com/ozone-his/ozonepro-distro/analytics_config/liquibase/analytics/).
 - [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/export/README.md) - For exporting data to parquet files
 
-
-#### Step1:  startup backing services
+#### Step1:  Start Required Services
 The project assumes you already have an Ozone HIS instance running. If not please follow the instructions [here](https://github.com/ozone-his/ozone-docker) or [here](https://github.com/ozone-his/ozonepro-docker) to get one up and running.
 
-The project also assumes you have the required migration scripts and destination table creation sripts with their queries scripts located somewhere you know. They can be downloaded as part of the project [here](https://github.com/ozone-his/ozonepro-distro) in the `analytics_config` directory, for example, the following `env` variable would be exported as below;
+The project also assumes you have the required migration scripts and destination table creation scripts with their query scripts located somewhere you know. They can be downloaded as part of the project [here](https://github.com/ozone-his/ozonepro-distro) in the `analytics_config` directory, for example, the following `env` variable would be exported as below;
 
 ```bash
 export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/tables/;
@@ -63,7 +58,6 @@ export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/
 export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-distro/analytics_config/liquibase/analytics/;
 export EXPORT_DESTINATION_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/export/tables/;
 export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/export/queries;
-
 ```
 
 ```cd development```
@@ -76,7 +70,7 @@ export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_l
 export ANALYTICS_DB_HOST=gateway.docker.internal; \
 export ANALYTICS_DB_PORT=5432; \
 export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal; \
-export CONNECT_MYSQL_PORT=3306; \
+export CONNECT_MYSQL_PORT=3307; \
 export CONNECT_MYSQL_USER=root; \
 export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey; \
 export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal; \
@@ -94,7 +88,10 @@ export CONNECT_ODOO_DB_PASSWORD=password
 ```mvn clean install compile```
 
 #### Step 3:
-##### Run Streaming job
+***Note***: The `ANALYTICS_CONFIG_FILE_PATH` env var provides the location of the configuration file required by all jobs. An example file is provided at `development/data/config.yaml`
+
+
+##### Running in Streaming mode
 
 ```bash
 export ANALYTICS_SOURCE_TABLES_PATH=path_to_folder_containing_source_tables_to_query_from;\
@@ -111,17 +108,21 @@ export OPENMRS_DB_NAME=openmrs;\
 export OPENMRS_DB_USER=root;\
 export OPENMRS_DB_PASSWORD=3cY8Kve4lGey;\
 export OPENMRS_DB_HOST=localhost;\
-export OPENMRS_DB_PORT=3306;\
+export OPENMRS_DB_PORT=3307;\
 export ODOO_DB_NAME=odoo;\
 export ODOO_DB_USER=postgres;\
 export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
-export ODOO_DB_PORT=5432;
+export ODOO_DB_PORT=5432;\
+export ZOOKEEPER_URL=localhost:2181;\
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
+export ANALYTICS_KAFKA_URL=localhost:29092
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.streaming.StreamingETLJob" -Dexec.classpathScope="compile"```
 
-##### Run Batch job
+##### Runin Batch mode
+
 ```bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
@@ -138,10 +139,11 @@ export ODOO_DB_USER=postgres;\
 export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```
 
-##### Run Parquet Export job
+##### Run Export job
 ```mkdir -p development/data/parquet/```
 
 ```bash
@@ -157,10 +159,11 @@ export ANALYTICS_DB_PORT=5432;\
 export ANALYTICS_DB_NAME=analytics;\
 export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
 export EXPORT_OUTPUT_TAG=h1;
+export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
-```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchParquetExport" -Dexec.classpathScope="compile"```
+```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchExport" -Dexec.classpathScope="compile"```
 
 
 ## Gotchas
-When streaming data from Postgres See
+When streaming data from PostgreSQL See
 [consuming-data-produced-by-debezium-postgres-connector](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/formats/debezium/#consuming-data-produced-by-debezium-postgres-connector)

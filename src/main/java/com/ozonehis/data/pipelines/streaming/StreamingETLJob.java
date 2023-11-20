@@ -18,17 +18,28 @@
 
 package com.ozonehis.data.pipelines.streaming;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.flink.connector.jdbc.catalog.JdbcCatalog;
+
+import org.apache.flink.runtime.minicluster.MiniCluster;
+import org.apache.flink.streaming.api.environment.RemoteStreamEnvironment;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
 import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
+import com.ozonehis.data.pipelines.config.JdbcCatalogConfig;
+import com.ozonehis.data.pipelines.config.JdbcSinkConfig;
+import com.ozonehis.data.pipelines.config.KafkaStreamConfig;
 import com.ozonehis.data.pipelines.utils.CommonUtils;
 import com.ozonehis.data.pipelines.utils.QueryFile;
 import com.ozonehis.data.pipelines.utils.ConnectorUtils;
@@ -46,49 +57,68 @@ import com.ozonehis.data.pipelines.utils.Environment;
  * method, change the respective entry in the POM.xml file (simply search for 'mainClass').
  */
 public class StreamingETLJob {
-	// private static final Logger LOG = new
-	// Log4jLoggerFactory().getLogger(StreamingETLJob.class.getName());
 	
-	public static void main(String[] args) {
-		StreamExecutionEnvironment env = Environment.getExecutionEnvironment();
+	private static String configFilePath = Environment.getEnv("ANALYTICS_CONFIG_FILE_PATH", "/etc/analytics/config.yaml");
+	
+	private static StreamTableEnvironment tableEnv = null;
+	
+	private static MiniCluster cluster = null;
+	
+	public static void main(String[] args) throws Exception {
+		cluster = Environment.initMiniClusterWithEnv(true);
+		cluster.start();
+		StreamExecutionEnvironment env = new RemoteStreamEnvironment(cluster.getRestAddress().get().getHost(),
+		        cluster.getRestAddress().get().getPort(), cluster.getConfiguration());
+		
 		EnvironmentSettings envSettings = EnvironmentSettings.newInstance().inStreamingMode().build();
-		String name = "analytics";
-		String defaultDatabase = Environment.getEnv("ANALYTICS_DB_NAME", "analytics");
-		String username = Environment.getEnv("ANALYTICS_DB_USER", "analytics");
-		String password = Environment.getEnv("ANALYTICS_DB_PASSWORD", "analytics");
-		String baseUrl = String.format("jdbc:postgresql://%s:%s", Environment.getEnv("ANALYTICS_DB_HOST", "localhost"),
-		    Environment.getEnv("ANALYTICS_DB_PORT", "5432"));
-		StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, envSettings);
-		JdbcCatalog catalog = new JdbcCatalog(ClassLoader.getSystemClassLoader(),name, defaultDatabase, username, password, baseUrl);
-		tableEnv.registerCatalog("analytics", catalog);
-		Stream<QueryFile> tables = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_SOURCE_TABLES_PATH", "/analytics/source-tables")).stream();
-		tables.forEach(s -> {
-			Map<String, String> connectorOptions = null;
-			if (s.parent.equals("openmrs")) {
-				connectorOptions = Stream.of(
-				    new String[][] { { "connector", "kafka" }, { "properties.bootstrap.servers", Environment.getEnv("ANALYTICS_KAFKA_URL", "localhost:29092") },
-				            { "properties.group.id", "flink" }, { "topic", String.format("openmrs.openmrs.%s", s.fileName) },
-				            { "scan.startup.mode", "earliest-offset" },
-				            { "value.debezium-json.ignore-parse-errors", "true" }, { "value.format", "debezium-json" }, })
-				        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-			} else if (s.parent.equals("odoo")) {
-				connectorOptions = Stream.of(new String[][] { { "connector", "kafka" },
-				        { "properties.bootstrap.servers", Environment.getEnv("ANALYTICS_KAFKA_URL", "localhost:29092") }, { "properties.group.id", "flink" },
-				        { "topic", String.format("odoo.public.%s", s.fileName) }, { "scan.startup.mode", "earliest-offset" },
-				        { "value.debezium-json.ignore-parse-errors", "true" }, { "value.format", "debezium-json" }, })
-				        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
-			}
-			String queryDSL = s.content + "\n" + " WITH (\n"
-			        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
-			tableEnv.executeSql(queryDSL);
-		});
-		List<QueryFile> queries = CommonUtils.getSQL(Environment.getEnv("ANALYTICS_QUERIES_PATH", "/analytics/queries"));
-		StatementSet stmtSet = tableEnv.createStatementSet();
-		for (QueryFile query : queries) {
-			String queryDSL = "INSERT INTO  `analytics`.`analytics`.`" + query.fileName + "`\n" + query.content;
-			stmtSet.addInsertSql(queryDSL);
+		tableEnv = StreamTableEnvironment.create(env, envSettings);
+		registerCatalogs();
+		registerDataStreams();
+		executeFlattening();
+	}
+	
+	private static void registerCatalogs() {
+		for (JdbcCatalogConfig catalogConfig : CommonUtils.getConfig(configFilePath).getJdbcCatalogs()) {
+			JdbcCatalog catalog = new JdbcCatalog(StreamingETLJob.class.getClassLoader(), catalogConfig.getName(),
+			        catalogConfig.getDefaultDatabase(), catalogConfig.getUsername(), catalogConfig.getPassword(),
+			        catalogConfig.getBaseUrl());
+			tableEnv.registerCatalog(catalogConfig.getName(), catalog);
 		}
-		stmtSet.execute();
+	}
+	
+	private static void registerDataStreams() {
+		for (KafkaStreamConfig kafkaStreamConfig : CommonUtils.getConfig(configFilePath).getKafkaStreams()) {
+			Stream<QueryFile> tables = CommonUtils.getSQL(kafkaStreamConfig.getTableDefinitionsPath()).stream();
+			
+			tables.forEach(s -> {
+				Map<String, String> connectorOptions = Stream.of(new String[][] { { "connector", "kafka" },
+				        { "properties.bootstrap.servers", kafkaStreamConfig.getBootstrapServers() },
+				        { "properties.group.id", "flink" },
+				        { "topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName) },
+				        { "scan.startup.mode", "earliest-offset" }, { "value.debezium-json.ignore-parse-errors", "true" },
+				        { "value.format", "debezium-json" }, }).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+				
+				String queryDSL = s.content + "\n" + " WITH (\n"
+				        + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
+				tableEnv.executeSql(queryDSL);
+			});
+		}
+	}
+	
+	private static void executeFlattening()
+	        throws IOException, ClassNotFoundException, InterruptedException, ExecutionException {
+		String[] jobNames = cluster.listJobs().get().stream().map(job -> job.getJobName()).toArray(String[]::new);
+		for (JdbcSinkConfig jdbcSinkConfig : CommonUtils.getConfig(configFilePath).getJdbcSinks()) {
+			List<QueryFile> queries = CommonUtils.getSQL(jdbcSinkConfig.getQueryPath());
+			for (QueryFile query : queries) {
+				String queryDSL = "INSERT INTO  `" + jdbcSinkConfig.getJdbcCatalog() + "`.`"
+				        + jdbcSinkConfig.getDatabaseName() + "`.`" + query.fileName + "`\n" + query.content;
+				if (Stream.of(jobNames).noneMatch(jobName -> jobName.equals("insert-into_" + jdbcSinkConfig.getJdbcCatalog()
+				        + "." + jdbcSinkConfig.getDatabaseName() + "." + query.fileName))) {
+					tableEnv.executeSql(queryDSL);
+				}
+			}
+		}
 	}
 	
 }
