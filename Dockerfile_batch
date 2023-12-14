@@ -6,10 +6,10 @@ ADD ./src src/
 RUN mvn clean install -Pbatch
 
 FROM eclipse-temurin:11-jre
-ARG JAR_VERSION=1.0.0-SNAPSHOT
-ENV OUTPUT_DIR=/parquet
+ARG JAR_VERSION=2.2.0-SNAPSHOT
+RUN mkdir -p /app
+WORKDIR /app
 COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-batch.jar etl-batch.jar
-ADD etl-batch.sh ./etl-batch.sh
-COPY run.sh /run.sh
-RUN chmod +x /run.sh
-CMD [ "/bin/sh","./etl-batch.sh" ]
+ADD batch-etl.sh ./batch-etl.sh
+RUN chmod +x ./batch-etl.sh
+CMD [ "/bin/sh","/app/batch-etl.sh" ]
