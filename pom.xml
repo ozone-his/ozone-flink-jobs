@@ -136,11 +136,6 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.parquet</groupId>
-			<artifactId>parquet-hadoop-bundle</artifactId>
-			<version>1.12.3</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
 			<version>2.10.2</version>
@@ -221,9 +216,18 @@
 												com.ozonehis.data.pipelines.streaming.StreamingETLJob
 											</mainClass>
 										</transformer>
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+											<resource>META-INF/services/java.sql.Driver</resource>
+										</transformer>
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+											<resource>META-INF/services/java.sql.Driver</resource>
+										</transformer>
+										<transformer
+											implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 									</transformers>
-									<finalName>
-										${project.artifactId}-${project.version}-etl-streaming</finalName>
+									<finalName>${project.artifactId}-${project.version}-etl-streaming</finalName>
 								</configuration>
 							</execution>
 						</executions>
