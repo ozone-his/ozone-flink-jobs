@@ -5,12 +5,14 @@
 This repository contains the ETL pipelines that are used to transform data from all Ozone components into a format that is easy to query and analyze. The pipelines are written in [Apache Flink](https://ci.apache.org/projects/flink/flink-docs-master/), a powerful framework that supports both batch and real-time data processing.
 
 ## Features
+
 The project provides the following features:
 
 - Support for [**Batch Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/ops/batch/batch_shuffle/) and [**Streaming Analytics**](https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/concepts/overview/) ETL
 
 - Flattening of data from Ozone HIS Components into a format that is easy to query and analyze.:
-The data that is flattened depends on project needs. For example, our Reference Distro provides flattening queries that produce the following tables:
+  The data that is flattened depends on project needs. For example, our Reference Distro provides flattening queries that produce the following tables:
+
   - patients
 
   - observations
@@ -31,9 +33,8 @@ The data that is flattened depends on project needs. For example, our Reference 
 
   - patient programs
 
-
-
 ## Technologies
+
 We utilize the following technologies to power our ETL pipelines:
 - [Apache Flink](hhttps://ci.apache.org/projects/flink/flink-docs-master/) - For orchestrating the ETL jobs.
 - [Kafka Connect](https://docs.confluent.io/platform/current/connect/index.html) - for Change Data Capture (CDC).
@@ -48,6 +49,7 @@ We utilize the following technologies to power our ETL pipelines:
 - [Parquet Export DSLs](https://github.com/ozone-his/ozonepro-distro/analytics_config/dsl/export/README.md) - For exporting data to parquet files
 
 #### Step1:  Start Required Services
+
 The project assumes you already have an Ozone HIS instance running. If not please follow the instructions [here](https://github.com/ozone-his/ozone-docker) or [here](https://github.com/ozone-his/ozonepro-docker) to get one up and running.
 
 The project also assumes you have the required migration scripts and destination table creation scripts with their query scripts located somewhere you know. They can be downloaded as part of the project [here](https://github.com/ozone-his/ozonepro-distro) in the `analytics_config` directory, for example, the following `env` variable would be exported as below;
@@ -61,11 +63,13 @@ export EXPORT_SOURCE_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/export/
 ```
 
 ```cd development```
+
 ##### Export environment variables
 
 ```bash
 export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_liquibase_destination_tables_migrations;\
 ```
+
 ```bash
 export ANALYTICS_DB_HOST=gateway.docker.internal; \
 export ANALYTICS_DB_PORT=5432; \
@@ -85,11 +89,12 @@ export CONNECT_ODOO_DB_PASSWORD=password
 ***Note***: The `gateway.docker.internal` is a special DNS name that resolves to the host machine from within containers. It is only available for Mac and Windows. For Linux, use the docker host IP by default ```172.17.0.1```
 
 #### Step 2: Compile
+
 ```mvn clean install compile```
 
 #### Step 3:
-***Note***: The `ANALYTICS_CONFIG_FILE_PATH` env var provides the location of the configuration file required by all jobs. An example file is provided at `development/data/config.yaml`
 
+***Note***: The `ANALYTICS_CONFIG_FILE_PATH` env var provides the location of the configuration file required by all jobs. An example file is provided at `development/data/config.yaml`
 
 ##### Running in Streaming mode
 
@@ -98,7 +103,7 @@ export ANALYTICS_SOURCE_TABLES_PATH=path_to_folder_containing_source_tables_to_q
 export ANALYTICS_QUERIES_PATH=path_to_folder_containing_sql_flattening_queries;\
 ```
 
-``` bash
+```bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
@@ -141,9 +146,11 @@ export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
+
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```
 
 ##### Run Export job
+
 ```mkdir -p development/data/parquet/```
 
 ```bash
@@ -151,7 +158,7 @@ export EXPORT_DESTINATION_TABLES_PATH=path_to_folder_containing_parquet_destinat
 export EXPORT_SOURCE_QUERIES_PATH=path_to_folder_containing_sql_parquet_queries;
 ```
 
-``` bash
+```bash
 export ANALYTICS_DB_USER=analytics;\
 export ANALYTICS_DB_PASSWORD=password;\
 export ANALYTICS_DB_HOST=localhost;\
@@ -161,9 +168,10 @@ export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
 export EXPORT_OUTPUT_TAG=h1;
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 ```
+
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchExport" -Dexec.classpathScope="compile"```
 
-
 ## Gotchas
+
 When streaming data from PostgreSQL See
 [consuming-data-produced-by-debezium-postgres-connector](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/formats/debezium/#consuming-data-produced-by-debezium-postgres-connector)
