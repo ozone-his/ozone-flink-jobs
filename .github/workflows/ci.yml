@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  validate:
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-build-test.yml@main
+    with:
+      java-version: 11
+    secrets:
+      NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+
+  spotless:
+    needs: validate
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
+    with:
+      java-version: 11
+
+  docker-ozone-flink-parquet-export:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: spotless
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
+    with:
+      dockerfile: Dockerfile_parquet_export
+      image-name: "ozone-flink-parquet-export"
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  docker-ozone-flink-jobs-batch:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: spotless
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
+    with:
+      dockerfile: Dockerfile_batch
+      image-name: "ozone-flink-jobs-batch"
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  docker-ozone-flink-jobs-streaming:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: spotless
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
+    with:
+      image-name: "ozone-flink-jobs" # ozone-flink-jobs-streaming
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  docker-ozone-analytics-setup-connect:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: spotless
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
+    with:
+      context: ./development/setup-connect
+      dockerfile: Dockerfile
+      image-name: "ozone-analytics-setup-connect"
+    secrets:
+      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
