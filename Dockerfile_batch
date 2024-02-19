@@ -1,13 +1,12 @@
 FROM  maven:3.8.6-eclipse-temurin-11 as builder
 
-ENV JAVA_OPTS="-Xmx2g"
+ENV MAVEN_OPTS="-Xmx2g"
 
 # Copy pom.xml and source code
 COPY ./pom.xml pom.xml
 COPY ./src src/
 
-#cache dependencies
-RUN mvn dependency:go-offline && mvn clean install -Pbatch
+RUN mvn clean install -Pbatch
 
 FROM eclipse-temurin:11-jre
 ARG JAR_VERSION=2.2.0-SNAPSHOT
