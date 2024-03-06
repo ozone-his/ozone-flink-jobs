@@ -175,3 +175,11 @@ export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
 
 When streaming data from PostgreSQL See
 [consuming-data-produced-by-debezium-postgres-connector](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/formats/debezium/#consuming-data-produced-by-debezium-postgres-connector)
+
+## Code formatting
+
+The project includes spotless-maven-plugin to enforce code formatting. To format the code, run the following command:
+
+```bash
+mvn clean install -Pspotless
+```

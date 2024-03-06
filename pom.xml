@@ -248,7 +248,7 @@
   </build>
   <profiles>
     <profile>
-      <id>ci</id>
+      <id>spotless</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
