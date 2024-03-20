@@ -22,6 +22,7 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
     with:
       java-version: 11
+      maven-args: -Pspotless
 
   docker-ozone-flink-parquet-export:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -35,7 +36,7 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   docker-ozone-flink-jobs-batch:
-    #if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
