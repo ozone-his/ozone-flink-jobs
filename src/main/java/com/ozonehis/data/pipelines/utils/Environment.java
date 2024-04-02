@@ -52,11 +52,18 @@ public class Environment {
         flinkConfig.set(
                 JobManagerOptions.TOTAL_PROCESS_MEMORY,
                 MemorySize.parse(System.getenv().getOrDefault("TOTAL_PROCESS_MEMORY", "1g")));
-       
-        flinkConfig.set(TaskManagerOptions.TASK_HEAP_MEMORY, MemorySize.parse(System.getenv().getOrDefault("TASK_HEAP_MEMORY", "1g")));
-        flinkConfig.set(TaskManagerOptions.TASK_OFF_HEAP_MEMORY, MemorySize.parse(System.getenv().getOrDefault("TASK_OFF_HEAP_MEMORY", "1g")));
-        flinkConfig.set(TaskManagerOptions.FRAMEWORK_HEAP_MEMORY, MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_HEAP_MEMORY", "1g")));
-        flinkConfig.set(TaskManagerOptions.FRAMEWORK_OFF_HEAP_MEMORY, MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_OFF_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.TASK_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("TASK_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.TASK_OFF_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("TASK_OFF_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.FRAMEWORK_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.FRAMEWORK_OFF_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_OFF_HEAP_MEMORY", "1g")));
 
         flinkConfig.setString("restart-strategy.type", "exponential-delay");
         flinkConfig.setString("execution.checkpointing.mode", "EXACTLY_ONCE");
