@@ -1,20 +1,23 @@
 package com.ozonehis.data.pipelines.utils;
 
 import com.ozonehis.data.pipelines.streaming.StreamingETLJob;
-import java.util.Collection;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.RestOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.apache.flink.runtime.minicluster.MiniClusterConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class Environment {
 
@@ -34,6 +37,10 @@ public class Environment {
 
     public static MiniCluster initMiniClusterWithEnv(Boolean isStreaming) throws Exception {
         Configuration flinkConfig = new Configuration();
+        String port = Environment.getEnv("FLINK_REST_PORT", null);
+        if (StringUtils.isNotBlank(port)) {
+            flinkConfig.setInteger(RestOptions.PORT, Integer.valueOf(port));
+        }
         flinkConfig.set(
                 TaskManagerOptions.NETWORK_MEMORY_MIN,
                 MemorySize.parse(System.getenv().getOrDefault("NETWORK_MEMORY_MIN", "500m")));

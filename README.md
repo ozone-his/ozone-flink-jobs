@@ -121,7 +121,8 @@ export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;\
 export ZOOKEEPER_URL=localhost:2181;\
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
-export ANALYTICS_KAFKA_URL=localhost:29092
+export ANALYTICS_KAFKA_URL=localhost:29092;\
+export FLINK_REST_PORT=8082;
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.streaming.StreamingETLJob" -Dexec.classpathScope="compile"```
@@ -145,6 +146,7 @@ export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
+export FLINK_REST_PORT=8082;
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```
@@ -167,6 +169,7 @@ export ANALYTICS_DB_NAME=analytics;\
 export EXPORT_OUTPUT_PATH=$(pwd)/development/data/parquet/;\
 export EXPORT_OUTPUT_TAG=h1;
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
+export FLINK_REST_PORT=8082;
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.export.BatchExport" -Dexec.classpathScope="compile"```
