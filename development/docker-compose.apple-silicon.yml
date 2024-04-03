@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  zookeeper:
+    platform: linux/amd64
+  kafka:
+    platform: linux/amd64
+  kafka-setup:
+    platform: linux/amd64
+  connect:
+    platform: linux/amd64
+  odoo-replica-identity-migration:
+    platform: linux/amd64

@@ -44,11 +44,27 @@ public class Environment {
                 TaskManagerOptions.MANAGED_MEMORY_FRACTION,
                 Float.parseFloat(System.getenv().getOrDefault("MANAGED_MEMORY_FRACTION", "0.7")));
         flinkConfig.set(
+                TaskManagerOptions.MANAGED_MEMORY_SIZE,
+                MemorySize.parse(System.getenv().getOrDefault("MANAGED_MEMORY_SIZE", "1g")));
+        flinkConfig.set(
                 TaskManagerOptions.TOTAL_PROCESS_MEMORY,
                 MemorySize.parse(System.getenv().getOrDefault("TOTAL_PROCESS_MEMORY", "1g")));
         flinkConfig.set(
                 JobManagerOptions.TOTAL_PROCESS_MEMORY,
                 MemorySize.parse(System.getenv().getOrDefault("TOTAL_PROCESS_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.TASK_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("TASK_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.TASK_OFF_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("TASK_OFF_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.FRAMEWORK_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_HEAP_MEMORY", "1g")));
+        flinkConfig.set(
+                TaskManagerOptions.FRAMEWORK_OFF_HEAP_MEMORY,
+                MemorySize.parse(System.getenv().getOrDefault("FRAMEWORK_OFF_HEAP_MEMORY", "1g")));
+
         flinkConfig.setString("restart-strategy.type", "exponential-delay");
         flinkConfig.setString("execution.checkpointing.mode", "EXACTLY_ONCE");
         flinkConfig.setString("execution.checkpointing.interval", "10min");
@@ -65,7 +81,7 @@ public class Environment {
         flinkConfig.setString("taskmanager.network.numberOfBuffers", "20");
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {
-            flinkConfig.setString("high-availability", "ZOOKEEPER");
+            flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
         }
