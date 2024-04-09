@@ -1,6 +1,5 @@
 package com.ozonehis.data.pipelines.utils;
 
-import com.ozonehis.data.pipelines.streaming.StreamingETLJob;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
 
 public class Environment {
 
-    private static Logger logger = LoggerFactory.getLogger(StreamingETLJob.class);
+    private static Logger logger = LoggerFactory.getLogger(Environment.class);
 
     public static String getEnv(String key, String defaultValue) {
         String value = System.getenv(key);
@@ -28,10 +27,6 @@ public class Environment {
             return defaultValue;
         }
         return value;
-    }
-
-    public static MiniCluster initMiniClusterWithEnv() throws Exception {
-        return initMiniClusterWithEnv(true);
     }
 
     public static MiniCluster initMiniClusterWithEnv(Boolean isStreaming) throws Exception {
@@ -100,27 +95,25 @@ public class Environment {
         return cluster;
     }
 
-    public static void exitOnComplete(MiniCluster cluster) {
-        Runnable exitOnCompleteRunnable = new Runnable() {
-
-            public void run() {
-                try {
-                    Collection<JobStatusMessage> jobs = cluster.listJobs().get();
-                    if (jobs.size() == 0) {
-                        System.exit(0);
-                    }
-                    Boolean[] jobStatuses = jobs.stream()
-                            .map(job -> job.getJobState().isGloballyTerminalState())
-                            .toArray(Boolean[]::new);
-                    if (Stream.of(jobStatuses).allMatch(Boolean::valueOf)) {
-                        logger.info("All jobs are completed. Exiting...");
-                        System.exit(0);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+    public static void exitOnCompletion(MiniCluster cluster) {
+        Runnable exitOnCompleteRunnable = () -> {
+            try {
+                Collection<JobStatusMessage> jobs = cluster.listJobs().get();
+                if (jobs.size() == 0) {
+                    System.exit(0);
                 }
+                Boolean[] jobStatuses = jobs.stream()
+                        .map(job -> job.getJobState().isGloballyTerminalState())
+                        .toArray(Boolean[]::new);
+                if (Stream.of(jobStatuses).allMatch(Boolean::valueOf)) {
+                    logger.info("All jobs are completed. Exiting...");
+                    System.exit(0);
+                }
+            } catch (Exception e) {
+                logger.error("All jobs are completed. Exiting...", e);
             }
         };
+
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
         exec.scheduleAtFixedRate(exitOnCompleteRunnable, 0, 1, TimeUnit.MINUTES);
     }

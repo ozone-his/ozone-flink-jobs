@@ -366,7 +366,7 @@
                   </filters>
                   <transformers>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.streaming.StreamingETLJob</mainClass>
+                      <mainClass>com.ozonehis.data.pipelines.streaming.StreamJob</mainClass>
                     </transformer>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                       <resource>META-INF/services/java.sql.Driver</resource>
@@ -465,7 +465,7 @@
                   <transformers>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.batch.BatchETLJob</mainClass>
+                      <mainClass>com.ozonehis.data.pipelines.batch.BatchJob</mainClass>
                     </transformer>
                   </transformers>
                   <finalName>${project.artifactId}-${project.version}-etl-batch</finalName>
