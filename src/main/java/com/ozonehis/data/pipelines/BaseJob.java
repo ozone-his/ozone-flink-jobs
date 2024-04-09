@@ -84,7 +84,7 @@ public abstract class BaseJob {
             startCluster();
             createEnvironment();
             registerCatalogs();
-            registerSources();
+            beforeExecute();
             doExecute();
             Environment.exitOnCompletion(cluster);
         } catch (Throwable t) {
@@ -135,7 +135,7 @@ public abstract class BaseJob {
     }
 
     /**
-     * Registers the required sources of data.
+     * Called before job execution to allow subclasses to run any necessary preparation logic.
      */
-    public abstract void registerSources();
+    public abstract void beforeExecute();
 }

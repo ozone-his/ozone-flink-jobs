@@ -45,7 +45,7 @@ public class StreamJob extends BaseJob {
     private static final Logger LOG = LoggerFactory.getLogger(StreamJob.class);
 
     @Override
-    public void registerSources() {
+    public void beforeExecute() {
         LOG.info("Registering databases tables for stream processing");
         for (KafkaStreamConfig kafkaStreamConfig :
                 CommonUtils.getConfig(configFilePath).getKafkaStreams()) {
