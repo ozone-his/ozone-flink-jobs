@@ -43,7 +43,7 @@ public class BatchExport {
         registerCatalogs();
         registerDestinationTables();
         executeExport();
-        Environment.exitOnComplete(cluster);
+        Environment.exitOnCompletion(cluster);
     }
 
     private static void registerCatalogs() {
