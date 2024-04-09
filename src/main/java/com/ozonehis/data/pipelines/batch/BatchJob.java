@@ -45,7 +45,7 @@ public class BatchJob extends BaseJob {
     private static final Logger LOG = LoggerFactory.getLogger(BatchJob.class);
 
     @Override
-    public void registerSources() {
+    public void beforeExecute() {
         LOG.info("Registering database tables for batch processing");
         for (JdbcSourceConfig jdbcSourceConfig :
                 CommonUtils.getConfig(configFilePath).getJdbcSources()) {
