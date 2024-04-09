@@ -116,7 +116,7 @@ public abstract class BaseJob {
      * @throws InterruptedException
      * @throws ExecutionException
      */
-    private void doExecute() throws InterruptedException, ExecutionException {
+    protected void doExecute() throws InterruptedException, ExecutionException {
         String[] jobNames =
                 cluster.listJobs().get().stream().map(job -> job.getJobName()).toArray(String[]::new);
         for (JdbcSinkConfig jdbcSinkConfig :
