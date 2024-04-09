@@ -435,7 +435,7 @@
                   <transformers>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.export.BatchExport</mainClass>
+                      <mainClass>com.ozonehis.data.pipelines.export.ExportJob</mainClass>
                     </transformer>
                   </transformers>
                   <finalName>${project.artifactId}-${project.version}-etl-export</finalName>
