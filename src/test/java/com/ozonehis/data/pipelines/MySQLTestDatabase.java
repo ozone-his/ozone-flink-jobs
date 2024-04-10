@@ -11,24 +11,15 @@
  */
 package com.ozonehis.data.pipelines;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.MySQLContainer;
 
-public abstract class BaseDbDrivenTest {
+public class MySQLTestDatabase extends BaseTestDatabase {
 
-    private static final MySQLTestDatabase TEST_DB = new MySQLTestDatabase();
+    public static final MySQLContainer CONTAINER = new MySQLContainer<>("mysql:8.2.0");
 
-    protected String getJdbcUrl() {
-        return TEST_DB.getJdbcUrl();
-    }
-
-    @BeforeAll
-    public static void beforeAll() {
-        TEST_DB.start();
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        TEST_DB.shutdown();
+    @Override
+    public JdbcDatabaseContainer<?> getDbContainer() {
+        return CONTAINER;
     }
 }
