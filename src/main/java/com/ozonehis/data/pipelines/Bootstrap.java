@@ -11,6 +11,7 @@
 package com.ozonehis.data.pipelines;
 
 import com.ozonehis.data.pipelines.batch.BatchJob;
+import com.ozonehis.data.pipelines.export.ExportJob;
 import com.ozonehis.data.pipelines.streaming.StreamJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,9 @@ public class Bootstrap {
         } else if ("batch".equalsIgnoreCase(args[0])) {
             LOG.info("Executing flink job in batch mode");
             job = new BatchJob();
+        } else if ("export".equalsIgnoreCase(args[0])) {
+            LOG.info("Executing flink job in export mode");
+            job = new ExportJob();
         } else {
             throw new RuntimeException("Unsupported commandline argument: " + args[0]);
         }

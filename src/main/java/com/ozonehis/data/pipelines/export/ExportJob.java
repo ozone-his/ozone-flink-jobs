@@ -11,11 +11,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExportJob extends BaseJob {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ExportJob.class);
+
     @Override
     public void beforeExecute() {
+        LOG.info("Registering destination tables for export");
         for (FileSinkConfig fileSinkConfig :
                 CommonUtils.getConfig(configFilePath).getFileSinks()) {
             Stream<QueryFile> tables = CommonUtils.getSQL(fileSinkConfig.getDestinationTableDefinitionsPath()).stream();
