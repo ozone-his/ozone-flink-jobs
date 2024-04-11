@@ -23,11 +23,13 @@ public abstract class BaseTestDatabase {
 
     public static final String TEST_DB_NAME = "test-db";
 
-    public void start() {
+    public void start(boolean wait) {
         getDbContainer().withDatabaseName(TEST_DB_NAME);
         getDbContainer().withUsername(TEST_USER);
         getDbContainer().withPassword(TEST_PASSWORD);
-        Startables.deepStart(Stream.of(getDbContainer())).join();
+        if (wait) {
+            Startables.deepStart(Stream.of(getDbContainer())).join();
+        }
     }
 
     public String getJdbcUrl() {
