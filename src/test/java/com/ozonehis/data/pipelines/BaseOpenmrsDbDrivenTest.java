@@ -11,24 +11,35 @@
  */
 package com.ozonehis.data.pipelines;
 
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.lifecycle.Startables;
 
-public abstract class BaseDbDrivenTest {
+public abstract class BaseOpenmrsDbDrivenTest {
 
-    private static final MySQLTestDatabase TEST_DB = new MySQLTestDatabase();
+    private static final MySQLTestDatabase OPENMRS_DB = new MySQLTestDatabase();
 
-    protected String getJdbcUrl() {
-        return TEST_DB.getJdbcUrl();
+    private static final PostgresTestDatabase ANALYTICS_DB = new PostgresTestDatabase();
+
+    protected String getOpenmrsJdbcUrl() {
+        return OPENMRS_DB.getJdbcUrl();
+    }
+
+    protected String getAnalyticsJdbcUrl() {
+        return ANALYTICS_DB.getJdbcUrl();
     }
 
     @BeforeAll
     public static void beforeAll() {
-        TEST_DB.start();
+        OPENMRS_DB.start(false);
+        ANALYTICS_DB.start(false);
+        Startables.deepStart(Stream.of(OPENMRS_DB.getDbContainer(), ANALYTICS_DB.getDbContainer()))
+                .join();
     }
 
     @AfterAll
     public static void afterAll() {
-        TEST_DB.shutdown();
+        OPENMRS_DB.shutdown();
     }
 }
