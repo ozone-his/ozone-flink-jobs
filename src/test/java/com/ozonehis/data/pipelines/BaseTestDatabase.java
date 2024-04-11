@@ -12,34 +12,33 @@
 package com.ozonehis.data.pipelines;
 
 import java.util.stream.Stream;
-
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseTestDatabase {
-	
-	public static final String USER = "test-user";
-	
-	public static final String PASSWORD = "test-password";
-	
-	public static final String DB_NAME = "test-db";
-	
-	public void start(boolean wait) {
-		getDbContainer().withDatabaseName(DB_NAME);
-		getDbContainer().withUsername(USER);
-		getDbContainer().withPassword(PASSWORD);
-		if (wait) {
-			Startables.deepStart(Stream.of(getDbContainer())).join();
-		}
-	}
-	
-	public String getJdbcUrl() {
-		return getDbContainer().getJdbcUrl();
-	}
-	
-	public void shutdown() {
-		getDbContainer().stop();
-	}
-	
-	public abstract JdbcDatabaseContainer<?> getDbContainer();
+
+    public static final String USER = "test-user";
+
+    public static final String PASSWORD = "test-password";
+
+    public static final String DB_NAME = "test-db";
+
+    public void start(boolean wait) {
+        getDbContainer().withDatabaseName(DB_NAME);
+        getDbContainer().withUsername(USER);
+        getDbContainer().withPassword(PASSWORD);
+        if (wait) {
+            Startables.deepStart(Stream.of(getDbContainer())).join();
+        }
+    }
+
+    public String getJdbcUrl() {
+        return getDbContainer().getJdbcUrl();
+    }
+
+    public void shutdown() {
+        getDbContainer().stop();
+    }
+
+    public abstract JdbcDatabaseContainer<?> getDbContainer();
 }
