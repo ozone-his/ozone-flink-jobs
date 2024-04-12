@@ -41,12 +41,21 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     private static final PostgresTestDatabase ANALYTICS_DB = new PostgresTestDatabase();
 
+    private static Connection openmrsConnection;
+
+    private static Connection analyticsConnection;
+
     private static Connection connectToOpenmrsDbConn() {
-        try {
-            return DriverManager.getConnection(OPENMRS_DB.getJdbcUrl(), OPENMRS_DB.USER, OPENMRS_DB.PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (openmrsConnection == null) {
+            try {
+                openmrsConnection =
+                        DriverManager.getConnection(OPENMRS_DB.getJdbcUrl(), OPENMRS_DB.USER, OPENMRS_DB.PASSWORD);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        return openmrsConnection;
     }
 
     protected Connection getOpenmrsDbConnection() {
@@ -54,11 +63,16 @@ public abstract class BaseOpenmrsDbDrivenTest {
     }
 
     protected Connection getAnalyticsDbConnection() {
-        try {
-            return DriverManager.getConnection(ANALYTICS_DB.getJdbcUrl(), ANALYTICS_DB.USER, ANALYTICS_DB.PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        if (analyticsConnection == null) {
+            try {
+                analyticsConnection = DriverManager.getConnection(
+                        ANALYTICS_DB.getJdbcUrl(), ANALYTICS_DB.USER, ANALYTICS_DB.PASSWORD);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        return analyticsConnection;
     }
 
     @BeforeAll
@@ -79,6 +93,14 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     @AfterAll
     public static void afterAll() {
+        if (openmrsConnection != null) {
+            try {
+                openmrsConnection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
         System.clearProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY);
         OPENMRS_DB.shutdown();
         ANALYTICS_DB.shutdown();
