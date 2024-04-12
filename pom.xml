@@ -35,7 +35,6 @@
     <palantirJavaFormat.version>1.1.0</palantirJavaFormat.version>
     <mysql.connector.version>8.2.0</mysql.connector.version>
     <testcontainers.version>1.19.7</testcontainers.version>
-    <mybatis.version>3.5.16</mybatis.version>
     <openmrs.version>2.6.4</openmrs.version>
   </properties>
 
@@ -203,12 +202,6 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
       <version>${testcontainers.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mybatis</groupId>
-      <artifactId>mybatis</artifactId>
-      <version>${mybatis.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
