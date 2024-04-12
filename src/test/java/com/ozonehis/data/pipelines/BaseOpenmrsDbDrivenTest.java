@@ -11,6 +11,10 @@
  */
 package com.ozonehis.data.pipelines;
 
+import static org.openmrs.util.OpenmrsConstants.KEY_OPENMRS_APPLICATION_DATA_DIRECTORY;
+
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -59,6 +63,13 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     @BeforeAll
     public static void beforeAll() {
+        try {
+            final String path = Files.createTempDirectory("flink-test").toFile().getAbsolutePath();
+            System.setProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY, path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         OPENMRS_DB.start(false);
         ANALYTICS_DB.start(false);
         Startables.deepStart(Stream.of(OPENMRS_DB.getDbContainer(), ANALYTICS_DB.getDbContainer()))
@@ -68,6 +79,7 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     @AfterAll
     public static void afterAll() {
+        System.clearProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY);
         OPENMRS_DB.shutdown();
         ANALYTICS_DB.shutdown();
     }
@@ -91,7 +103,7 @@ public abstract class BaseOpenmrsDbDrivenTest {
         liquibase.getDatabase().getConnection().commit();
     }
 
-    protected void addDataToOpenmrs(String file) throws Exception {
-        TestUtils.executeScript(file, getOpenmrsDbConnection());
+    protected void addOpenmrsTestData(String file) {
+        TestUtils.executeScript("openmrs/" + file, connectToOpenmrsDbConn());
     }
 }
