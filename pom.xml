@@ -36,9 +36,11 @@
     <mysql.connector.version>8.2.0</mysql.connector.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     <openmrs.version>2.6.4</openmrs.version>
+    <analytics.queries.version>1.0.0-SNAPSHOT</analytics.queries.version>
 
     <!-- Plugins -->
     <surefire.version>3.2.5</surefire.version>
+    <dependency.version>3.6.1</dependency.version>
   </properties>
 
   <dependencies>
@@ -219,6 +221,13 @@
       <version>${openmrs.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.ozonehis</groupId>
+      <artifactId>analytics-queries</artifactId>
+      <version>${analytics.queries.version}</version>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <repositories>
@@ -226,6 +235,16 @@
       <id>openmrs-repo</id>
       <name>OpenMRS Nexus Repository</name>
       <url>https://openmrs.jfrog.io/artifactory/public/</url>
+    </repository>
+    <repository>
+      <id>mks-nexus-public-releases</id>
+      <name>Mekom Solutions Nexus repo for releases</name>
+      <url>https://nexus.mekomsolutions.net/repository/maven-releases</url>
+    </repository>
+    <repository>
+      <id>mks-nexus-public-snapshots</id>
+      <name>Mekom Solutions Nexus repo for snapshots</name>
+      <url>https://nexus.mekomsolutions.net/repository/maven-snapshots</url>
     </repository>
   </repositories>
   <pluginRepositories>
@@ -297,6 +316,29 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${dependency.version}</version>
+          <executions>
+            <execution>
+              <id>unpack-dependencies</id>
+              <goals>
+                <goal>unpack-dependencies</goal>
+              </goals>
+              <phase>generate-test-resources</phase>
+              <configuration>
+                <includeGroupIds>com.ozonehis</includeGroupIds>
+                <includeArtifactIds>analytics-queries</includeArtifactIds>
+                <includeTypes>zip</includeTypes>
+                <includes>dsl/**/*.sql,liquibase/**/*.xml</includes>
+                <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                <overWriteReleases>false</overWriteReleases>
+                <overWriteSnapshots>true</overWriteSnapshots>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${surefire.version}</version>
         </plugin>
@@ -311,6 +353,10 @@
           <source>${target.java.version}</source>
           <target>${target.java.version}</target>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
