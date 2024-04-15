@@ -13,6 +13,8 @@ package com.ozonehis.data.pipelines;
 
 import static org.openmrs.util.OpenmrsConstants.KEY_OPENMRS_APPLICATION_DATA_DIRECTORY;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Connection;
@@ -37,13 +39,19 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     private static final String LIQUIBASE_UPDATE_2_6 = ROOT + "updates/liquibase-update-to-latest-2.6.x.xml";
 
+    private static final String TEST_DIR = "flink-test-dir";
+
     private static final MySQLTestDatabase OPENMRS_DB = new MySQLTestDatabase();
 
-    private static final PostgresTestDatabase ANALYTICS_DB = new PostgresTestDatabase();
+    protected static final PostgresTestDatabase ANALYTICS_DB = new PostgresTestDatabase();
 
     private static Connection openmrsConnection;
 
     private static Connection analyticsConnection;
+
+    protected static String testDir;
+
+    protected static ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static Connection connectToOpenmrsDbConn() {
         if (openmrsConnection == null) {
@@ -78,8 +86,8 @@ public abstract class BaseOpenmrsDbDrivenTest {
     @BeforeAll
     public static void beforeAll() {
         try {
-            final String path = Files.createTempDirectory("flink-test").toFile().getAbsolutePath();
-            System.setProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY, path);
+            testDir = Files.createTempDirectory(TEST_DIR).toFile().getAbsolutePath();
+            System.setProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY, testDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

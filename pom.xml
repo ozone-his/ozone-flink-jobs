@@ -36,6 +36,9 @@
     <mysql.connector.version>8.2.0</mysql.connector.version>
     <testcontainers.version>1.19.7</testcontainers.version>
     <openmrs.version>2.6.4</openmrs.version>
+
+    <!-- Plugins -->
+    <surefire.version>3.2.5</surefire.version>
   </properties>
 
   <dependencies>
@@ -292,6 +295,11 @@
             </dependency>
           </dependencies>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${surefire.version}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -304,7 +312,10 @@
           <target>${target.java.version}</target>
         </configuration>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
   <profiles>
