@@ -11,7 +11,7 @@
 package com.ozonehis.data.pipelines;
 
 import static com.ozonehis.data.pipelines.Constants.DEFAULT_ANALYTICS_CONFIG_FILE_PATH;
-import static com.ozonehis.data.pipelines.Constants.ENV_ANALYTICS_CONFIG_FILE_PATH;
+import static com.ozonehis.data.pipelines.Constants.PROP_ANALYTICS_CONFIG_FILE_PATH;
 
 import com.ozonehis.data.pipelines.batch.BatchJob;
 import com.ozonehis.data.pipelines.config.JdbcCatalogConfig;
@@ -22,6 +22,7 @@ import com.ozonehis.data.pipelines.utils.QueryFile;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.connector.jdbc.catalog.JdbcCatalog;
 import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.apache.flink.streaming.api.environment.RemoteStreamEnvironment;
@@ -45,7 +46,11 @@ public abstract class BaseJob {
     private MiniCluster cluster;
 
     public void initConfig() {
-        configFilePath = Environment.getEnv(ENV_ANALYTICS_CONFIG_FILE_PATH, DEFAULT_ANALYTICS_CONFIG_FILE_PATH);
+        if (StringUtils.isNotBlank(System.getProperty(PROP_ANALYTICS_CONFIG_FILE_PATH))) {
+            configFilePath = System.getProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
+        } else {
+            configFilePath = Environment.getEnv(PROP_ANALYTICS_CONFIG_FILE_PATH, DEFAULT_ANALYTICS_CONFIG_FILE_PATH);
+        }
     }
 
     /**
