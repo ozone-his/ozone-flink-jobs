@@ -36,6 +36,8 @@ public class TestUtils {
                 for (int i = 1; i < rs.getMetaData().getColumnCount() + 1; i++) {
                     row.put(rs.getMetaData().getColumnName(i), rs.getObject(i));
                 }
+
+                rows.add(row);
             }
 
             rs.close();
