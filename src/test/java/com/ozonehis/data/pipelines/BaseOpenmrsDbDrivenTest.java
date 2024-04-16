@@ -39,9 +39,11 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     private static final String LIQUIBASE_UPDATE_2_6 = ROOT + "updates/liquibase-update-to-latest-2.6.x.xml";
 
+    private static final String LIQUIBASE_ANALYTICS = "liquibase/analytics/changelogs/0001-init.xml";
+
     private static final String TEST_DIR = "flink-test-dir";
 
-    private static final MySQLTestDatabase OPENMRS_DB = new MySQLTestDatabase();
+    protected static final MySQLTestDatabase OPENMRS_DB = new MySQLTestDatabase();
 
     protected static final PostgresTestDatabase ANALYTICS_DB = new PostgresTestDatabase();
 
@@ -70,7 +72,7 @@ public abstract class BaseOpenmrsDbDrivenTest {
         return connectToOpenmrsDbConn();
     }
 
-    protected Connection getAnalyticsDbConnection() {
+    protected static Connection connectToAnalyticsDb() {
         if (analyticsConnection == null) {
             try {
                 analyticsConnection = DriverManager.getConnection(
@@ -81,6 +83,10 @@ public abstract class BaseOpenmrsDbDrivenTest {
         }
 
         return analyticsConnection;
+    }
+
+    protected Connection getAnalyticsDbConnection() {
+        return connectToAnalyticsDb();
     }
 
     @BeforeAll
@@ -97,6 +103,7 @@ public abstract class BaseOpenmrsDbDrivenTest {
         Startables.deepStart(Stream.of(OPENMRS_DB.getDbContainer(), ANALYTICS_DB.getDbContainer()))
                 .join();
         createOpenmrsSchema();
+        createAnalyticsSchema();
     }
 
     @AfterAll
@@ -118,6 +125,14 @@ public abstract class BaseOpenmrsDbDrivenTest {
         try {
             updateDatabase(getLiquibase(LIQUIBASE_SCHEMA_2_5, connectToOpenmrsDbConn()));
             updateDatabase(getLiquibase(LIQUIBASE_UPDATE_2_6, connectToOpenmrsDbConn()));
+        } catch (LiquibaseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void createAnalyticsSchema() {
+        try {
+            updateDatabase(getLiquibase(LIQUIBASE_ANALYTICS, connectToAnalyticsDb()));
         } catch (LiquibaseException e) {
             throw new RuntimeException(e);
         }
