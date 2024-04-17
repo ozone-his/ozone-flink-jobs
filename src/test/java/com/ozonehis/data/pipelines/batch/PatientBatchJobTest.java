@@ -80,13 +80,14 @@ public class PatientBatchJobTest extends BaseOpenmrsJobTest {
     }
 
     @Test
-    public void execute_shouldLoadAllPatientsFromOpenmrsToAnalyticsDb() {
+    public void execute_shouldLoadAllPatientsFromOpenmrsToAnalyticsDb() throws Exception {
         addOpenmrsTestData("initial.sql");
         addOpenmrsTestData("patient.sql");
         final int count = TestUtils.getRows("patient", getOpenmrsDbConnection()).size();
-        // TODO Check table does not exist
 
         job.execute();
+        // TODO Replace with JobListener
+        Thread.sleep(5000);
 
         assertEquals(
                 count, TestUtils.getRows("patients", getAnalyticsDbConnection()).size());
