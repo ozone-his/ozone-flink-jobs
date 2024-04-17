@@ -11,6 +11,7 @@
 package com.ozonehis.data.pipelines.batch;
 
 import static com.ozonehis.data.pipelines.Constants.PROP_ANALYTICS_CONFIG_FILE_PATH;
+import static com.ozonehis.data.pipelines.Constants.PROP_FLINK_REST_PORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.ozonehis.data.pipelines.BaseOpenmrsJobTest;
@@ -55,7 +56,7 @@ public class PatientBatchJobTest extends BaseOpenmrsJobTest {
         source.setPassword(BaseTestDatabase.PASSWORD);
         source.setTableDefinitionsPath(PatientBatchJobTest.class
                 .getClassLoader()
-                .getResource("dsl/flattening/queries")
+                .getResource("dsl/flattening/tables/openmrs")
                 .getPath());
         config.setJdbcSources(List.of(source));
         JdbcSinkConfig sink = new JdbcSinkConfig();
@@ -63,17 +64,19 @@ public class PatientBatchJobTest extends BaseOpenmrsJobTest {
         sink.setDatabaseName(BaseTestDatabase.DB_NAME);
         sink.setQueryPath(PatientBatchJobTest.class
                 .getClassLoader()
-                .getResource("dsl/flattening/tables/openmrs")
+                .getResource("dsl/flattening/queries")
                 .getPath());
         config.setJdbcSinks(List.of(sink));
         final String configFile = testDir + "/config.yaml";
         MAPPER.writeValue(new FileOutputStream(configFile), config);
         System.setProperty(PROP_ANALYTICS_CONFIG_FILE_PATH, configFile);
+        System.setProperty(PROP_FLINK_REST_PORT, TestUtils.getAvailablePort().toString());
     }
 
     @AfterAll
     public static void tearDownClass() {
         System.clearProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
+        System.clearProperty(PROP_FLINK_REST_PORT);
     }
 
     @Test

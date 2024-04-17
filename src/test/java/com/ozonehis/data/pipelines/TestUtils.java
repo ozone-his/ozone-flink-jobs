@@ -10,6 +10,8 @@
  */
 package com.ozonehis.data.pipelines;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,6 +27,11 @@ public class TestUtils {
 
     public static void executeScript(String file, Connection connection) {
         ScriptUtils.executeSqlScript(connection, new ClassPathResource(file));
+        try {
+            connection.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static List<Map<String, Object>> getRows(String table, Connection connection) {
@@ -45,5 +52,19 @@ public class TestUtils {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Integer getAvailablePort() {
+        for (int i = 1024; i < 49151; i++) {
+            try {
+                new ServerSocket(i).close();
+                return i;
+            } catch (IOException e) {
+                // Port is not available for use
+            }
+        }
+
+        // Really! No port is available?
+        throw new RuntimeException("No available port found");
     }
 }
