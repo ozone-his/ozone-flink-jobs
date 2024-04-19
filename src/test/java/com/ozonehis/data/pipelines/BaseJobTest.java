@@ -5,7 +5,6 @@ import static com.ozonehis.data.pipelines.Constants.PROP_FLINK_REST_PORT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.ozonehis.data.pipelines.batch.PatientBatchJobTest;
 import com.ozonehis.data.pipelines.config.AppConfiguration;
 import com.ozonehis.data.pipelines.config.FileSinkConfig;
 import com.ozonehis.data.pipelines.config.JdbcCatalogConfig;
@@ -151,19 +150,19 @@ public abstract class BaseJobTest {
         JdbcSinkConfig jdbcSinkCfg = new JdbcSinkConfig();
         jdbcSinkCfg.setJdbcCatalog(catalogName);
         jdbcSinkCfg.setDatabaseName(BaseTestDatabase.DB_NAME_ANALYTICS);
-        jdbcSinkCfg.setQueryPath(PatientBatchJobTest.class
+        jdbcSinkCfg.setQueryPath(BaseJobTest.class
                 .getClassLoader()
                 .getResource("dsl/flattening/queries")
                 .getPath());
         config.setJdbcSinks(List.of(jdbcSinkCfg));
         FileSinkConfig fileSinkCfg = new FileSinkConfig();
-        fileSinkCfg.setDestinationTableDefinitionsPath(PatientBatchJobTest.class
+        fileSinkCfg.setDestinationTableDefinitionsPath(BaseJobTest.class
                 .getClassLoader()
                 .getResource("dsl/export/tables")
                 .getPath());
         fileSinkCfg.setFormat("json");
         fileSinkCfg.setExportOutPutTag("h1");
-        fileSinkCfg.setQueryPath(PatientBatchJobTest.class
+        fileSinkCfg.setQueryPath(BaseJobTest.class
                 .getClassLoader()
                 .getResource("dsl/export/queries")
                 .getPath());
