@@ -3,6 +3,8 @@ package com.ozonehis.data.pipelines;
 import com.ozonehis.data.pipelines.batch.BatchJob;
 import com.ozonehis.data.pipelines.export.ExportJob;
 import com.ozonehis.data.pipelines.streaming.StreamJob;
+import com.ozonehis.data.pipelines.utils.Environment;
+import org.apache.flink.runtime.minicluster.MiniCluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,17 @@ public class Bootstrap {
             throw new RuntimeException("Unsupported commandline argument: " + args[0]);
         }
 
-        job.execute();
+        MiniCluster cluster = null;
+        try {
+            job.initConfig();
+            cluster = job.startCluster();
+            job.execute();
+        } catch (Throwable t) {
+            LOG.error("An error was encountered while executing the job", t);
+        } finally {
+            if (cluster != null) {
+                Environment.exitOnCompletion(cluster);
+            }
+        }
     }
 }

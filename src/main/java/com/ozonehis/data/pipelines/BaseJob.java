@@ -48,10 +48,11 @@ public abstract class BaseJob {
      *
      * @throws Exception
      */
-    protected void startCluster() throws Exception {
+    public MiniCluster startCluster() throws Exception {
         LOG.info("Starting mini cluster");
         cluster = Environment.initMiniClusterWithEnv(false);
         cluster.start();
+        return cluster;
     }
 
     /**
@@ -73,18 +74,11 @@ public abstract class BaseJob {
     /**
      * Executes the job
      */
-    public void execute() {
-        try {
-            initConfig();
-            startCluster();
-            createEnvironment();
-            registerCatalogs();
-            beforeExecute();
-            doExecute();
-            Environment.exitOnCompletion(cluster);
-        } catch (Throwable t) {
-            LOG.error("An error was encountered while executing the job", t);
-        }
+    public void execute() throws Exception {
+        createEnvironment();
+        registerCatalogs();
+        beforeExecute();
+        doExecute();
     }
 
     /**
