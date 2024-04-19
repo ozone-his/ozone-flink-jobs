@@ -1,14 +1,3 @@
-/*
- * Copyright (C) Amiyul LLC - All Rights Reserved
- *
- * This source code is protected under international copyright law. All rights
- * reserved and protected by the copyright holder. However, the generated
- * bytecode from this source code is free for use.
- *
- * This file is confidential and only available to authorized individuals with the
- * permission of the copyright holder. If you encounter this file and do not have
- * permission, please contact the copyright holder and delete this file.
- */
 package com.ozonehis.data.pipelines;
 
 import static org.openmrs.util.OpenmrsConstants.KEY_OPENMRS_APPLICATION_DATA_DIRECTORY;
@@ -58,8 +47,8 @@ public abstract class BaseOpenmrsDbDrivenTest {
     private static Connection connectToOpenmrsDbConn() {
         if (openmrsConnection == null) {
             try {
-                openmrsConnection =
-                        DriverManager.getConnection(OPENMRS_DB.getJdbcUrl(), OPENMRS_DB.USER, OPENMRS_DB.PASSWORD);
+                openmrsConnection = DriverManager.getConnection(
+                        OPENMRS_DB.getJdbcUrl(), OPENMRS_DB.USER_OPENMRS_DB, OPENMRS_DB.PASSWORD_OPENMRS_DB);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -76,7 +65,7 @@ public abstract class BaseOpenmrsDbDrivenTest {
         if (analyticsConnection == null) {
             try {
                 analyticsConnection = DriverManager.getConnection(
-                        ANALYTICS_DB.getJdbcUrl(), ANALYTICS_DB.USER, ANALYTICS_DB.PASSWORD);
+                        ANALYTICS_DB.getJdbcUrl(), ANALYTICS_DB.USER_ANALYTICS_DB, ANALYTICS_DB.PASSWORD_ANALYTICS_DB);
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -98,8 +87,16 @@ public abstract class BaseOpenmrsDbDrivenTest {
             throw new RuntimeException(e);
         }
 
-        OPENMRS_DB.start(false);
-        ANALYTICS_DB.start(false);
+        OPENMRS_DB.start(
+                false,
+                BaseTestDatabase.DB_NAME_OPENMRS,
+                BaseTestDatabase.USER_OPENMRS_DB,
+                BaseTestDatabase.PASSWORD_OPENMRS_DB);
+        ANALYTICS_DB.start(
+                false,
+                BaseTestDatabase.DB_NAME_ANALYTICS,
+                BaseTestDatabase.USER_ANALYTICS_DB,
+                BaseTestDatabase.PASSWORD_ANALYTICS_DB);
         Startables.deepStart(Stream.of(OPENMRS_DB.getDbContainer(), ANALYTICS_DB.getDbContainer()))
                 .join();
         createOpenmrsSchema();
@@ -150,5 +147,9 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     protected void addOpenmrsTestData(String file) {
         TestUtils.executeScript("openmrs/" + file, connectToOpenmrsDbConn());
+    }
+
+    protected void addAnalyticsTestData(String file) {
+        TestUtils.executeScript("analytics/" + file, connectToAnalyticsDb());
     }
 }

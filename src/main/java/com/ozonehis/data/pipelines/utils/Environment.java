@@ -1,5 +1,6 @@
 package com.ozonehis.data.pipelines.utils;
 
+import com.ozonehis.data.pipelines.Constants;
 import java.util.Collection;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,7 +32,11 @@ public class Environment {
 
     public static MiniCluster initMiniClusterWithEnv(Boolean isStreaming) throws Exception {
         Configuration flinkConfig = new Configuration();
-        String port = Environment.getEnv("FLINK_REST_PORT", null);
+        String port = System.getProperty(Constants.PROP_FLINK_REST_PORT);
+        if (StringUtils.isBlank(port)) {
+            port = Environment.getEnv("FLINK_REST_PORT", null);
+        }
+
         if (StringUtils.isNotBlank(port)) {
             flinkConfig.setInteger(RestOptions.PORT, Integer.valueOf(port));
         }
