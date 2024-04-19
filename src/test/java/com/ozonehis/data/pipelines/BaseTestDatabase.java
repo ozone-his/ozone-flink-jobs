@@ -6,12 +6,6 @@ import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseTestDatabase {
 
-    public static final String USER_OPENMRS_DB = "test-user";
-
-    public static final String PASSWORD_OPENMRS_DB = "test-password";
-
-    public static final String DB_NAME_OPENMRS = "test-openmrs-db";
-
     public static final String USER_ANALYTICS_DB = "test-analytics-user";
 
     public static final String PASSWORD_ANALYTICS_DB = "test-analytics-password";
