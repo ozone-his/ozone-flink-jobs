@@ -65,7 +65,9 @@ public abstract class BaseJobTest {
 
     protected static String exportDir;
 
-    private static MiniCluster cluster;
+    private boolean initialized;
+
+    private MiniCluster cluster;
 
     @BeforeAll
     public static void beforeAllSuper() {
@@ -84,23 +86,32 @@ public abstract class BaseJobTest {
                 sourceConnection.close();
             } catch (SQLException e) {
                 e.printStackTrace();
+            } finally {
+                sourceConnection = null;
             }
         }
 
         if (sourceDb != null) {
-            sourceDb.shutdown();
-            sourceDb = null;
+            try {
+                sourceDb.shutdown();
+            } finally {
+                sourceDb = null;
+            }
         }
 
         System.clearProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
         System.clearProperty(PROP_FLINK_REST_PORT);
-        analyticsDb.shutdown();
+        try {
+            analyticsDb.shutdown();
+        } finally {
+            analyticsDb = null;
+        }
         FileUtils.forceDelete(new File(testDir));
     }
 
     @BeforeEach
     public void beforeSuper() throws IOException {
-        if (analyticsDb == null) {
+        if (!initialized) {
             analyticsDb = new PostgresTestDatabase();
             analyticsDb.start(
                     false,
@@ -114,6 +125,7 @@ public abstract class BaseJobTest {
             createAnalyticsSchema();
             createSourceSchema();
             setupConfig();
+            initialized = true;
         }
     }
 
@@ -121,7 +133,11 @@ public abstract class BaseJobTest {
     public void setup() throws Exception {
         clearAnalyticsDb();
         if (cluster != null) {
-            cluster.close();
+            try {
+                cluster.close();
+            } finally {
+                cluster = null;
+            }
         }
     }
 
