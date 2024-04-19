@@ -1,14 +1,3 @@
-/*
- * Copyright (C) Amiyul LLC - All Rights Reserved
- *
- * This source code is protected under international copyright law. All rights
- * reserved and protected by the copyright holder. However, the generated
- * bytecode from this source code is free for use.
- *
- * This file is confidential and only available to authorized individuals with the
- * permission of the copyright holder. If you encounter this file and do not have
- * permission, please contact the copyright holder and delete this file.
- */
 package com.ozonehis.data.pipelines;
 
 import java.util.stream.Stream;
@@ -17,16 +6,22 @@ import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseTestDatabase {
 
-    public static final String USER = "test-user";
+    public static final String USER_OPENMRS_DB = "test-user";
 
-    public static final String PASSWORD = "test-password";
+    public static final String PASSWORD_OPENMRS_DB = "test-password";
 
-    public static final String DB_NAME = "test-db";
+    public static final String DB_NAME_OPENMRS = "test-openmrs-db";
 
-    public void start(boolean wait) {
-        getDbContainer().withDatabaseName(DB_NAME);
-        getDbContainer().withUsername(USER);
-        getDbContainer().withPassword(PASSWORD);
+    public static final String USER_ANALYTICS_DB = "test-analytics-user";
+
+    public static final String PASSWORD_ANALYTICS_DB = "test-analytics-password";
+
+    public static final String DB_NAME_ANALYTICS = "analytics";
+
+    public void start(boolean wait, String dbName, String user, String password) {
+        getDbContainer().withDatabaseName(dbName);
+        getDbContainer().withUsername(user);
+        getDbContainer().withPassword(password);
         if (wait) {
             Startables.deepStart(Stream.of(getDbContainer())).join();
         }
