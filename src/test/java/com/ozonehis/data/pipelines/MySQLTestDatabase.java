@@ -5,7 +5,7 @@ import org.testcontainers.containers.MySQLContainer;
 
 public class MySQLTestDatabase extends BaseTestDatabase {
 
-    public static final MySQLContainer CONTAINER = new MySQLContainer<>("mysql:8.2.0");
+    public final MySQLContainer CONTAINER = new MySQLContainer<>("mysql:8.2.0");
 
     @Override
     public JdbcDatabaseContainer<?> getDbContainer() {
