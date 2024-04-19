@@ -5,7 +5,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 public class PostgresTestDatabase extends BaseTestDatabase {
 
-    public static final PostgreSQLContainer CONTAINER = new PostgreSQLContainer<>("postgres:13-alpine");
+    public final PostgreSQLContainer CONTAINER = new PostgreSQLContainer<>("postgres:13-alpine");
 
     @Override
     public JdbcDatabaseContainer<?> getDbContainer() {
