@@ -7,8 +7,13 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -21,6 +26,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseOpenmrsDbDrivenTest {
+
+    private static final String DELETE = "DELETE FROM ";
+
+    private static final String DISABLE_KEYS = "SET FOREIGN_KEY_CHECKS=0";
+
+    private static final String ENABLE_KEYS = "SET FOREIGN_KEY_CHECKS=1";
 
     private static final String ROOT = "org/openmrs/liquibase/";
 
@@ -151,5 +162,44 @@ public abstract class BaseOpenmrsDbDrivenTest {
 
     protected void addAnalyticsTestData(String file) {
         TestUtils.executeScript("analytics/" + file, connectToAnalyticsDb());
+    }
+
+    protected void clearAnalyticsDb() throws SQLException {
+        deleteAllData(connectToAnalyticsDb(), false);
+    }
+
+    /**
+     * Resets all tables in the test database by deleting all the rows in them
+     *
+     * @param connection JDBC Connection object
+     */
+    private void deleteAllData(Connection connection, boolean disableKeys) throws SQLException {
+        List<String> tables = getTableNames(connection);
+        Statement statement = connection.createStatement();
+        try {
+            if (disableKeys) {
+                statement.execute(DISABLE_KEYS);
+            }
+            for (String tableName : tables) {
+                statement.executeUpdate(DELETE + tableName);
+            }
+        } finally {
+            if (statement != null) {
+                if (disableKeys) {
+                    statement.execute(ENABLE_KEYS);
+                }
+                statement.close();
+            }
+        }
+    }
+
+    private static List<String> getTableNames(Connection connection) throws SQLException {
+        DatabaseMetaData dbmd = connection.getMetaData();
+        ResultSet tables = dbmd.getTables(null, null, null, new String[] {"TABLE"});
+        List<String> tableNames = new ArrayList();
+        while (tables.next()) {
+            tableNames.add(tables.getString("TABLE_NAME"));
+        }
+        return tableNames;
     }
 }
