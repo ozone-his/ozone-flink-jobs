@@ -1,6 +1,7 @@
 package com.ozonehis.data.pipelines;
 
 import com.ozonehis.data.pipelines.batch.PatientBatchOpenmrsJobTest;
+import liquibase.exception.LiquibaseException;
 
 public abstract class BaseOdooJobTest extends BaseJobTest {
 
@@ -47,6 +48,10 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
 
     @Override
     protected void createSourceSchema() {
-
+        try {
+            updateDatabase(getLiquibase("liquibase-odoo-schema.xml", getSourceDbConnection()));
+        } catch (LiquibaseException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
