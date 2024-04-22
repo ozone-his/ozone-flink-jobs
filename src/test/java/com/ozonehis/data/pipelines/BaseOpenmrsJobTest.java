@@ -2,7 +2,7 @@ package com.ozonehis.data.pipelines;
 
 import static org.openmrs.util.OpenmrsConstants.KEY_OPENMRS_APPLICATION_DATA_DIRECTORY;
 
-import com.ozonehis.data.pipelines.batch.PatientBatchOpenmrsJobTest;
+import com.ozonehis.data.pipelines.batch.PatientBatchJobTest;
 import liquibase.exception.LiquibaseException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -35,7 +35,7 @@ public abstract class BaseOpenmrsJobTest extends BaseJobTest {
 
     @Override
     protected String getTableDefinitionsPath() {
-        return PatientBatchOpenmrsJobTest.class
+        return PatientBatchJobTest.class
                 .getClassLoader()
                 .getResource("dsl/flattening/tables/openmrs")
                 .getPath();
