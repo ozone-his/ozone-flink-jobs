@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Test;
 public class SaleOrderLineBatchJobTest extends BaseOdooJobTest {
 
     @Override
+    protected String getTestFilename() {
+        return "sale_order_lines";
+    }
+
+    @Override
     protected boolean requiresSourceSchema() {
         return true;
     }

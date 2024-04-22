@@ -16,6 +16,11 @@ import org.junit.jupiter.api.Test;
 
 public class SaleOrderLineExportJobTest extends BaseOdooJobTest {
 
+    @Override
+    protected String getTestFilename() {
+        return "sale_order_lines";
+    }
+
     @Test
     public void execute_shouldExportAllSaleOrderLinesFromAnalyticsDbToAFile() throws Exception {
         addTestDataToAnalyticsDb("sale_order_line.sql");
