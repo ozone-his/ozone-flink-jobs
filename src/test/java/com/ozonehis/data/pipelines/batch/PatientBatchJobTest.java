@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class PatientBatchOpenmrsJobTest extends BaseOpenmrsJobTest {
+public class PatientBatchJobTest extends BaseOpenmrsJobTest {
 
     @Test
     public void execute_shouldLoadAllPatientsFromOpenmrsDbToAnalyticsDb() throws Exception {

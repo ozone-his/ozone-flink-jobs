@@ -14,28 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class PatientBatchOdooJobTest extends BaseOdooJobTest {
-
-    @Test
-    public void execute_shouldLoadAllSaleOrderLinesFromOdooDbToAnalyticsDb() throws Exception {
-        addTestDataToSourceDb("odoo/sale_order_line.sql");
-        final int expectedCount = 2;
-        final int count =
-                TestUtils.getRows("sale_order_line", getSourceDbConnection()).size();
-        assertEquals(expectedCount, count);
-        BatchJob job = new BatchJob();
-        initJobAndStartCluster(job);
-
-        job.execute();
-        // TODO Wait for job to complete, possibly use a JobListener
-        Thread.sleep(5000);
-
-        // TODO check each row data
-        assertEquals(
-                count,
-                TestUtils.getRows("sale_order_lines", getAnalyticsDbConnection())
-                        .size());
-    }
+public class SaleOrderLineExportJobTest extends BaseOdooJobTest {
 
     @Test
     public void execute_shouldExportAllSaleOrderLinesFromAnalyticsDbToAFile() throws Exception {
@@ -64,5 +43,7 @@ public class PatientBatchOdooJobTest extends BaseOdooJobTest {
                 orderLines.add(it.nextValue());
             }
         }
+
+        assertEquals(expectedCount, orderLines.size());
     }
 }

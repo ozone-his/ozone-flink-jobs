@@ -1,6 +1,6 @@
 package com.ozonehis.data.pipelines;
 
-import com.ozonehis.data.pipelines.batch.PatientBatchOpenmrsJobTest;
+import com.ozonehis.data.pipelines.batch.PatientBatchJobTest;
 import liquibase.exception.LiquibaseException;
 
 public abstract class BaseOdooJobTest extends BaseJobTest {
@@ -15,7 +15,7 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
 
     @Override
     protected String getTableDefinitionsPath() {
-        return PatientBatchOpenmrsJobTest.class
+        return PatientBatchJobTest.class
                 .getClassLoader()
                 .getResource("dsl/flattening/tables/odoo")
                 .getPath();
