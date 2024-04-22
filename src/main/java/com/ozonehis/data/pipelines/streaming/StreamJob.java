@@ -44,6 +44,10 @@ public class StreamJob extends BaseJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(StreamJob.class);
 
+    public StreamJob() {
+        super(true);
+    }
+
     @Override
     public void beforeExecute() {
         LOG.info("Registering databases tables for stream processing");
