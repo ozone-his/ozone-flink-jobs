@@ -1,12 +1,11 @@
-package com.ozonehis.data.pipelines.batch;
+package com.ozonehis.data.pipelines;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.ozonehis.data.pipelines.BaseOdooJobTest;
-import com.ozonehis.data.pipelines.TestUtils;
+import com.ozonehis.data.pipelines.batch.BatchJob;
 import org.junit.jupiter.api.Test;
 
-public class SaleOrderLineBatchJobTest extends BaseOdooJobTest {
+public class SaleOrderLineJobTest extends BaseOdooJobTest {
 
     @Override
     protected String getTestFilename() {

@@ -1,11 +1,9 @@
-package com.ozonehis.data.pipelines.batch;
+package com.ozonehis.data.pipelines;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.ozonehis.data.pipelines.BaseOdooJobTest;
-import com.ozonehis.data.pipelines.TestUtils;
 import com.ozonehis.data.pipelines.export.ExportJob;
 import java.nio.file.Files;
 import java.nio.file.Path;

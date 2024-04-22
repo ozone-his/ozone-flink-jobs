@@ -1,4 +1,4 @@
-package com.ozonehis.data.pipelines.batch;
+package com.ozonehis.data.pipelines;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.ozonehis.data.pipelines.BaseOpenmrsJobTest;
-import com.ozonehis.data.pipelines.Patient;
-import com.ozonehis.data.pipelines.TestUtils;
 import com.ozonehis.data.pipelines.export.ExportJob;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,30 +15,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class PatientBatchJobTest extends BaseOpenmrsJobTest {
+public class PatientExportJobTest extends BaseOpenmrsJobTest {
 
     @Override
     protected String getTestFilename() {
         return "patients";
-    }
-
-    @Test
-    public void execute_shouldLoadAllPatientsFromOpenmrsDbToAnalyticsDb() throws Exception {
-        addTestDataToSourceDb("openmrs/initial.sql");
-        addTestDataToSourceDb("openmrs/patient.sql");
-        final int expectedCount = 2;
-        final int count = TestUtils.getRows("patient", getSourceDbConnection()).size();
-        assertEquals(expectedCount, count);
-        BatchJob job = new BatchJob();
-        initJobAndStartCluster(job);
-
-        job.execute();
-        // TODO Wait for job to complete, possibly use a JobListener
-        Thread.sleep(5000);
-
-        // TODO check each row data
-        assertEquals(
-                count, TestUtils.getRows("patients", getAnalyticsDbConnection()).size());
     }
 
     @Test

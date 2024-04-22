@@ -100,13 +100,26 @@ public abstract class BaseJobTest {
             }
         }
 
+        if (analyticsConnection != null) {
+            try {
+                analyticsConnection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                analyticsConnection = null;
+            }
+        }
+
+        if (analyticsDb != null) {
+            try {
+                analyticsDb.shutdown();
+            } finally {
+                analyticsDb = null;
+            }
+        }
+
         System.clearProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
         System.clearProperty(PROP_FLINK_REST_PORT);
-        try {
-            analyticsDb.shutdown();
-        } finally {
-            analyticsDb = null;
-        }
         FileUtils.forceDelete(new File(testDir));
     }
 
@@ -180,6 +193,7 @@ public abstract class BaseJobTest {
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/queries"), exportQueryPath);
         fileSinkCfg.setQueryPath(exportQueryPath);
         final String exportTablePath = testDir + "dsl/export/tables";
+        Files.createDirectories(Paths.get(exportTablePath));
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/tables"), exportTablePath);
         fileSinkCfg.setDestinationTableDefinitionsPath(exportTablePath);
         fileSinkCfg.setFormat("json");
@@ -272,6 +286,10 @@ public abstract class BaseJobTest {
 
     protected abstract String getTestFilename();
 
+    protected String getResourcePath(String name) {
+        return BaseJobTest.class.getClassLoader().getResource(name).getPath();
+    }
+
     private void deleteAllData(Connection connection, boolean disableKeys) throws SQLException {
         List<String> tables = getTableNames(connection);
         Statement statement = connection.createStatement();
@@ -304,9 +322,5 @@ public abstract class BaseJobTest {
 
     private void addTestFile(String file, String sourcePath, String destinationPath) throws IOException {
         Files.copy(Paths.get(sourcePath, file), Paths.get(destinationPath, file));
-    }
-
-    private String getResourcePath(String name) {
-        return BaseJobTest.class.getClassLoader().getResource(name).getPath();
     }
 }
