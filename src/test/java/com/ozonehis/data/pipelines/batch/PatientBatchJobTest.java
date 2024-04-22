@@ -20,6 +20,11 @@ import org.junit.jupiter.api.Test;
 
 public class PatientBatchJobTest extends BaseOpenmrsJobTest {
 
+    @Override
+    protected String getTestFilename() {
+        return "patients";
+    }
+
     @Test
     public void execute_shouldLoadAllPatientsFromOpenmrsDbToAnalyticsDb() throws Exception {
         addTestDataToSourceDb("openmrs/initial.sql");

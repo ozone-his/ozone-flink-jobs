@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -168,22 +169,21 @@ public abstract class BaseJobTest {
         JdbcSinkConfig jdbcSinkCfg = new JdbcSinkConfig();
         jdbcSinkCfg.setJdbcCatalog(catalogName);
         jdbcSinkCfg.setDatabaseName(BaseTestDatabase.DB_NAME_ANALYTICS);
-        jdbcSinkCfg.setQueryPath(BaseJobTest.class
-                .getClassLoader()
-                .getResource("dsl/flattening/queries")
-                .getPath());
+        final String flattenQueryPath = testDir + "dsl/flattening/queries";
+        Files.createDirectories(Paths.get(flattenQueryPath));
+        addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/flattening/queries"), flattenQueryPath);
+        jdbcSinkCfg.setQueryPath(flattenQueryPath);
         config.setJdbcSinks(List.of(jdbcSinkCfg));
         FileSinkConfig fileSinkCfg = new FileSinkConfig();
-        fileSinkCfg.setDestinationTableDefinitionsPath(BaseJobTest.class
-                .getClassLoader()
-                .getResource("dsl/export/tables")
-                .getPath());
+        final String exportQueryPath = testDir + "dsl/export/queries";
+        Files.createDirectories(Paths.get(exportQueryPath));
+        addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/queries"), exportQueryPath);
+        fileSinkCfg.setQueryPath(exportQueryPath);
+        final String exportTablePath = testDir + "dsl/export/tables";
+        addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/tables"), exportTablePath);
+        fileSinkCfg.setDestinationTableDefinitionsPath(exportTablePath);
         fileSinkCfg.setFormat("json");
         fileSinkCfg.setExportOutPutTag("h1");
-        fileSinkCfg.setQueryPath(BaseJobTest.class
-                .getClassLoader()
-                .getResource("dsl/export/queries")
-                .getPath());
         fileSinkCfg.setExportOutputPath(exportDir);
         config.setFileSinks(List.of(fileSinkCfg));
         final String configFile = testDir + "/config.yaml";
@@ -270,6 +270,8 @@ public abstract class BaseJobTest {
 
     protected abstract String getAnalyticsLiquibaseFile();
 
+    protected abstract String getTestFilename();
+
     private void deleteAllData(Connection connection, boolean disableKeys) throws SQLException {
         List<String> tables = getTableNames(connection);
         Statement statement = connection.createStatement();
@@ -298,5 +300,13 @@ public abstract class BaseJobTest {
             tableNames.add(tables.getString("TABLE_NAME"));
         }
         return tableNames;
+    }
+
+    private void addTestFile(String file, String sourcePath, String destinationPath) throws IOException {
+        Files.copy(Paths.get(sourcePath, file), Paths.get(destinationPath, file));
+    }
+
+    private String getResourcePath(String name) {
+        return BaseJobTest.class.getClassLoader().getResource(name).getPath();
     }
 }
