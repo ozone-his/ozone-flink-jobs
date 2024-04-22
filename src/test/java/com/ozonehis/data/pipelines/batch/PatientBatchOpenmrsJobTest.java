@@ -24,7 +24,9 @@ public class PatientBatchOpenmrsJobTest extends BaseOpenmrsJobTest {
     public void execute_shouldLoadAllPatientsFromOpenmrsDbToAnalyticsDb() throws Exception {
         addTestDataToSourceDb("openmrs/initial.sql");
         addTestDataToSourceDb("openmrs/patient.sql");
+        final int expectedCount = 2;
         final int count = TestUtils.getRows("patient", getSourceDbConnection()).size();
+        assertEquals(expectedCount, count);
         BatchJob job = new BatchJob();
         initJobAndStartCluster(job);
 
