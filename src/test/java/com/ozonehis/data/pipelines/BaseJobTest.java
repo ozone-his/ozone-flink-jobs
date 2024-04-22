@@ -123,7 +123,9 @@ public abstract class BaseJobTest {
             Startables.deepStart(Stream.of(sourceDb.getDbContainer(), analyticsDb.getDbContainer()))
                     .join();
             createAnalyticsSchema();
-            createSourceSchema();
+            if (requiresSourceSchema()) {
+                createSourceSchema();
+            }
             setupConfig();
             initialized = true;
         }
@@ -248,6 +250,10 @@ public abstract class BaseJobTest {
 
     protected void clearAnalyticsDb() throws SQLException {
         deleteAllData(getAnalyticsDbConnection(), false);
+    }
+
+    protected boolean requiresSourceSchema() {
+        return false;
     }
 
     protected abstract BaseTestDatabase getSourceDb();
