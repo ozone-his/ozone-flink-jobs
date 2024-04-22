@@ -18,6 +18,10 @@ public class ExportJob extends BaseJob {
 
     private static final Logger LOG = LoggerFactory.getLogger(ExportJob.class);
 
+    public ExportJob() {
+        super(false);
+    }
+
     @Override
     public void beforeExecute() {
         LOG.info("Registering destination tables for export");

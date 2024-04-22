@@ -35,6 +35,12 @@ public abstract class BaseJob {
 
     private MiniCluster cluster;
 
+    private boolean stream;
+
+    public BaseJob(boolean stream) {
+        this.stream = stream;
+    }
+
     public void initConfig() {
         if (StringUtils.isNotBlank(System.getProperty(PROP_ANALYTICS_CONFIG_FILE_PATH))) {
             configFilePath = System.getProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
@@ -66,8 +72,14 @@ public abstract class BaseJob {
                 cluster.getRestAddress().get().getHost(),
                 cluster.getRestAddress().get().getPort(),
                 cluster.getConfiguration());
-        EnvironmentSettings envSettings =
-                EnvironmentSettings.newInstance().inBatchMode().build();
+        EnvironmentSettings.Builder builder;
+        if (stream) {
+            builder = EnvironmentSettings.newInstance().inStreamingMode();
+        } else {
+            builder = EnvironmentSettings.newInstance().inBatchMode();
+        }
+
+        EnvironmentSettings envSettings = builder.build();
         tableEnv = StreamTableEnvironment.create(env, envSettings);
     }
 
