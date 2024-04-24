@@ -33,6 +33,21 @@ public abstract class BaseOpenmrsJobTest extends BaseJobTest {
     }
 
     @Override
+    protected String getDockerComposeFile() {
+        return "docker-compose-openmrs.yml";
+    }
+
+    @Override
+    protected String getSourceDbServiceName() {
+        return "mysql";
+    }
+
+    @Override
+    protected int getSourceDbExposedPort() {
+        return 3306;
+    }
+
+    @Override
     protected String getTableDefinitionsPath() {
         return getResourcePath("dsl/flattening/tables/openmrs");
     }

@@ -13,6 +13,21 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
     private static final String LIQUIBASE_ANALYTICS = "liquibase/analytics/changelogs/0002-sales_order_tbl.xml";
 
     @Override
+    protected String getDockerComposeFile() {
+        return "docker-compose-odoo.yml";
+    }
+
+    @Override
+    protected String getSourceDbServiceName() {
+        return "postgresql";
+    }
+
+    @Override
+    protected int getSourceDbExposedPort() {
+        return 5432;
+    }
+
+    @Override
     protected String getTableDefinitionsPath() {
         return getResourcePath("dsl/flattening/tables/odoo");
     }
