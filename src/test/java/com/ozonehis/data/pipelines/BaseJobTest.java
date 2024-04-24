@@ -21,8 +21,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -36,6 +40,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseJobTest {
@@ -65,6 +71,8 @@ public abstract class BaseJobTest {
     protected static String testDir;
 
     protected static String exportDir;
+
+    protected static ComposeContainer composeContainer;
 
     private boolean initialized;
 
@@ -126,6 +134,21 @@ public abstract class BaseJobTest {
     @BeforeEach
     public void beforeSuper() throws IOException {
         if (!initialized) {
+            Map<String, String> envs = new HashMap<>();
+            envs.put("SQL_SCRIPTS_PATH", ".");
+            envs.put("OPENMRS_PROPERTIES_PATH", ".");
+            envs.put("OPENMRS_FRONTEND_BINARY_PATH", ".");
+            envs.put("DISTRO_PATH", ".");
+            composeContainer = new ComposeContainer(
+                            new File("docker-compose-common.yml", "docker-compose-superset.yml"),
+                            new File(getDockerComposeFile()))
+                    .withTailChildContainers(true)
+                    .withEnv(envs)
+                    .withServices("postgresql", getSourceDbServiceName())
+                    .withExposedService("postgresql", 5432, Wait.forListeningPort())
+                    .withExposedService(getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort())
+                    .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS));
+            composeContainer.start();
             analyticsDb = new PostgresTestDatabase();
             analyticsDb.start(
                     false,
@@ -269,6 +292,12 @@ public abstract class BaseJobTest {
     protected boolean requiresSourceSchema() {
         return false;
     }
+
+    protected abstract String getDockerComposeFile();
+
+    protected abstract String getSourceDbServiceName();
+
+    protected abstract int getSourceDbExposedPort();
 
     protected abstract BaseTestDatabase getSourceDb();
 
