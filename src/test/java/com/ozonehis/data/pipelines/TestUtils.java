@@ -17,11 +17,6 @@ public class TestUtils {
 
     public static void executeScript(String file, Connection connection) {
         ScriptUtils.executeSqlScript(connection, new ClassPathResource(file));
-        try {
-            connection.commit();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static List<Map<String, Object>> getRows(String table, Connection connection) {
