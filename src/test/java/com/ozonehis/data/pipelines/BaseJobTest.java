@@ -132,16 +132,28 @@ public abstract class BaseJobTest {
     }
 
     @BeforeEach
-    public void beforeSuper() throws IOException {
+    public void beforeSuper() throws Exception {
         if (!initialized) {
             Map<String, String> envs = new HashMap<>();
-            envs.put("SQL_SCRIPTS_PATH", ".");
-            envs.put("OPENMRS_PROPERTIES_PATH", ".");
-            envs.put("OPENMRS_FRONTEND_BINARY_PATH", ".");
-            envs.put("DISTRO_PATH", ".");
+            envs.put("DISTRO_PATH", getResourcePath("distro"));
+            envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
+            envs.put("SQL_SCRIPTS_PATH", getResourcePath("distro/data"));
+            envs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
+            envs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
+            envs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
+            envs.put("POSTGRES_PASSWORD", "password");
+            envs.put("POSTGRES_USER", "postgres");
+            envs.put("MYSQL_ROOT_PASSWORD", "password");
+            envs.put("ANALYTICS_DB_NAME", "analytics");
+            envs.put("ANALYTICS_DB_USER", "analytics");
+            envs.put("ANALYTICS_DB_PASSWORD", "password");
+            envs.put("SUPERSET_DB", "superset");
+            envs.put("SUPERSET_DB_USER", "superset");
+            envs.put("SUPERSET_DB_PASSWORD", "superset");
             composeContainer = new ComposeContainer(
-                            new File("docker-compose-common.yml", "docker-compose-superset.yml"),
-                            new File(getDockerComposeFile()))
+                            new File(getResourcePath("run/docker/docker-compose-common.yml")),
+                            new File(getResourcePath("run/docker/docker-compose-superset.yml")),
+                            new File(getResourcePath("run/docker/" + getDockerComposeFile())))
                     .withTailChildContainers(true)
                     .withEnv(envs)
                     .withServices("postgresql", getSourceDbServiceName())

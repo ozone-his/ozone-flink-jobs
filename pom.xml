@@ -37,6 +37,7 @@
     <testcontainers.version>1.19.7</testcontainers.version>
     <openmrs.version>2.6.4</openmrs.version>
     <analytics.queries.version>1.0.0-SNAPSHOT</analytics.queries.version>
+    <ozone.version>1.0.0-SNAPSHOT</ozone.version>
 
     <!-- Plugins -->
     <surefire.version>3.2.5</surefire.version>
@@ -223,6 +224,13 @@
     </dependency>
     <dependency>
       <groupId>com.ozonehis</groupId>
+      <artifactId>ozone</artifactId>
+      <version>${ozone.version}</version>
+      <type>zip</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.ozonehis</groupId>
       <artifactId>analytics-queries</artifactId>
       <version>${analytics.queries.version}</version>
       <type>zip</type>
@@ -327,9 +335,19 @@
               <phase>generate-test-resources</phase>
               <configuration>
                 <includeGroupIds>com.ozonehis</includeGroupIds>
-                <includeArtifactIds>analytics-queries</includeArtifactIds>
+                <includeArtifactIds>analytics-queries,ozone</includeArtifactIds>
                 <includeTypes>zip</includeTypes>
-                <includes>dsl/**/*.sql,liquibase/**/*.xml</includes>
+                <includes>run/docker/docker-compose-common.yml,
+                    run/docker/docker-compose-superset.yml,
+                    run/docker/docker-compose-openmrs.yml,
+                    run/docker/docker-compose-odoo.yml,
+                    distro/configs/superset/**,
+                    distro/data/**,
+                    distro/configs/openmrs/properties/**,
+                    distro/binaries/openmrs/frontend/**,
+                    distro/configs/openmrs/frontend_config/**,
+                    dsl/**/*.sql,
+                    liquibase/**/*.xml</includes>
                 <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                 <overWriteReleases>false</overWriteReleases>
                 <overWriteSnapshots>true</overWriteSnapshots>
