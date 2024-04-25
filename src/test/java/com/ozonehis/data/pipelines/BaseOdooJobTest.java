@@ -33,11 +33,6 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
     }
 
     @Override
-    protected BaseTestDatabase getSourceDb() {
-        return new PostgresTestDatabase();
-    }
-
-    @Override
     protected String getSourceDbName() {
         return DB_NAME_ODOO;
     }

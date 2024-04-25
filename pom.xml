@@ -346,6 +346,7 @@
                     distro/configs/openmrs/properties/**,
                     distro/binaries/openmrs/frontend/**,
                     distro/configs/openmrs/frontend_config/**,
+                    distro/configs/openmrs/initializer_config/**,
                     dsl/**/*.sql,
                     liquibase/**/*.xml</includes>
                 <outputDirectory>${project.build.directory}/test-classes</outputDirectory>

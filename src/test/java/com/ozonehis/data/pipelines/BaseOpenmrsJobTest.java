@@ -53,11 +53,6 @@ public abstract class BaseOpenmrsJobTest extends BaseJobTest {
     }
 
     @Override
-    protected BaseTestDatabase getSourceDb() {
-        return new MySQLTestDatabase();
-    }
-
-    @Override
     protected String getSourceDbName() {
         return DB_NAME_OPENMRS;
     }

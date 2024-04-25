@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
@@ -41,10 +40,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.testcontainers.containers.ComposeContainer;
+import org.testcontainers.containers.ContainerState;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.lifecycle.Startables;
 
 public abstract class BaseJobTest {
+
+    public static final String USER_ANALYTICS_DB = "test-analytics-user";
+
+    public static final String PASSWORD_ANALYTICS_DB = "test-analytics-password";
+
+    public static final String DB_NAME_ANALYTICS = "analytics";
 
     private static final String DELETE = "DELETE FROM ";
 
@@ -60,11 +65,11 @@ public abstract class BaseJobTest {
 
     private static AppConfiguration config;
 
-    private static BaseTestDatabase sourceDb;
+    private static ContainerState sourceDb;
 
     private static Connection sourceConnection;
 
-    protected static PostgresTestDatabase analyticsDb;
+    protected static ContainerState analyticsDb;
 
     private static Connection analyticsConnection;
 
@@ -100,14 +105,6 @@ public abstract class BaseJobTest {
             }
         }
 
-        if (sourceDb != null) {
-            try {
-                sourceDb.shutdown();
-            } finally {
-                sourceDb = null;
-            }
-        }
-
         if (analyticsConnection != null) {
             try {
                 analyticsConnection.close();
@@ -118,13 +115,7 @@ public abstract class BaseJobTest {
             }
         }
 
-        if (analyticsDb != null) {
-            try {
-                analyticsDb.shutdown();
-            } finally {
-                analyticsDb = null;
-            }
-        }
+        composeContainer.stop();
 
         System.clearProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
         System.clearProperty(PROP_FLINK_REST_PORT);
@@ -135,18 +126,26 @@ public abstract class BaseJobTest {
     public void beforeSuper() throws Exception {
         if (!initialized) {
             Map<String, String> envs = new HashMap<>();
-            envs.put("DISTRO_PATH", getResourcePath("distro"));
-            envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
             envs.put("SQL_SCRIPTS_PATH", getResourcePath("distro/data"));
-            envs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
-            envs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
-            envs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
+            envs.put("DISTRO_PATH", getResourcePath("distro"));
+
             envs.put("POSTGRES_PASSWORD", "password");
             envs.put("POSTGRES_USER", "postgres");
             envs.put("MYSQL_ROOT_PASSWORD", "password");
             envs.put("ANALYTICS_DB_NAME", "analytics");
             envs.put("ANALYTICS_DB_USER", "analytics");
             envs.put("ANALYTICS_DB_PASSWORD", "password");
+
+            envs.put("MYSQL_ROOT_PASSWORD", "password");
+            envs.put("OPENMRS_DB_NAME", "openmrs");
+            envs.put("OPENMRS_DB_USER", "openmrs");
+            envs.put("OPENMRS_DB_PASSWORD", "password");
+            envs.put("OPENMRS_CONFIG_PATH", getResourcePath("distro/configs/openmrs/initializer_config"));
+            envs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
+            envs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
+            envs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
+
+            envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
             envs.put("SUPERSET_DB", "superset");
             envs.put("SUPERSET_DB_USER", "superset");
             envs.put("SUPERSET_DB_PASSWORD", "superset");
@@ -156,25 +155,16 @@ public abstract class BaseJobTest {
                             new File(getResourcePath("run/docker/" + getDockerComposeFile())))
                     .withTailChildContainers(true)
                     .withEnv(envs)
-                    .withServices("postgresql", getSourceDbServiceName())
+                    .withServices("env-substitution", "postgresql", "openmrs", getSourceDbServiceName())
                     .withExposedService("postgresql", 5432, Wait.forListeningPort())
                     .withExposedService(getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort())
                     .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS));
             composeContainer.start();
-            analyticsDb = new PostgresTestDatabase();
-            analyticsDb.start(
-                    false,
-                    BaseTestDatabase.DB_NAME_ANALYTICS,
-                    BaseTestDatabase.USER_ANALYTICS_DB,
-                    BaseTestDatabase.PASSWORD_ANALYTICS_DB);
-            sourceDb = getSourceDb();
-            sourceDb.start(false, getSourceDbName(), getSourceDbUser(), getSourceDbPassword());
-            Startables.deepStart(Stream.of(sourceDb.getDbContainer(), analyticsDb.getDbContainer()))
-                    .join();
-            createAnalyticsSchema();
-            if (requiresSourceSchema()) {
-                createSourceSchema();
-            }
+            analyticsDb =
+                    composeContainer.getContainerByServiceName("postgresql").get();
+            sourceDb = composeContainer
+                    .getContainerByServiceName(getSourceDbServiceName())
+                    .get();
             setupConfig();
             initialized = true;
         }
@@ -202,21 +192,20 @@ public abstract class BaseJobTest {
         config = new AppConfiguration();
         JdbcCatalogConfig catalog = new JdbcCatalogConfig();
         catalog.setName(catalogName);
-        catalog.setDefaultDatabase(BaseTestDatabase.DB_NAME_ANALYTICS);
-        catalog.setBaseUrl(
-                analyticsDb.getJdbcUrl().substring(0, analyticsDb.getJdbcUrl().lastIndexOf("/")));
-        catalog.setUsername(BaseTestDatabase.USER_ANALYTICS_DB);
-        catalog.setPassword(BaseTestDatabase.PASSWORD_ANALYTICS_DB);
+        catalog.setDefaultDatabase(DB_NAME_ANALYTICS);
+        catalog.setBaseUrl("jdbc:postgresql://localhost:" + analyticsDb.getMappedPort(5432));
+        catalog.setUsername(USER_ANALYTICS_DB);
+        catalog.setPassword(PASSWORD_ANALYTICS_DB);
         config.setJdbcCatalogs(List.of(catalog));
         JdbcSourceConfig source = new JdbcSourceConfig();
-        source.setDatabaseUrl(sourceDb.getJdbcUrl());
+        source.setDatabaseUrl("jdbc:mysql://localhost:" + sourceDb.getMappedPort(3306));
         source.setUsername(getSourceDbUser());
         source.setPassword(getSourceDbPassword());
         source.setTableDefinitionsPath(getTableDefinitionsPath());
         config.setJdbcSources(List.of(source));
         JdbcSinkConfig jdbcSinkCfg = new JdbcSinkConfig();
         jdbcSinkCfg.setJdbcCatalog(catalogName);
-        jdbcSinkCfg.setDatabaseName(BaseTestDatabase.DB_NAME_ANALYTICS);
+        jdbcSinkCfg.setDatabaseName(DB_NAME_ANALYTICS);
         final String flattenQueryPath = testDir + "dsl/flattening/queries";
         Files.createDirectories(Paths.get(flattenQueryPath));
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/flattening/queries"), flattenQueryPath);
@@ -245,9 +234,7 @@ public abstract class BaseJobTest {
         if (sourceConnection == null) {
             try {
                 sourceConnection = DriverManager.getConnection(
-                        sourceDb.getJdbcUrl(),
-                        sourceDb.getDbContainer().getUsername(),
-                        sourceDb.getDbContainer().getPassword());
+                        "jdbc:mysql://localhost:" + sourceDb.getMappedPort(3306) + "/openmrs", "root", "password");
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -260,23 +247,15 @@ public abstract class BaseJobTest {
         if (analyticsConnection == null) {
             try {
                 analyticsConnection = DriverManager.getConnection(
-                        analyticsDb.getJdbcUrl(),
-                        analyticsDb.getDbContainer().getUsername(),
-                        analyticsDb.getDbContainer().getPassword());
+                        "jdbc:postgresql://localhost:" + analyticsDb.getMappedPort(5432) + "/analytics",
+                        "postgres",
+                        "password");
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
 
         return analyticsConnection;
-    }
-
-    private void createAnalyticsSchema() {
-        try {
-            updateDatabase(getLiquibase(getAnalyticsLiquibaseFile(), getAnalyticsDbConnection()));
-        } catch (LiquibaseException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     protected Liquibase getLiquibase(String file, Connection connection) throws LiquibaseException {
@@ -310,8 +289,6 @@ public abstract class BaseJobTest {
     protected abstract String getSourceDbServiceName();
 
     protected abstract int getSourceDbExposedPort();
-
-    protected abstract BaseTestDatabase getSourceDb();
 
     protected abstract String getSourceDbName();
 
