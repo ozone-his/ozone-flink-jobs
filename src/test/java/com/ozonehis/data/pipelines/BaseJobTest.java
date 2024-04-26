@@ -45,6 +45,18 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 public abstract class BaseJobTest {
 
+    public static final String USER_OPENMRS_DB = "openmrs";
+
+    public static final String PASSWORD_OPENMRS_DB = "password";
+
+    public static final String DB_NAME_OPENMRS = "openmrs";
+
+    public static final String USER_ODOO_DB = "odoo";
+
+    public static final String PASSWORD_ODOO_DB = "password";
+
+    public static final String DB_NAME_ODOO = "odoo";
+
     public static final String USER_ANALYTICS_DB = "test-analytics-user";
 
     public static final String PASSWORD_ANALYTICS_DB = "test-analytics-password";
@@ -131,14 +143,13 @@ public abstract class BaseJobTest {
 
             envs.put("POSTGRES_PASSWORD", "password");
             envs.put("POSTGRES_USER", "postgres");
-            envs.put("MYSQL_ROOT_PASSWORD", "password");
             envs.put("ANALYTICS_DB_NAME", "analytics");
             envs.put("ANALYTICS_DB_USER", "analytics");
             envs.put("ANALYTICS_DB_PASSWORD", "password");
 
-            envs.put("MYSQL_ROOT_PASSWORD", "password");
-            envs.put("OPENMRS_DB_NAME", "openmrs");
-            envs.put("OPENMRS_DB_USER", "openmrs");
+            envs.put("MYSQL_ROOT_PASSWORD", PASSWORD_OPENMRS_DB);
+            envs.put("OPENMRS_DB_NAME", DB_NAME_OPENMRS);
+            envs.put("OPENMRS_DB_USER", USER_OPENMRS_DB);
             envs.put("OPENMRS_DB_PASSWORD", "password");
             envs.put("OPENMRS_CONFIG_PATH", getResourcePath("distro/configs/openmrs/initializer_config"));
             envs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
@@ -234,7 +245,10 @@ public abstract class BaseJobTest {
         if (sourceConnection == null) {
             try {
                 sourceConnection = DriverManager.getConnection(
-                        "jdbc:mysql://localhost:" + sourceDb.getMappedPort(3306) + "/openmrs", "root", "password");
+                        "jdbc:" + getSourceDbProtocol() + "://localhost:"
+                                + sourceDb.getMappedPort(getSourceDbExposedPort()) + "/" + getSourceDbName(),
+                        getSourceDbUser(),
+                        getSourceDbPassword());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
@@ -290,13 +304,13 @@ public abstract class BaseJobTest {
 
     protected abstract int getSourceDbExposedPort();
 
+    protected abstract String getSourceDbProtocol();
+
     protected abstract String getSourceDbName();
 
     protected abstract String getSourceDbUser();
 
     protected abstract String getSourceDbPassword();
-
-    protected abstract void createSourceSchema();
 
     protected abstract String getTableDefinitionsPath();
 
