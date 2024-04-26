@@ -12,11 +12,6 @@ public class SaleOrderLineJobTest extends BaseOdooJobTest {
         return "sale_order_lines";
     }
 
-    @Override
-    protected boolean requiresSourceSchema() {
-        return true;
-    }
-
     @Test
     public void execute_shouldLoadAllSaleOrderLinesFromOdooDbToAnalyticsDb() throws Exception {
         addTestDataToSourceDb("odoo/sale_order_line.sql");
