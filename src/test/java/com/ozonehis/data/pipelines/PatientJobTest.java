@@ -12,6 +12,11 @@ public class PatientJobTest extends BaseOpenmrsJobTest {
         return "patients";
     }
 
+    @Override
+    protected boolean requiresSourceDb() {
+        return true;
+    }
+
     @Test
     public void execute_shouldLoadAllPatientsFromOpenmrsDbToAnalyticsDb() throws Exception {
         addTestDataToSourceDb("openmrs/patient.sql");

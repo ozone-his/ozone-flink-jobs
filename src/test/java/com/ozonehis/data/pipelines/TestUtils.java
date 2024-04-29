@@ -17,6 +17,22 @@ public class TestUtils {
 
     public static void executeScript(String file, Connection connection) {
         ScriptUtils.executeSqlScript(connection, new ClassPathResource(file));
+        Boolean autocommit = null;
+        try {
+            autocommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            connection.commit();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (autocommit != null) {
+                try {
+                    connection.setAutoCommit(autocommit);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     public static List<Map<String, Object>> getRows(String table, Connection connection) {

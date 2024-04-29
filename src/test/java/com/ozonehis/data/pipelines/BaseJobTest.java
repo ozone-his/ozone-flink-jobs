@@ -24,6 +24,7 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -160,22 +161,39 @@ public abstract class BaseJobTest {
             envs.put("SUPERSET_DB", "superset");
             envs.put("SUPERSET_DB_USER", "superset");
             envs.put("SUPERSET_DB_PASSWORD", "superset");
-            composeContainer = new ComposeContainer(
-                            new File(getResourcePath("run/docker/docker-compose-common.yml")),
-                            new File(getResourcePath("run/docker/docker-compose-superset.yml")),
-                            new File(getResourcePath("run/docker/" + getDockerComposeFile())))
+            List<File> dockerComposeFiles = new ArrayList<>();
+            dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-common.yml")));
+            dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-superset.yml")));
+            List<String> services = new ArrayList<>();
+            services.add("env-substitution");
+            services.add("postgresql");
+            services.add("superset");
+            if (requiresSourceDb()) {
+                dockerComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
+                services.add(getSourceDbServiceName());
+                services.add("openmrs");
+            }
+
+            composeContainer = new ComposeContainer(dockerComposeFiles)
                     .withEnv(envs)
-                    .withServices("env-substitution", "postgresql", "openmrs", "superset", getSourceDbServiceName())
-                    .withExposedService("postgresql", 5432, Wait.forListeningPort())
-                    .withExposedService(getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort())
-                    .waitingFor("openmrs", Wait.forLogMessage(".*Table patient created*", 1))
-                    .withStartupTimeout(Duration.of(120, ChronoUnit.SECONDS));
+                    .withServices(services.toArray(new String[] {}))
+                    .withExposedService("postgresql", 5432, Wait.forListeningPort());
+            composeContainer.withTailChildContainers(false);
+            if (requiresSourceDb()) {
+                composeContainer.withExposedService(
+                        getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort());
+                composeContainer.waitingFor("openmrs", Wait.forLogMessage(".*Table patient created*\\n", 1));
+            }
+
+            composeContainer.withStartupTimeout(Duration.of(120, ChronoUnit.SECONDS));
             composeContainer.start();
             analyticsDb =
                     composeContainer.getContainerByServiceName("postgresql").get();
-            sourceDb = composeContainer
-                    .getContainerByServiceName(getSourceDbServiceName())
-                    .get();
+            if (requiresSourceDb()) {
+                sourceDb = composeContainer
+                        .getContainerByServiceName(getSourceDbServiceName())
+                        .get();
+            }
             createAnalyticsSchema();
             setupConfig();
             initialized = true;
@@ -209,27 +227,32 @@ public abstract class BaseJobTest {
         catalog.setUsername(USER_ANALYTICS_DB);
         catalog.setPassword(PASSWORD_ANALYTICS_DB);
         config.setJdbcCatalogs(List.of(catalog));
-        JdbcSourceConfig source = new JdbcSourceConfig();
-        source.setDatabaseUrl("jdbc:" + getSourceDbProtocol() + "://localhost:"
-                + sourceDb.getMappedPort(getSourceDbExposedPort()) + "/" + getSourceDbName());
-        source.setUsername(getSourceDbUser());
-        source.setPassword(getSourceDbPassword());
-        source.setTableDefinitionsPath(getTableDefinitionsPath());
-        config.setJdbcSources(List.of(source));
+        if (requiresSourceDb()) {
+            JdbcSourceConfig source = new JdbcSourceConfig();
+            source.setDatabaseUrl("jdbc:" + getSourceDbProtocol() + "://localhost:"
+                    + sourceDb.getMappedPort(getSourceDbExposedPort()) + "/" + getSourceDbName());
+            source.setUsername(getSourceDbUser());
+            source.setPassword(getSourceDbPassword());
+            source.setTableDefinitionsPath(getTableDefinitionsPath());
+            config.setJdbcSources(List.of(source));
+        } else {
+            config.setJdbcSources(Collections.emptyList());
+        }
+
         JdbcSinkConfig jdbcSinkCfg = new JdbcSinkConfig();
         jdbcSinkCfg.setJdbcCatalog(catalogName);
         jdbcSinkCfg.setDatabaseName(DB_NAME_ANALYTICS);
-        final String flattenQueryPath = testDir + "dsl/flattening/queries";
+        final String flattenQueryPath = testDir + "/dsl/flattening/queries";
         Files.createDirectories(Paths.get(flattenQueryPath));
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/flattening/queries"), flattenQueryPath);
         jdbcSinkCfg.setQueryPath(flattenQueryPath);
         config.setJdbcSinks(List.of(jdbcSinkCfg));
         FileSinkConfig fileSinkCfg = new FileSinkConfig();
-        final String exportQueryPath = testDir + "dsl/export/queries";
+        final String exportQueryPath = testDir + "/dsl/export/queries";
         Files.createDirectories(Paths.get(exportQueryPath));
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/queries"), exportQueryPath);
         fileSinkCfg.setQueryPath(exportQueryPath);
-        final String exportTablePath = testDir + "dsl/export/tables";
+        final String exportTablePath = testDir + "/dsl/export/tables";
         Files.createDirectories(Paths.get(exportTablePath));
         addTestFile(getTestFilename() + ".sql", getResourcePath("dsl/export/tables"), exportTablePath);
         fileSinkCfg.setDestinationTableDefinitionsPath(exportTablePath);
@@ -294,6 +317,10 @@ public abstract class BaseJobTest {
 
     protected void clearAnalyticsDb() throws SQLException {
         deleteAllData(getAnalyticsDbConnection(), false);
+    }
+
+    protected boolean requiresSourceDb() {
+        return false;
     }
 
     protected abstract String getDockerComposeFile();
