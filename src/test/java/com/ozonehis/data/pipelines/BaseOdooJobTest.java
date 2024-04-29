@@ -5,6 +5,11 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
     private static final String LIQUIBASE_ANALYTICS = "liquibase/analytics/changelogs/0002-sales_order_tbl.xml";
 
     @Override
+    protected String getSourceSystemName() {
+        return "odoo";
+    }
+
+    @Override
     protected boolean requiresSourceDb() {
         return true;
     }
