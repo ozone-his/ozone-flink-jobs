@@ -1,22 +1,12 @@
 package com.ozonehis.data.pipelines;
 
-import static org.openmrs.util.OpenmrsConstants.KEY_OPENMRS_APPLICATION_DATA_DIRECTORY;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-
 public abstract class BaseOpenmrsJobTest extends BaseJobTest {
 
     private static final String LIQUIBASE_ANALYTICS = "liquibase/analytics/changelogs/0001-init.xml";
 
-    @BeforeAll
-    public static void beforeAll() {
-        System.setProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY, testDir);
-    }
-
-    @AfterAll
-    public static void afterAll() {
-        System.clearProperty(KEY_OPENMRS_APPLICATION_DATA_DIRECTORY);
+    @Override
+    protected String getSourceSystemName() {
+        return "openmrs";
     }
 
     @Override

@@ -178,8 +178,11 @@ public abstract class BaseJobTest {
             if (requiresSourceDb()) {
                 dockerComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
                 services.add(getSourceDbServiceName());
-                services.add("openmrs");
-                services.add("odoo");
+                services.add(getSourceSystemName());
+                if("odoo".equalsIgnoreCase(getSourceSystemName())){
+                    dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-openmrs.yml")));
+                    services.add("openmrs");
+                }
             }
 
             composeContainer = new ComposeContainer(dockerComposeFiles)
@@ -349,6 +352,8 @@ public abstract class BaseJobTest {
     protected abstract String getTableDefinitionsPath();
 
     protected abstract String getAnalyticsLiquibaseFile();
+
+    protected abstract String getSourceSystemName();
 
     protected abstract String getTestFilename();
 
