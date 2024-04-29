@@ -157,6 +157,13 @@ public abstract class BaseJobTest {
             envs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
             envs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
 
+            envs.put("ODOO_CONFIG_FILE_PATH", getResourcePath("distro/configs/odoo/config/odoo.conf"));
+            envs.put("POSTGRES_DB_HOST", "postgresql");
+            envs.put("ODOO_DB_NAME", DB_NAME_ODOO);
+            envs.put("ODOO_DB_USER", USER_ODOO_DB);
+            envs.put("ODOO_DB_PASSWORD", PASSWORD_ODOO_DB);
+            envs.put("EIP_ODOO_OPENMRS_ROUTES_PATH", testDir);
+
             envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
             envs.put("SUPERSET_DB", "superset");
             envs.put("SUPERSET_DB_USER", "superset");
@@ -172,6 +179,7 @@ public abstract class BaseJobTest {
                 dockerComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
                 services.add(getSourceDbServiceName());
                 services.add("openmrs");
+                services.add("odoo");
             }
 
             composeContainer = new ComposeContainer(dockerComposeFiles)
@@ -187,6 +195,7 @@ public abstract class BaseJobTest {
 
             composeContainer.withStartupTimeout(Duration.of(120, ChronoUnit.SECONDS));
             composeContainer.start();
+            Thread.sleep(60000);
             analyticsDb =
                     composeContainer.getContainerByServiceName("postgresql").get();
             if (requiresSourceDb()) {
