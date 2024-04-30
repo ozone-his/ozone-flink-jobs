@@ -10,11 +10,6 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
     }
 
     @Override
-    protected boolean requiresSourceDb() {
-        return true;
-    }
-
-    @Override
     protected String getDockerComposeFile() {
         return "docker-compose-odoo.yml";
     }
