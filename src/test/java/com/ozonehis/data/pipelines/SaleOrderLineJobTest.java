@@ -8,6 +8,11 @@ import org.junit.jupiter.api.Test;
 public class SaleOrderLineJobTest extends BaseOdooJobTest {
 
     @Override
+    protected boolean requiresSourceDb() {
+        return true;
+    }
+
+    @Override
     protected String getTestFilename() {
         return "sale_order_lines";
     }

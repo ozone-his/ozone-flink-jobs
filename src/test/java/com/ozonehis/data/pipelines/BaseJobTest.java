@@ -158,7 +158,6 @@ public abstract class BaseJobTest {
             services.add(getSourceSystemName());
             if ("odoo".equalsIgnoreCase(getSourceSystemName())) {
                 dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-openmrs.yml")));
-                services.add("openmrs");
             }
         }
 
@@ -166,13 +165,17 @@ public abstract class BaseJobTest {
                 .withEnv(envs)
                 .withServices(services.toArray(new String[] {}))
                 .withExposedService("postgresql", 5432, Wait.forListeningPort());
-        composeContainer.withTailChildContainers(true);
         if (requiresSourceDb()) {
             composeContainer.withExposedService(
                     getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort());
             if ("openmrs".equals(getSourceSystemName())) {
                 composeContainer.waitingFor(
                         "openmrs", Wait.forHealthcheck().withStartupTimeout(Duration.of(WAIT, SECONDS)));
+            } else if ("odoo".equals(getSourceSystemName())) {
+                composeContainer.waitingFor(
+                        "odoo",
+                        Wait.forLogMessage(".*odoo\\.modules\\.loading: Modules loaded.*", 1)
+                                .withStartupTimeout(Duration.of(120, SECONDS)));
             }
         }
 
@@ -180,9 +183,7 @@ public abstract class BaseJobTest {
         long start = System.currentTimeMillis();
         composeContainer.start();
         long duration = (System.currentTimeMillis() - start) / 1000;
-        System.out.println("Container startup took: " + duration + "secs");
-        // TODO Use log message
-        Thread.sleep(60000);
+        System.out.println("Compose container startup took: " + duration + "secs");
         analyticsDb = composeContainer.getContainerByServiceName("postgresql").get();
         if (requiresSourceDb()) {
             sourceDb = composeContainer
