@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.JobManagerOptions;
 import org.apache.flink.configuration.MemorySize;
+import org.apache.flink.configuration.MetricOptions;
 import org.apache.flink.configuration.TaskManagerOptions;
 import org.apache.flink.runtime.client.JobStatusMessage;
 import org.apache.flink.runtime.minicluster.MiniCluster;
@@ -85,6 +86,14 @@ public class Environment {
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
         }
+        flinkConfig.set(MetricOptions.SCOPE_NAMING_JM, "jobmanager");
+        flinkConfig.set(MetricOptions.SCOPE_NAMING_TM, "taskmanager");
+        MetricOptions.forReporter(flinkConfig, "prom")
+                .set(
+                        MetricOptions.REPORTER_FACTORY_CLASS,
+                        "org.apache.flink.metrics.prometheus.PrometheusReporterFactory")
+                .setString("port", "9250");
+
         MiniClusterConfiguration clusterConfig = new MiniClusterConfiguration.Builder()
                 .setNumTaskManagers(1)
                 .setNumSlotsPerTaskManager(20)
