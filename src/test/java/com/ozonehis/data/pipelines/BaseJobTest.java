@@ -2,6 +2,7 @@ package com.ozonehis.data.pipelines;
 
 import static com.ozonehis.data.pipelines.Constants.PROP_ANALYTICS_CONFIG_FILE_PATH;
 import static com.ozonehis.data.pipelines.Constants.PROP_FLINK_REST_PORT;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -22,7 +23,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,6 +46,20 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 public abstract class BaseJobTest {
 
+    private static final Integer WAIT = 600;
+
+    private static final String DELETE = "DELETE FROM ";
+
+    private static final String DISABLE_KEYS = "SET FOREIGN_KEY_CHECKS=0";
+
+    private static final String ENABLE_KEYS = "SET FOREIGN_KEY_CHECKS=1";
+
+    private static ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
+
+    private static final String TEST_DIR = "flink-test-dir";
+
+    private static final String EXPORT_DIR_NAME = "export";
+
     public static final String USER_ANALYTICS_DB = "analytics";
 
     public static final String PASSWORD_ANALYTICS_DB = "password";
@@ -63,18 +77,6 @@ public abstract class BaseJobTest {
     public static final String PASSWORD_ODOO_DB = "password";
 
     public static final String DB_NAME_ODOO = "odoo";
-
-    private static final String DELETE = "DELETE FROM ";
-
-    private static final String DISABLE_KEYS = "SET FOREIGN_KEY_CHECKS=0";
-
-    private static final String ENABLE_KEYS = "SET FOREIGN_KEY_CHECKS=1";
-
-    private static ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
-
-    private static final String TEST_DIR = "flink-test-dir";
-
-    private static final String EXPORT_DIR_NAME = "export";
 
     private AppConfiguration config;
 
@@ -164,17 +166,21 @@ public abstract class BaseJobTest {
                 .withEnv(envs)
                 .withServices(services.toArray(new String[] {}))
                 .withExposedService("postgresql", 5432, Wait.forListeningPort());
-        composeContainer.withTailChildContainers(false);
+        composeContainer.withTailChildContainers(true);
         if (requiresSourceDb()) {
             composeContainer.withExposedService(
                     getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort());
             if ("openmrs".equals(getSourceSystemName())) {
-                composeContainer.waitingFor("openmrs", Wait.forLogMessage(".*Table patient created*\\n", 1));
+                composeContainer.waitingFor(
+                        "openmrs", Wait.forHealthcheck().withStartupTimeout(Duration.of(WAIT, SECONDS)));
             }
         }
 
-        composeContainer.withStartupTimeout(Duration.of(120, ChronoUnit.SECONDS));
+        composeContainer.withStartupTimeout(Duration.of(WAIT, SECONDS));
+        long start = System.currentTimeMillis();
         composeContainer.start();
+        long duration = (System.currentTimeMillis() - start) / 1000;
+        System.out.println("Container startup took: " + duration + "secs");
         // TODO Use log message
         Thread.sleep(60000);
         analyticsDb = composeContainer.getContainerByServiceName("postgresql").get();
