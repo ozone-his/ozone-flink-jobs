@@ -58,7 +58,7 @@ public class StreamJob extends BaseJob {
                 Map<String, String> connectorOptions = Stream.of(new String[][] {
                             {"connector", "kafka"},
                             {"properties.bootstrap.servers", kafkaStreamConfig.getBootstrapServers()},
-                            {"properties.group.id", "flink"},
+                            {"properties.group.id", String.format("%s-group-id", s.fileName)},
                             {"topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName)},
                             {"scan.startup.mode", "earliest-offset"},
                             {"value.debezium-json.ignore-parse-errors", "true"},
