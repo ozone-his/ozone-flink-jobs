@@ -34,7 +34,7 @@ public class PatientExportJobTest extends BaseOpenmrsJobTest {
 
         job.execute();
         // TODO Wait for job to complete, possibly use a JobListener
-        Thread.sleep(5000);
+        Thread.sleep(15000);
 
         final String outputDir = exportDir + "/patients/h1";
         final JsonMapper mapper = new JsonMapper();

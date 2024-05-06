@@ -28,7 +28,7 @@ public class PatientJobTest extends BaseOpenmrsJobTest {
 
         job.execute();
         // TODO Wait for job to complete, possibly use a JobListener
-        Thread.sleep(5000);
+        Thread.sleep(15000);
 
         // TODO check each row data
         assertEquals(

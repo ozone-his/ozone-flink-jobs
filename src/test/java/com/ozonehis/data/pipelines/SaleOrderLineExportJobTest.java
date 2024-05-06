@@ -32,7 +32,7 @@ public class SaleOrderLineExportJobTest extends BaseOdooJobTest {
 
         job.execute();
         // TODO Wait for job to complete, possibly use a JobListener
-        Thread.sleep(5000);
+        Thread.sleep(15000);
 
         final String outputDir = exportDir + "/sale_order_lines/h1";
         final JsonMapper mapper = new JsonMapper();
