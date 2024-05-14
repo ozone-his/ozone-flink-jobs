@@ -24,7 +24,7 @@ public class PatientExportJobTest extends BaseOpenmrsJobTest {
 
     @Test
     public void execute_shouldExportAllPatientsFromAnalyticsDbToAFile() throws Exception {
-        addTestDataToAnalyticsDb("patient.sql");
+        addTestDataToAnalyticsDb("patients.sql");
         final int expectedCount = 2;
         assertEquals(
                 expectedCount,

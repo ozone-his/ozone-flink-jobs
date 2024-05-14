@@ -21,7 +21,7 @@ public class SaleOrderLineExportJobTest extends BaseOdooJobTest {
 
     @Test
     public void execute_shouldExportAllSaleOrderLinesFromAnalyticsDbToAFile() throws Exception {
-        addTestDataToAnalyticsDb("sale_order_line.sql");
+        addTestDataToAnalyticsDb("sale_order_lines.sql");
         final int expectedCount = 2;
         assertEquals(
                 expectedCount,
