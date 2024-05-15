@@ -1,6 +1,8 @@
 package com.ozonehis.data.pipelines.export;
 
 import com.ozonehis.data.pipelines.BaseJob;
+import com.ozonehis.data.pipelines.Constants;
+import com.ozonehis.data.pipelines.config.AppConfiguration;
 import com.ozonehis.data.pipelines.config.FileSinkConfig;
 import com.ozonehis.data.pipelines.utils.CommonUtils;
 import com.ozonehis.data.pipelines.utils.ConnectorUtils;
@@ -51,11 +53,16 @@ public class ExportJob extends BaseJob {
 
     @Override
     protected void doExecute() {
-        for (FileSinkConfig fileSinkConfig :
-                CommonUtils.getConfig(configFilePath).getFileSinks()) {
+        AppConfiguration cfg = CommonUtils.getConfig(configFilePath);
+        if (cfg.getJdbcCatalogs().size() > 1) {
+            throw new RuntimeException("Found multiple configured JDBC catalogs");
+        }
+
+        for (FileSinkConfig fileSinkConfig : cfg.getFileSinks()) {
             List<QueryFile> queries = CommonUtils.getSQL(fileSinkConfig.getQueryPath());
+            final String catalog = cfg.getJdbcCatalogs().get(0).getName();
             for (QueryFile query : queries) {
-                tableEnv.executeSql(query.content);
+                tableEnv.executeSql(query.content.replace(Constants.CFG_PLACEHOLDER_CATALOG, catalog));
             }
         }
     }

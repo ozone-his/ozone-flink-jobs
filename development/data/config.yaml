@@ -1,12 +1,12 @@
 # Configuration Jdbc catalogs which Map to actual databases allowing direct read and write without temporary tables
 jdbcCatalogs:
     # Name of the catalog
-  - name: analytics
+  - name: ozone
     # Name of the default database in the catalog
     defaultDatabase: '${ANALYTICS_DB_NAME:-analytics}'
     # Database username
     username: '${ANALYTICS_DB_USER:-analytics}'
-    # Databse password
+    # Database password
     password: '${ANALYTICS_DB_PASSWORD:-analytics}'
     # Jdbc Database Url
     baseUrl: 'jdbc:postgresql://${ANALYTICS_DB_HOST:-localhost}:${ANALYTICS_DB_PORT:-5432}'
@@ -38,7 +38,7 @@ jdbcSources:
 # Configuration for Jdbc data sinks
 jdbcSinks:
     # Name of the jdbc catalog to write into. The catalog must be defined in the jdbcCatalogs section
-  - jdbcCatalog: analytics
+  - jdbcCatalog: ozone
     # Name of the databse. The database must be defined in the jdbcCatalog above
     databaseName: analytics
     # The path to the queries to use for flattening data
