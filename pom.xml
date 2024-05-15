@@ -38,6 +38,8 @@
     <analytics.queries.version>1.0.0-SNAPSHOT</analytics.queries.version>
     <ozone.version>1.0.0-SNAPSHOT</ozone.version>
     <spring.version>5.3.23</spring.version>
+    <mockitoJunitVersion>5.7.0</mockitoJunitVersion>
+    <byteBuddyVersion>1.14.10</byteBuddyVersion>
 
     <!-- Plugins -->
     <surefire.version>3.2.5</surefire.version>
@@ -235,6 +237,17 @@
       <artifactId>spring-jdbc</artifactId>
       <version>${spring.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockitoJunitVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>${byteBuddyVersion}</version>
     </dependency>
   </dependencies>
 
