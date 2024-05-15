@@ -8,7 +8,7 @@ public class QueryFile {
 
     public String parent;
 
-    QueryFile(String parent, String fileName, String content) {
+    public QueryFile(String parent, String fileName, String content) {
         this.content = content;
         this.fileName = fileName;
         this.parent = parent;

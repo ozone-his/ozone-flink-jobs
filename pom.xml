@@ -39,6 +39,7 @@
     <ozone.version>1.0.0-SNAPSHOT</ozone.version>
     <spring.version>5.3.23</spring.version>
     <mockitoJunitVersion>5.7.0</mockitoJunitVersion>
+    <powerMockVersion>2.0.9</powerMockVersion>
     <byteBuddyVersion>1.14.10</byteBuddyVersion>
 
     <!-- Plugins -->
@@ -245,9 +246,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <version>${powerMockVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy</artifactId>
       <version>${byteBuddyVersion}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

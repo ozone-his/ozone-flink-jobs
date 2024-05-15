@@ -1,12 +1,15 @@
 package com.ozonehis.data.pipelines.export;
 
-import static com.ozonehis.data.pipelines.Constants.PROP_ANALYTICS_CONFIG_FILE_PATH;
+import static com.ozonehis.data.pipelines.Constants.CFG_PLACEHOLDER_CATALOG;
 import static org.mockito.Mockito.when;
 
 import com.ozonehis.data.pipelines.config.AppConfiguration;
+import com.ozonehis.data.pipelines.config.FileSinkConfig;
 import com.ozonehis.data.pipelines.config.JdbcCatalogConfig;
 import com.ozonehis.data.pipelines.utils.CommonUtils;
+import com.ozonehis.data.pipelines.utils.QueryFile;
 import java.util.List;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.powermock.reflect.internal.WhiteboxImpl;
 
 @ExtendWith(MockitoExtension.class)
 public class ExportJobTest {
@@ -29,19 +33,21 @@ public class ExportJobTest {
     @Mock
     private AppConfiguration mockConfig;
 
+    @Mock
+    private StreamTableEnvironment mockTableEnv;
+
     @BeforeEach
     public void setupClass() {
         mockCommonUtils = Mockito.mockStatic(CommonUtils.class);
         when(CommonUtils.getConfig(TEST_CFG_PATH)).thenReturn(mockConfig);
-        System.setProperty(PROP_ANALYTICS_CONFIG_FILE_PATH, TEST_CFG_PATH);
         job = new ExportJob();
-        job.initConfig();
+        WhiteboxImpl.setInternalState(job, "configFilePath", TEST_CFG_PATH);
+        WhiteboxImpl.setInternalState(job, "tableEnv", mockTableEnv);
     }
 
     @AfterEach
     public void tearDownClass() {
         mockCommonUtils.close();
-        System.clearProperty(PROP_ANALYTICS_CONFIG_FILE_PATH);
     }
 
     @Test
@@ -52,8 +58,21 @@ public class ExportJobTest {
     }
 
     @Test
-    public void doExecute_shouldPassForAConfigWithASingleJdbcCatalog() {
-        when(mockConfig.getJdbcCatalogs()).thenReturn(List.of(new JdbcCatalogConfig()));
+    public void doExecute_shouldReplaceSetCatalogNameInExportQueries() {
+        final String catalog = "test";
+        final String queryPath = "/test/query/path";
+        final String query =
+                "INSERT into patients SELECT t.*  from " + CFG_PLACEHOLDER_CATALOG + ".analytics.patients t";
+        JdbcCatalogConfig catalogCfg = new JdbcCatalogConfig();
+        catalogCfg.setName(catalog);
+        when(CommonUtils.getSQL(queryPath)).thenReturn(List.of(new QueryFile(null, null, query)));
+        FileSinkConfig fileSinkCfg = new FileSinkConfig();
+        fileSinkCfg.setQueryPath(queryPath);
+        when(mockConfig.getJdbcCatalogs()).thenReturn(List.of(catalogCfg));
+        when(mockConfig.getFileSinks()).thenReturn(List.of(fileSinkCfg));
+
         job.doExecute();
+
+        Mockito.verify(mockTableEnv).executeSql(query.replace(CFG_PLACEHOLDER_CATALOG, catalog));
     }
 }
