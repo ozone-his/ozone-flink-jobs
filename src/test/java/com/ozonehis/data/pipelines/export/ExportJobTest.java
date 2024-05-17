@@ -58,7 +58,7 @@ public class ExportJobTest {
     }
 
     @Test
-    public void doExecute_shouldReplaceSetCatalogNameInExportQueries() {
+    public void doExecute_shouldReplacePlaceholderWithCatalogNameInExportQueries() {
         final String catalog = "test";
         final String queryPath = "/test/query/path";
         final String query =
