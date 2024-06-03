@@ -3,7 +3,7 @@ FROM  maven:3.8.6-eclipse-temurin-11 as builder
 ADD ./pom.xml pom.xml
 RUN mvn dependency:go-offline
 ADD ./src src/
-RUN mvn clean install -Pbatch
+RUN mvn clean install -Pbatch -DskipTests --batch-mode
 
 FROM eclipse-temurin:11-jre
 ARG JAR_VERSION=2.2.0-SNAPSHOT

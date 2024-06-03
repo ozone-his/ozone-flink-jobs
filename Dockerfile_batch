@@ -6,7 +6,7 @@ ENV MAVEN_OPTS="-Xmx2g"
 COPY ./pom.xml pom.xml
 COPY ./src src/
 
-RUN mvn clean install -Pbatch
+RUN mvn clean install -Pbatch -DskipTests --batch-mode
 
 FROM eclipse-temurin:11-jre
 ARG JAR_VERSION=2.2.0-SNAPSHOT

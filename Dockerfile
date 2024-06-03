@@ -4,7 +4,7 @@ ADD ./pom.xml pom.xml
 #cache dependencies
 RUN mvn dependency:go-offline
 ADD ./src src/
-RUN mvn clean package
+RUN mvn clean package -DskipTests --batch-mode
 
 FROM eclipse-temurin:11-jre
 ARG JAR_VERSION=2.2.0-SNAPSHOT
