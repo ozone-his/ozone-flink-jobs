@@ -9,7 +9,7 @@ COPY ./src src/
 RUN mvn clean install -Pbatch -DskipTests --batch-mode
 
 FROM eclipse-temurin:11-jre
-ARG JAR_VERSION=2.2.0-SNAPSHOT
+ARG JAR_VERSION=2.2.0
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-batch.jar etl-batch.jar
