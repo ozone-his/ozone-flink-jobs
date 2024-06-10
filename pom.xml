@@ -38,6 +38,9 @@
     <analytics.queries.version>1.1.0-SNAPSHOT</analytics.queries.version>
     <ozone.version>1.0.0-SNAPSHOT</ozone.version>
     <spring.version>5.3.23</spring.version>
+    <mockitoJunitVersion>5.7.0</mockitoJunitVersion>
+    <powerMockVersion>2.0.9</powerMockVersion>
+    <byteBuddyVersion>1.14.10</byteBuddyVersion>
 
     <!-- Plugins -->
     <surefire.version>3.2.5</surefire.version>
@@ -234,6 +237,24 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
       <version>${spring.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockitoJunitVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-core</artifactId>
+      <version>${powerMockVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>${byteBuddyVersion}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
