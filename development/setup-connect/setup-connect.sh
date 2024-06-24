@@ -1,10 +1,13 @@
 set -e
-echo "Waiting for source database to be ready-----"
-/opt/wait-for-it.sh $SOURCE_DB_HOST:$SOURCE_DB_PORT
-/opt/wait-for-it.sh $ODOO_DB_HOST:$ODOO_DB_PORT
+CONNECT_OPENMRS="${CONNECT_OPENMRS:-1}"
+CONNECT_ODOO="${CONNECT_ODOO:-1}"
 
 echo "Waiting for connect to be ready-----"
 /opt/wait-for-it.sh $CONNECT_HOST:8083
+if [[ $CONNECT_OPENMRS = "1" ]]
+then
+echo "Waiting for OpenMRS database to be ready-----"
+/opt/wait-for-it.sh $SOURCE_DB_HOST:$SOURCE_DB_PORT
 curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/json" http://${CONNECT_HOST}:8083/connectors/openmrs-connector/config/ \
         -d '{
                "connector.class": "io.debezium.connector.mysql.MySqlConnector",
@@ -28,7 +31,13 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                "timestampConverter.debug": "false",
                "snapshot.mode": "when_needed"
      }'
+fi 
 
+
+if [[ $CONNECT_ODOO = "1" ]]
+then
+echo "Waiting for Odoo database to be ready-----"
+/opt/wait-for-it.sh $ODOO_DB_HOST:$ODOO_DB_PORT
 curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/json" http://${CONNECT_HOST}:8083/connectors/odoo-connector/config/ \
         -d  '{
                 "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
@@ -55,3 +64,4 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                 "publication.name": "odoo_publication",
                 "decimal.handling.mode": "double"
     }'
+fi
