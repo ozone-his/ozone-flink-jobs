@@ -35,7 +35,7 @@ public class Environment {
         Configuration flinkConfig = new Configuration();
         String port = System.getProperty(Constants.PROP_FLINK_REST_PORT);
         if (StringUtils.isBlank(port)) {
-            port = Environment.getEnv("FLINK_REST_PORT", null);
+            port = Environment.getEnv("FLINK_REST_PORT", "8081");
         }
 
         if (StringUtils.isNotBlank(port)) {
@@ -79,7 +79,7 @@ public class Environment {
         flinkConfig.setString("execution.checkpointing.unaligned.enabled", "true");
         flinkConfig.setString("execution.checkpointing.tolerable-failed-checkpoints", "50");
         flinkConfig.setString("table.dynamic-table-options.enabled", "true");
-        flinkConfig.setString("table.exec.resource.default-parallelism", "1");
+        flinkConfig.setString("table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
         flinkConfig.setString("state.backend.type", "rocksdb");
         flinkConfig.setString("state.backend.incremental", "true");
         flinkConfig.setString("state.checkpoints.dir", "file:///tmp/flink/checkpoints/");
@@ -101,7 +101,7 @@ public class Environment {
                 .setString("port", "9250");
         MiniClusterConfiguration clusterConfig = new MiniClusterConfiguration.Builder()
                 .setNumTaskManagers(1)
-                .setNumSlotsPerTaskManager(20)
+                .setNumSlotsPerTaskManager(Integer.parseInt(System.getenv().getOrDefault("TASK_MANAGER_SLOTS", "20")))
                 .setConfiguration(flinkConfig)
                 .build();
         MiniCluster cluster = new MiniCluster(clusterConfig);
