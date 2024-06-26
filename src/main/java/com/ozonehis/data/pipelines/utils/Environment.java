@@ -79,7 +79,8 @@ public class Environment {
         flinkConfig.setString("execution.checkpointing.unaligned.enabled", "true");
         flinkConfig.setString("execution.checkpointing.tolerable-failed-checkpoints", "50");
         flinkConfig.setString("table.dynamic-table-options.enabled", "true");
-        flinkConfig.setString("table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
+        flinkConfig.setString(
+                "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
         flinkConfig.setString("state.backend.type", "rocksdb");
         flinkConfig.setString("state.backend.incremental", "true");
         flinkConfig.setString("state.checkpoints.dir", "file:///tmp/flink/checkpoints/");
