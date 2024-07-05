@@ -7,7 +7,7 @@ ADD ./src src/
 RUN mvn clean package -DskipTests --batch-mode
 
 FROM eclipse-temurin:11-jre
-ARG JAR_VERSION=2.4.0
+ARG JAR_VERSION=2.5.0-SNAPSHOT
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-streaming.jar streaming-etl-job.jar
