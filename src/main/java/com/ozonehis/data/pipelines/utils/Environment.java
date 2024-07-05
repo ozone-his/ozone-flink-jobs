@@ -78,6 +78,10 @@ public class Environment {
         flinkConfig.setString("execution.checkpointing.timeout", "10min");
         flinkConfig.setString("execution.checkpointing.unaligned.enabled", "true");
         flinkConfig.setString("execution.checkpointing.tolerable-failed-checkpoints", "50");
+        flinkConfig.setString("execution.checkpointing.incremental", "true");
+        flinkConfig.setString("table.exec.mini-batch.enabled", "true");
+        flinkConfig.setString("table.exec.mini-batch.allow-latency", "5 s");
+        flinkConfig.setString("table.exec.mini-batch.size", "5000");
         flinkConfig.setString("table.dynamic-table-options.enabled", "true");
         flinkConfig.setString(
                 "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
@@ -85,7 +89,7 @@ public class Environment {
         flinkConfig.setString("state.backend.incremental", "true");
         flinkConfig.setString("state.checkpoints.dir", "file:///tmp/flink/checkpoints/");
         flinkConfig.setString("state.savepoints.dir", "file:///tmp/flink/savepoints/");
-        flinkConfig.setInteger("state.checkpoints.num-retained", 4);
+        flinkConfig.setInteger("state.checkpoints.num-retained", 2);
         flinkConfig.setString("taskmanager.network.numberOfBuffers", "20");
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {

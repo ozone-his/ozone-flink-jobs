@@ -56,7 +56,7 @@ public abstract class BaseJob {
      */
     public MiniCluster startCluster() throws Exception {
         LOG.info("Starting mini cluster");
-        cluster = Environment.initMiniClusterWithEnv(false);
+        cluster = Environment.initMiniClusterWithEnv(stream);
         cluster.start();
         return cluster;
     }
