@@ -102,6 +102,7 @@ public abstract class BaseJobTest {
             testDir = Files.createTempDirectory(TEST_DIR).toFile().getAbsolutePath();
             exportDir = testDir + "/" + EXPORT_DIR_NAME;
             TestUtils.createNetworkIfNecessary("web", testDir);
+            TestUtils.createNetworkIfNecessary("ozone", testDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -143,16 +144,18 @@ public abstract class BaseJobTest {
         envs.put("EIP_ODOO_OPENMRS_ROUTES_PATH", testDir);
 
         envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
+        envs.put("SUPERSET_DASHBOARDS_PATH", getResourcePath("distro/configs/superset/assets"));
         envs.put("SUPERSET_DB", "superset");
         envs.put("SUPERSET_DB_USER", "superset");
         envs.put("SUPERSET_DB_PASSWORD", "superset");
         List<File> dockerComposeFiles = new ArrayList<>();
         dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-common.yml")));
-        dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-superset.yml")));
+        // dockerComposeFiles.add(new File(getResourcePath("docker-compose-db.yaml")));
+        // dockerComposeFiles.add(new File(getResourcePath("docker-compose-superset.yaml")));
         List<String> services = new ArrayList<>();
         services.add("env-substitution");
         services.add("postgresql");
-        services.add("superset");
+        // services.add("superset");
         if (requiresSourceDb()) {
             dockerComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
             services.add(getSourceDbServiceName());
