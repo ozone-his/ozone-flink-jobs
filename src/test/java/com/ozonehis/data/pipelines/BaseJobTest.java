@@ -92,7 +92,9 @@ public abstract class BaseJobTest {
 
     protected static String exportDir;
 
-    protected ComposeContainer composeContainer;
+    protected ComposeContainer ozoneCompose;
+
+    protected ComposeContainer analyticsCompose;
 
     private MiniCluster cluster;
 
@@ -117,80 +119,94 @@ public abstract class BaseJobTest {
 
     @BeforeEach
     public void beforeSuper() throws Exception {
-        Map<String, String> envs = new HashMap<>();
-        envs.put("SQL_SCRIPTS_PATH", getResourcePath("distro/data"));
-        envs.put("DISTRO_PATH", getResourcePath("distro"));
+        Map<String, String> commonEnvs = new HashMap<>();
+        commonEnvs.put("DISTRO_PATH", getResourcePath("distro"));
+        commonEnvs.put("SQL_SCRIPTS_PATH", getResourcePath("distro/data"));
+        commonEnvs.put("POSTGRES_PASSWORD", "password");
+        commonEnvs.put("POSTGRES_USER", "postgres");
+        commonEnvs.put("POSTGRES_DB_HOST", "postgresql");
+        Map<String, String> ozoneEnvs = new HashMap<>(commonEnvs);
 
-        envs.put("POSTGRES_PASSWORD", "password");
-        envs.put("POSTGRES_USER", "postgres");
-        envs.put("ANALYTICS_DB_NAME", DB_NAME_ANALYTICS);
-        envs.put("ANALYTICS_DB_USER", USER_ANALYTICS_DB);
-        envs.put("ANALYTICS_DB_PASSWORD", PASSWORD_ANALYTICS_DB);
+        ozoneEnvs.put("MYSQL_ROOT_PASSWORD", PASSWORD_OPENMRS_DB);
+        ozoneEnvs.put("OPENMRS_DB_NAME", DB_NAME_OPENMRS);
+        ozoneEnvs.put("OPENMRS_DB_USER", USER_OPENMRS_DB);
+        ozoneEnvs.put("OPENMRS_DB_PASSWORD", "password");
+        ozoneEnvs.put("OPENMRS_CONFIG_PATH", getResourcePath("distro/configs/openmrs/initializer_config"));
+        ozoneEnvs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
+        ozoneEnvs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
+        ozoneEnvs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
 
-        envs.put("MYSQL_ROOT_PASSWORD", PASSWORD_OPENMRS_DB);
-        envs.put("OPENMRS_DB_NAME", DB_NAME_OPENMRS);
-        envs.put("OPENMRS_DB_USER", USER_OPENMRS_DB);
-        envs.put("OPENMRS_DB_PASSWORD", "password");
-        envs.put("OPENMRS_CONFIG_PATH", getResourcePath("distro/configs/openmrs/initializer_config"));
-        envs.put("OPENMRS_PROPERTIES_PATH", getResourcePath("distro/configs/openmrs/properties"));
-        envs.put("OPENMRS_FRONTEND_BINARY_PATH", getResourcePath("distro/binaries/openmrs/frontend"));
-        envs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
+        ozoneEnvs.put("ODOO_CONFIG_FILE_PATH", getResourcePath("distro/configs/odoo/config/odoo.conf"));
+        ozoneEnvs.put("ODOO_DB_NAME", DB_NAME_ODOO);
+        ozoneEnvs.put("ODOO_DB_USER", USER_ODOO_DB);
+        ozoneEnvs.put("ODOO_DB_PASSWORD", PASSWORD_ODOO_DB);
+        ozoneEnvs.put("EIP_ODOO_OPENMRS_ROUTES_PATH", testDir);
 
-        envs.put("ODOO_CONFIG_FILE_PATH", getResourcePath("distro/configs/odoo/config/odoo.conf"));
-        envs.put("POSTGRES_DB_HOST", "postgresql");
-        envs.put("ODOO_DB_NAME", DB_NAME_ODOO);
-        envs.put("ODOO_DB_USER", USER_ODOO_DB);
-        envs.put("ODOO_DB_PASSWORD", PASSWORD_ODOO_DB);
-        envs.put("EIP_ODOO_OPENMRS_ROUTES_PATH", testDir);
-
-        envs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
-        envs.put("SUPERSET_DASHBOARDS_PATH", getResourcePath("distro/configs/superset/assets"));
-        envs.put("SUPERSET_DB", "superset");
-        envs.put("SUPERSET_DB_USER", "superset");
-        envs.put("SUPERSET_DB_PASSWORD", "superset");
-        List<File> dockerComposeFiles = new ArrayList<>();
-        dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-common.yml")));
-        // dockerComposeFiles.add(new File(getResourcePath("docker-compose-db.yaml")));
-        // dockerComposeFiles.add(new File(getResourcePath("docker-compose-superset.yaml")));
-        List<String> services = new ArrayList<>();
-        services.add("env-substitution");
-        services.add("postgresql");
-        // services.add("superset");
+        List<File> ozoneComposeFiles = new ArrayList<>();
+        ozoneComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-common.yml")));
+        List<String> ozoneServices = new ArrayList<>();
+        ozoneServices.add("env-substitution");
+        ozoneServices.add("postgresql");
         if (requiresSourceDb()) {
-            dockerComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
-            services.add(getSourceDbServiceName());
-            services.add(getSourceSystemName());
+            ozoneComposeFiles.add(new File(getResourcePath("run/docker/" + getDockerComposeFile())));
+            ozoneServices.add(getSourceDbServiceName());
+            ozoneServices.add(getSourceSystemName());
             if ("odoo".equalsIgnoreCase(getSourceSystemName())) {
-                dockerComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-openmrs.yml")));
+                ozoneComposeFiles.add(new File(getResourcePath("run/docker/docker-compose-openmrs.yml")));
             }
         }
 
-        composeContainer = new ComposeContainer(dockerComposeFiles)
-                .withEnv(envs)
-                .withServices(services.toArray(new String[] {}))
-                .withExposedService("postgresql", 5432, Wait.forListeningPort());
+        ozoneCompose = new ComposeContainer(ozoneComposeFiles)
+                .withEnv(ozoneEnvs)
+                .withTailChildContainers(true)
+                .withServices(ozoneServices.toArray(new String[] {}));
         if (requiresSourceDb()) {
-            composeContainer.withExposedService(
+            ozoneCompose.withExposedService(
                     getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort());
             if ("openmrs".equals(getSourceSystemName())) {
-                composeContainer.waitingFor(
+                ozoneCompose.waitingFor(
                         "openmrs", Wait.forHealthcheck().withStartupTimeout(Duration.of(WAIT, SECONDS)));
             } else if ("odoo".equals(getSourceSystemName())) {
-                composeContainer.waitingFor(
+                ozoneCompose.waitingFor(
                         "odoo",
                         Wait.forLogMessage(".*odoo\\.modules\\.loading: Modules loaded.*", 1)
                                 .withStartupTimeout(Duration.of(120, SECONDS)));
             }
         }
+        ozoneCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
 
-        composeContainer.withStartupTimeout(Duration.of(WAIT, SECONDS));
+        Map<String, String> analyticsEnvs = new HashMap<>(commonEnvs);
+        analyticsEnvs.put("ANALYTICS_DB_NAME", DB_NAME_ANALYTICS);
+        analyticsEnvs.put("ANALYTICS_DB_USER", USER_ANALYTICS_DB);
+        analyticsEnvs.put("ANALYTICS_DB_PASSWORD", PASSWORD_ANALYTICS_DB);
+        analyticsEnvs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
+        analyticsEnvs.put("SUPERSET_DASHBOARDS_PATH", getResourcePath("distro/configs/superset/assets"));
+        analyticsEnvs.put("SUPERSET_DB", "superset");
+        analyticsEnvs.put("SUPERSET_DB_USER", "superset");
+        analyticsEnvs.put("SUPERSET_DB_PASSWORD", "password");
+        analyticsEnvs.put("POSTGRES_DB_HOST", "gateway.docker.internal");
+        List<File> analyticsComposeFiles = new ArrayList<>();
+        analyticsComposeFiles.add(new File(getResourcePath("docker-compose-db.yaml")));
+        analyticsComposeFiles.add(new File(getResourcePath("docker-compose-superset.yaml")));
+        List<String> analyticsServices = new ArrayList<>();
+        // analyticsServices.add("postgresql");
+        analyticsServices.add("superset");
+        analyticsCompose = new ComposeContainer(analyticsComposeFiles)
+                .withEnv(analyticsEnvs)
+                .withTailChildContainers(true)
+                .withServices(analyticsServices.toArray(new String[] {}));
+        // .withExposedService("postgresql", 5433, Wait.forListeningPort());
+        analyticsCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
+
         long start = System.currentTimeMillis();
-        composeContainer.start();
+        ozoneCompose.start();
+        analyticsCompose.start();
         long duration = (System.currentTimeMillis() - start) / 1000;
-        System.out.println("Compose container startup took: " + duration + "secs");
-        analyticsDb = composeContainer.getContainerByServiceName("postgresql").get();
+        System.out.println("Compose containers startup took: " + duration + "secs");
+
+        analyticsDb = ozoneCompose.getContainerByServiceName("postgresql").get();
         if (requiresSourceDb()) {
-            sourceDb = composeContainer
+            sourceDb = analyticsCompose
                     .getContainerByServiceName(getSourceDbServiceName())
                     .get();
         }
@@ -229,7 +245,8 @@ public abstract class BaseJobTest {
             }
         }
 
-        composeContainer.stop();
+        ozoneCompose.stop();
+        analyticsCompose.stop();
     }
 
     protected void initJobAndStartCluster(BaseJob job) throws Exception {
