@@ -158,8 +158,7 @@ public abstract class BaseJobTest {
 
         ozoneCompose = new ComposeContainer(ozoneComposeFiles)
                 .withEnv(ozoneEnvs)
-                .withTailChildContainers(true)
-                .withServices(ozoneServices.toArray(new String[] {}));
+                .withServices(ozoneServices.toArray(String[]::new));
         if (requiresSourceDb()) {
             ozoneCompose.withExposedService(
                     getSourceDbServiceName(), getSourceDbExposedPort(), Wait.forListeningPort());
@@ -184,18 +183,15 @@ public abstract class BaseJobTest {
         analyticsEnvs.put("SUPERSET_DB", "superset");
         analyticsEnvs.put("SUPERSET_DB_USER", "superset");
         analyticsEnvs.put("SUPERSET_DB_PASSWORD", "password");
-        analyticsEnvs.put("POSTGRES_DB_HOST", "gateway.docker.internal");
         List<File> analyticsComposeFiles = new ArrayList<>();
         analyticsComposeFiles.add(new File(getResourcePath("docker-compose-db.yaml")));
         analyticsComposeFiles.add(new File(getResourcePath("docker-compose-superset.yaml")));
         List<String> analyticsServices = new ArrayList<>();
-        // analyticsServices.add("postgresql");
+        analyticsServices.add("postgresql");
         analyticsServices.add("superset");
         analyticsCompose = new ComposeContainer(analyticsComposeFiles)
                 .withEnv(analyticsEnvs)
-                .withTailChildContainers(true)
-                .withServices(analyticsServices.toArray(new String[] {}));
-        // .withExposedService("postgresql", 5433, Wait.forListeningPort());
+                .withServices(analyticsServices.toArray(String[]::new));
         analyticsCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
 
         long start = System.currentTimeMillis();
@@ -204,9 +200,9 @@ public abstract class BaseJobTest {
         long duration = (System.currentTimeMillis() - start) / 1000;
         System.out.println("Compose containers startup took: " + duration + "secs");
 
-        analyticsDb = ozoneCompose.getContainerByServiceName("postgresql").get();
+        analyticsDb = analyticsCompose.getContainerByServiceName("postgresql").get();
         if (requiresSourceDb()) {
-            sourceDb = analyticsCompose
+            sourceDb = ozoneCompose
                     .getContainerByServiceName(getSourceDbServiceName())
                     .get();
         }
