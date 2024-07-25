@@ -37,7 +37,7 @@
     <testcontainers.version>1.19.7</testcontainers.version>
     <analytics.queries.version>1.3.0-SNAPSHOT</analytics.queries.version>
     <ozone.version>1.0.0-SNAPSHOT</ozone.version>
-    <ozone.analytics.version>2.3.0-SNAPSHOT</ozone.analytics.version>
+    <ozone.analytics.version>2.5.0-SNAPSHOT</ozone.analytics.version>
     <spring.version>5.3.23</spring.version>
     <mockitoJunitVersion>5.7.0</mockitoJunitVersion>
     <powerMockVersion>2.0.9</powerMockVersion>
