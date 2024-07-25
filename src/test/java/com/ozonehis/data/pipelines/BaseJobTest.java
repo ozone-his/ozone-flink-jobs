@@ -104,7 +104,6 @@ public abstract class BaseJobTest {
             testDir = Files.createTempDirectory(TEST_DIR).toFile().getAbsolutePath();
             exportDir = testDir + "/" + EXPORT_DIR_NAME;
             TestUtils.createNetworkIfNecessary("web", testDir);
-            TestUtils.createNetworkIfNecessary("ozone", testDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -191,7 +190,8 @@ public abstract class BaseJobTest {
         analyticsServices.add("superset");
         analyticsCompose = new ComposeContainer(analyticsComposeFiles)
                 .withEnv(analyticsEnvs)
-                .withServices(analyticsServices.toArray(String[]::new));
+                .withServices(analyticsServices.toArray(String[]::new))
+                .withExposedService("postgresql", 5432, Wait.forListeningPort());
         analyticsCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
 
         long start = System.currentTimeMillis();
