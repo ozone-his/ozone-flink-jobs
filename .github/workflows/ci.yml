@@ -13,7 +13,6 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-build-test.yml@main
     with:
       java-version: 11
-      maven-args: -DskipTests
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
@@ -23,7 +22,7 @@ jobs:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
     with:
       java-version: 11
-      maven-args: -Pspotless -DskipTests
+      maven-args: -Pspotless
 
   docker-ozone-flink-parquet-export:
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
