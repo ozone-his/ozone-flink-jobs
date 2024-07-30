@@ -20,7 +20,7 @@
   </developers>
   <distributionManagement>
     <repository>
-      <id>mks-nexus-private</id>
+      <id>mks-nexus-public-releases</id>
       <name>Mekom Solutions Nexus repo</name>
       <url>https://nexus.mekomsolutions.net/repository/maven-private-releases/</url>
     </repository>
@@ -293,12 +293,7 @@
     <repository>
       <id>mks-nexus-private</id>
       <name>Mekom Solutions private Nexus repo</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-private-snapshots</url>
-    </repository>
-    <repository>
-      <id>mks-nexus-private-snapshots</id>
-      <name>Mekom Solutions private Nexus repo</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-private-releases</url>
+      <url>https://nexus.mekomsolutions.net/repository/maven-private</url>
     </repository>
   </repositories>
   <pluginRepositories>
