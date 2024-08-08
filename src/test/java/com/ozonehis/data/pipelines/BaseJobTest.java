@@ -157,7 +157,6 @@ public abstract class BaseJobTest {
 
         ozoneCompose = new ComposeContainer(ozoneComposeFiles)
                 .withEnv(ozoneEnvs)
-                .withTailChildContainers(true)
                 .withServices(ozoneServices.toArray(String[]::new));
         if (requiresSourceDb()) {
             ozoneCompose.withExposedService(
@@ -191,7 +190,6 @@ public abstract class BaseJobTest {
         analyticsServices.add("superset");
         analyticsCompose = new ComposeContainer(analyticsComposeFiles)
                 .withEnv(analyticsEnvs)
-                .withTailChildContainers(true)
                 .withServices(analyticsServices.toArray(String[]::new))
                 .withExposedService("postgresql", 5432, Wait.forListeningPort());
         analyticsCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
