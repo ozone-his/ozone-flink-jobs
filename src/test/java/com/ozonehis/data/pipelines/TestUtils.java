@@ -81,7 +81,9 @@ public class TestUtils {
             execute("docker network inspect " + name, workingDir);
         } catch (RuntimeException t) {
             // Ignore, network does not exist
+            System.out.println("Creating network " + name);
             execute("docker network create -d bridge " + name, workingDir);
+            System.out.println("Network created " + name);
         }
     }
 
