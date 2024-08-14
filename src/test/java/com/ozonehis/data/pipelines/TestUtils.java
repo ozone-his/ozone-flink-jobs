@@ -87,7 +87,13 @@ public class TestUtils {
         }
     }
 
-    private static void execute(String cmd, String workingDir) {
+    public static void pullDockerImage(String name, String workingDir) {
+        System.out.println("Pulling docker image " + name);
+        execute("docker pull " + name, workingDir);
+        System.out.println("Done pulling image " + name);
+    }
+
+    public static void execute(String cmd, String workingDir) {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command("sh", "-c", cmd).directory(new File(workingDir));
         ExecutorService executor = Executors.newFixedThreadPool(2);
