@@ -18,18 +18,6 @@
       <url>https://www.mekomsolutions.com</url>
     </developer>
   </developers>
-  <distributionManagement>
-    <repository>
-      <id>mks-nexus-public-releases</id>
-      <name>Mekom Solutions Nexus repo</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-private-releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>mks-nexus-private-snapshots</id>
-      <name>Mekom Solutions Nexus repo for snapshots</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-private-snapshots</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <distributionManagement>
     <repository>
