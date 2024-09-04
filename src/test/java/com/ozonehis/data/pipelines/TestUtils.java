@@ -81,11 +81,19 @@ public class TestUtils {
             execute("docker network inspect " + name, workingDir);
         } catch (RuntimeException t) {
             // Ignore, network does not exist
+            System.out.println("Creating network " + name);
             execute("docker network create -d bridge " + name, workingDir);
+            System.out.println("Network created " + name);
         }
     }
 
-    private static void execute(String cmd, String workingDir) {
+    public static void pullDockerImage(String name, String workingDir) {
+        System.out.println("Pulling docker image " + name);
+        execute("docker pull " + name, workingDir);
+        System.out.println("Done pulling image " + name);
+    }
+
+    public static void execute(String cmd, String workingDir) {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command("sh", "-c", cmd).directory(new File(workingDir));
         ExecutorService executor = Executors.newFixedThreadPool(2);
