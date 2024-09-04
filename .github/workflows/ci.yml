@@ -16,7 +16,6 @@ jobs:
       maven-args: -Pbatch
       use-secrets: true
       login-docker: true
-
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
