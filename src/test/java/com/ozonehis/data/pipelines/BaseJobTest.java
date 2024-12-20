@@ -178,7 +178,7 @@ public abstract class BaseJobTest {
         analyticsEnvs.put("ANALYTICS_DB_NAME", DB_NAME_ANALYTICS);
         analyticsEnvs.put("ANALYTICS_DB_USER", USER_ANALYTICS_DB);
         analyticsEnvs.put("ANALYTICS_DB_PASSWORD", PASSWORD_ANALYTICS_DB);
-        analyticsEnvs.put("SUPERSET_CONFIG_PATH", getResourcePath("distro/configs/superset"));
+        analyticsEnvs.put("SUPERSET_CONFIG_PATH", getResourcePath("superset/config"));
         analyticsEnvs.put("SUPERSET_DASHBOARDS_PATH", getResourcePath("distro/configs/superset/assets"));
         analyticsEnvs.put("SUPERSET_DB", "superset");
         analyticsEnvs.put("SUPERSET_DB_USER", "superset");

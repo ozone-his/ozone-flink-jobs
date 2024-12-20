@@ -387,6 +387,7 @@
                     /run/docker/docker-compose-openmrs.yml,
                     /run/docker/docker-compose-odoo.yml,
                     distro/configs/superset/**,
+                    superset/config/**,
                     distro/data/**,
                     distro/configs/openmrs/properties/**,
                     distro/binaries/openmrs/frontend/**,
