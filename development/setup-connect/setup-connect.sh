@@ -49,7 +49,7 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                 "database.dbname" : "odoo",
                 "topic.prefix": "odoo",
                 "plugin.name": "pgoutput",
-                "database.server.name": "odoo",
+                "database.server.name": "${file:/kafka/config/connect-distributed.properties:odoo.db.server.name}",
                 "table.include.list": "public.(.*)",
                 "converters": "timestampConverter",
                 "timestampConverter.type": "oryanmoshe.kafka.connect.util.TimestampConverter",
