@@ -19,7 +19,7 @@ kafkaStreams:
     tableDefinitionsPath: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/openmrs'
     # Kafka bootstrap servers
     bootstrapServers: '${ANALYTICS_KAFKA_URL:-localhost:9092}'
-  - topicPrefix: odoo.public
+  - topicPrefix: erp.public
     tableDefinitionsPath: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/odoo'
     bootstrapServers: '${ANALYTICS_KAFKA_URL:-localhost:9092}'
 # Configuration for Jdbc data sources used for batch analytics
