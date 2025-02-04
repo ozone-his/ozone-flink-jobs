@@ -103,7 +103,7 @@ public abstract class BaseJobTest {
         try {
             testDir = Files.createTempDirectory(TEST_DIR).toFile().getAbsolutePath();
             exportDir = testDir + "/" + EXPORT_DIR_NAME;
-            TestUtils.pullDockerImage("mekomsolutions/superset-sso", testDir);
+            // TestUtils.pullDockerImage("mekomsolutions/superset-sso", testDir);
             TestUtils.createNetworkIfNecessary("web", testDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
