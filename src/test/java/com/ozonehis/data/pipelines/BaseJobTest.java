@@ -54,7 +54,7 @@ public abstract class BaseJobTest {
 
     private static final String ENABLE_KEYS = "SET FOREIGN_KEY_CHECKS=1";
 
-    private static ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
+    private static final ObjectMapper MAPPER = new ObjectMapper(new YAMLFactory());
 
     private static final String TEST_DIR = "flink-test-dir";
 
@@ -137,6 +137,7 @@ public abstract class BaseJobTest {
         ozoneEnvs.put("OPENMRS_FRONTEND_CONFIG_PATH", getResourcePath("distro/configs/openmrs/frontend_config"));
 
         ozoneEnvs.put("ODOO_CONFIG_FILE_PATH", getResourcePath("distro/configs/odoo/config/odoo.conf"));
+        ozoneEnvs.put("ODOO_CONFIG_PATH", getResourcePath("distro/configs/odoo/initializer_config"));
         ozoneEnvs.put("ODOO_DB_NAME", DB_NAME_ODOO);
         ozoneEnvs.put("ODOO_DB_USER", USER_ODOO_DB);
         ozoneEnvs.put("ODOO_DB_PASSWORD", PASSWORD_ODOO_DB);
