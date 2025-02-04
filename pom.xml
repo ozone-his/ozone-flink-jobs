@@ -394,6 +394,7 @@
                     distro/configs/openmrs/frontend_config/**,
                     distro/configs/openmrs/initializer_config/**,
                     distro/configs/odoo/config/**,
+                    distro/configs/odoo/initializer_config/**,
                     dsl/**/*.sql,
                     liquibase/**/*.xml</includes>
                 <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
