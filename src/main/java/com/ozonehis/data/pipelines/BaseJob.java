@@ -21,6 +21,8 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.configuration.Configuration;
 
 /**
  * Base class for flink ETL jobs.
@@ -80,6 +82,12 @@ public abstract class BaseJob {
         }
 
         EnvironmentSettings envSettings = builder.build();
+        Configuration config = new Configuration();
+        config.setString("s3.access.key", System.getenv().getOrDefault("AWS_ACCESS_KEY_ID", "test"));
+        config.setString("s3.secret.key", System.getenv().getOrDefault("AWS_SECRET_ACCESS_KEY", "test"));
+        config.setString("s3.endpoint", System.getenv().getOrDefault("S3_ENDPOINT_URL", "http://localhost:9099"));
+        config.setString("s3.path.style.access", "true");
+        FileSystem.initialize(config, null);
         tableEnv = StreamTableEnvironment.create(env, envSettings);
     }
 
