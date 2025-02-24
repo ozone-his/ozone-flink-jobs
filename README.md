@@ -71,13 +71,13 @@ export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH= path_to_folder_containing_l
 ```
 
 ```bash
-export ANALYTICS_DB_HOST=gateway.docker.internal; \
+export ANALYTICS_DB_HOST=host.docker.internal; \
 export ANALYTICS_DB_PORT=5432; \
-export CONNECT_MYSQL_HOSTNAME=gateway.docker.internal; \
+export CONNECT_MYSQL_HOSTNAME=host.docker.internal; \
 export CONNECT_MYSQL_PORT=3306; \
 export CONNECT_MYSQL_USER=root; \
 export CONNECT_MYSQL_PASSWORD=3cY8Kve4lGey; \
-export CONNECT_ODOO_DB_HOSTNAME=gateway.docker.internal; \
+export CONNECT_ODOO_DB_HOSTNAME=host.docker.internal; \
 export CONNECT_ODOO_DB_PORT=5432; \
 export CONNECT_ODOO_DB_NAME=odoo; \
 export CONNECT_ODOO_DB_USER=postgres; \
@@ -86,7 +86,7 @@ export CONNECT_ODOO_DB_PASSWORD=password
 
 ```docker-compose up -d```
 ```cd ../```
-***Note***: The `gateway.docker.internal` is a special DNS name that resolves to the host machine from within containers. It is only available for Mac and Windows. For Linux, use the docker host IP by default ```172.17.0.1```
+***Note***: The `host.docker.internal` is a special DNS name that resolves to the host machine from within containers. It is only available for Mac and Windows. For Linux, use the docker host IP by default ```172.17.0.1```
 
 #### Step 2: Compile
 
@@ -146,7 +146,11 @@ export ODOO_DB_PASSWORD=password;\
 export ODOO_DB_HOST=localhost;\
 export ODOO_DB_PORT=5432;
 export ANALYTICS_CONFIG_FILE_PATH=$(pwd)/development/data/config.yaml;\
-export FLINK_REST_PORT=8082;
+export FLINK_REST_PORT=8082;\
+export AWS_ACCESS_KEY_ID=minioadmin;\
+export AWS_SECRET_ACCESS_KEY=minioadmin123;\
+export S3_ENDPOINT_URL=http://localhost:9099;\
+export FLINK_STATE_BUCKET=flink-state-bucket;
 ```
 
 ```mvn compile exec:java -Dexec.mainClass="com.ozonehis.data.pipelines.batch.BatchETLJob" -Dexec.classpathScope="compile"```

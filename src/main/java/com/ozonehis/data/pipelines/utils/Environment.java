@@ -34,6 +34,8 @@ public class Environment {
     public static MiniCluster initMiniClusterWithEnv(Boolean isStreaming) throws Exception {
         Configuration flinkConfig = new Configuration();
         String port = System.getProperty(Constants.PROP_FLINK_REST_PORT);
+        String checkpointDir = "s3://"+System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/checkpoints/";
+        String savepointDir = "s3://"+System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/savepoints/";
         if (StringUtils.isBlank(port)) {
             port = Environment.getEnv("FLINK_REST_PORT", "8081");
         }
@@ -87,18 +89,20 @@ public class Environment {
                 "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
         flinkConfig.setString("state.backend.type", "rocksdb");
         flinkConfig.setString("state.backend.incremental", "true");
-        flinkConfig.setString("state.checkpoints.dir", "file:///tmp/flink/checkpoints/");
-        flinkConfig.setString("state.savepoints.dir", "file:///tmp/flink/savepoints/");
+        flinkConfig.setString("state.checkpoints.dir", checkpointDir);
+        flinkConfig.setString("state.savepoints.dir", savepointDir);
         flinkConfig.setInteger("state.checkpoints.num-retained", 2);
         flinkConfig.setString("taskmanager.network.numberOfBuffers", "20");
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {
+            flinkConfig.setString("table.exec.state.ttl", "60000");
             flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
         }
         flinkConfig.set(MetricOptions.SCOPE_NAMING_JM, "jobmanager");
         flinkConfig.set(MetricOptions.SCOPE_NAMING_TM, "taskmanager");
+
         MetricOptions.forReporter(flinkConfig, "prom")
                 .set(
                         MetricOptions.REPORTER_FACTORY_CLASS,

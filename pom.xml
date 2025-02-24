@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.ozonehis</groupId>
@@ -144,6 +146,11 @@
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-runtime-web</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-s3-fs-presto</artifactId>
       <version>${flink.version}</version>
     </dependency>
     <dependency>
@@ -325,7 +332,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -339,7 +346,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore/>
+                    <ignore />
                   </action>
                 </pluginExecution>
               </pluginExecutions>
@@ -373,23 +380,23 @@
                 <includeArtifactIds>analytics-queries,ozone,ozone-analytics</includeArtifactIds>
                 <includeTypes>zip</includeTypes>
                 <includes>docker-compose-db.yaml,
-                    docker-compose-migration.yaml,
-                    docker-compose-streaming-common.yaml,
-                    docker-compose-superset.yaml,
-                    /run/docker/docker-compose-common.yml,
-                    /run/docker/docker-compose-openmrs.yml,
-                    /run/docker/docker-compose-odoo.yml,
-                    distro/configs/superset/**,
-                    superset/config/**,
-                    distro/data/**,
-                    distro/configs/openmrs/properties/**,
-                    distro/binaries/openmrs/frontend/**,
-                    distro/configs/openmrs/frontend_config/**,
-                    distro/configs/openmrs/initializer_config/**,
-                    distro/configs/odoo/config/**,
-                    distro/configs/odoo/initializer_config/**,
-                    dsl/**/*.sql,
-                    liquibase/**/*.xml</includes>
+                  docker-compose-migration.yaml,
+                  docker-compose-streaming-common.yaml,
+                  docker-compose-superset.yaml,
+                  /run/docker/docker-compose-common.yml,
+                  /run/docker/docker-compose-openmrs.yml,
+                  /run/docker/docker-compose-odoo.yml,
+                  distro/configs/superset/**,
+                  superset/config/**,
+                  distro/data/**,
+                  distro/configs/openmrs/properties/**,
+                  distro/binaries/openmrs/frontend/**,
+                  distro/configs/openmrs/frontend_config/**,
+                  distro/configs/openmrs/initializer_config/**,
+                  distro/configs/odoo/config/**,
+                  distro/configs/odoo/initializer_config/**,
+                  dsl/**/*.sql,
+                  liquibase/**/*.xml</includes>
                 <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                 <overWriteReleases>false</overWriteReleases>
                 <overWriteSnapshots>true</overWriteSnapshots>
@@ -403,7 +410,7 @@
           <version>${surefire.version}</version>
           <configuration>
             <argLine>--add-opens java.base/java.lang=ALL-UNNAMED
-                --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+              --add-opens java.base/java.util=ALL-UNNAMED</argLine>
           </configuration>
         </plugin>
       </plugins>
@@ -447,8 +454,8 @@
                   <includes>
                     <include>.gitignore</include>
                   </includes>
-                  <trimTrailingWhitespace/>
-                  <endWithNewline/>
+                  <trimTrailingWhitespace />
+                  <endWithNewline />
                   <indent>
                     <tabs>true</tabs>
                     <spacesPerTab>4</spacesPerTab>
@@ -459,8 +466,8 @@
                 <palantirJavaFormat>
                   <version>${palantirJavaFormat.version}</version>
                 </palantirJavaFormat>
-                <removeUnusedImports/>
-                <formatAnnotations/>
+                <removeUnusedImports />
+                <formatAnnotations />
               </java>
               <pom>
                 <includes>
@@ -479,7 +486,7 @@
                   <include>**/*.md</include>
                   <include>*.md</include>
                 </includes>
-                <flexmark/>
+                <flexmark />
               </markdown>
             </configuration>
             <dependencies>
@@ -547,16 +554,20 @@
                     </filter>
                   </filters>
                   <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                       <mainClass>com.ozonehis.data.pipelines.streaming.StreamingETLJob</mainClass>
                     </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                       <resource>META-INF/services/java.sql.Driver</resource>
                     </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                       <resource>META-INF/services/java.sql.Driver</resource>
                     </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                   </transformers>
                   <finalName>${project.artifactId}-${project.version}-etl-streaming</finalName>
                 </configuration>
@@ -609,8 +620,10 @@
                     </filter>
                   </filters>
                   <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                       <mainClass>com.ozonehis.data.pipelines.export.BatchExport</mainClass>
                     </transformer>
                   </transformers>
@@ -645,8 +658,10 @@
                     </filter>
                   </filters>
                   <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                    <transformer
+                      implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                       <mainClass>com.ozonehis.data.pipelines.batch.BatchETLJob</mainClass>
                     </transformer>
                   </transformers>
