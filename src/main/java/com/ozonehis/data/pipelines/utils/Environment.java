@@ -34,8 +34,10 @@ public class Environment {
     public static MiniCluster initMiniClusterWithEnv(Boolean isStreaming) throws Exception {
         Configuration flinkConfig = new Configuration();
         String port = System.getProperty(Constants.PROP_FLINK_REST_PORT);
-        String checkpointDir = "s3://"+System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/checkpoints/";
-        String savepointDir = "s3://"+System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/savepoints/";
+        String checkpointDir =
+                "s3://" + System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/checkpoints/";
+        String savepointDir =
+                "s3://" + System.getenv().getOrDefault("FLINK_STATE_BUCKET", "file:///tmp/flink") + "/savepoints/";
         if (StringUtils.isBlank(port)) {
             port = Environment.getEnv("FLINK_REST_PORT", "8081");
         }
