@@ -85,7 +85,7 @@ public class Environment {
         flinkConfig.setString("execution.checkpointing.incremental", "true");
         flinkConfig.setString("table.exec.mini-batch.enabled", "true");
         flinkConfig.setString("table.exec.mini-batch.allow-latency", "5 s");
-        flinkConfig.setString("table.exec.mini-batch.size", "5000");
+        flinkConfig.setString("table.exec.mini-batch.size",  System.getenv().getOrDefault("MINI_BATCH_SIZE", "2000"));
         flinkConfig.setString("table.dynamic-table-options.enabled", "true");
         flinkConfig.setString(
                 "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
@@ -96,8 +96,10 @@ public class Environment {
         flinkConfig.setInteger("state.checkpoints.num-retained", 2);
         flinkConfig.setString("taskmanager.network.numberOfBuffers", "20");
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
+        String objectReuse = System.getenv().getOrDefault("PIPELINE_OBJECT_REUSE", "true");
+        flinkConfig.setString("pipeline.object-reuse", System.getenv().getOrDefault("PIPELINE_OBJECT_REUSE", "true"));
         if (isStreaming) {
-            flinkConfig.setString("table.exec.state.ttl", "60000");
+            flinkConfig.setString("table.exec.state.ttl", System.getenv().getOrDefault("STATE_TTL", "604800000"));
             flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));

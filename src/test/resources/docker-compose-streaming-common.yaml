@@ -160,6 +160,9 @@ services:
       - TASK_MANAGER_SLOTS=${TASK_MANAGER_SLOTS:-20}
       - TASK_PARALLELISM=${TASK_PARALLELISM:-1}
       - MANAGED_MEMORY_SIZE=${MANAGED_MEMORY_SIZE:-1g}
+      - STATE_TTL=${STATE_TTL:-604800000}
+      - MINI_BATCH_SIZE=${MINI_BATCH_SIZE:-2000}
+      - PIPELINE_OBJECT_REUSE=${PIPELINE_OBJECT_REUSE:-true}
     volumes:
       - flink-shared-data:/tmp
       - ./data:/data
