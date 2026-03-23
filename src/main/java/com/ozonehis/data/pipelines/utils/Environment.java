@@ -94,12 +94,11 @@ public class Environment {
         flinkConfig.setString("state.checkpoints.dir", checkpointDir);
         flinkConfig.setString("state.savepoints.dir", savepointDir);
         flinkConfig.setInteger("state.checkpoints.num-retained", 2);
-        flinkConfig.setString("taskmanager.network.numberOfBuffers",
-                System.getenv().getOrDefault("NETWORK_NUM_BUFFERS", "2048"));
+        flinkConfig.setString(
+                "taskmanager.network.numberOfBuffers", System.getenv().getOrDefault("NETWORK_NUM_BUFFERS", "2048"));
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {
-            flinkConfig.setString("table.exec.state.ttl",
-                    System.getenv().getOrDefault("STATE_TTL_MS", "3600000"));
+            flinkConfig.setString("table.exec.state.ttl", System.getenv().getOrDefault("STATE_TTL_MS", "3600000"));
             flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
