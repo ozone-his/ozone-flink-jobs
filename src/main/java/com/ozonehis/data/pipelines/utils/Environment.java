@@ -88,7 +88,7 @@ public class Environment {
         flinkConfig.setString("table.exec.mini-batch.size", "5000");
         flinkConfig.setString("table.dynamic-table-options.enabled", "true");
         flinkConfig.setString(
-                "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "1"));
+                "table.exec.resource.default-parallelism", System.getenv().getOrDefault("TASK_PARALLELISM", "2"));
         flinkConfig.setString("state.backend.type", "rocksdb");
         flinkConfig.setString("state.backend.incremental", "true");
         flinkConfig.setString("state.checkpoints.dir", checkpointDir);
