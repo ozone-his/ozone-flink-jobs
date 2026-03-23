@@ -4,6 +4,15 @@ public abstract class BaseOdooJobTest extends BaseJobTest {
 
     private static final String LIQUIBASE_ANALYTICS = "liquibase/analytics/changelogs/0002-sales_order_tbl.xml";
 
+    /**
+     * Creates the minimal Odoo source-DB schema needed for tests.
+     * This avoids having to start a full Odoo application just to get the DDL tables.
+     */
+    @Override
+    protected void initSourceSchema() {
+        TestUtils.executeScript("odoo/create_source_schema.sql", getSourceDbConnection());
+    }
+
     @Override
     protected String getSourceSystemName() {
         return "odoo";

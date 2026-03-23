@@ -159,6 +159,7 @@ public abstract class BaseJobTest {
 
         ozoneCompose = new ComposeContainer(ozoneComposeFiles)
                 .withEnv(ozoneEnvs)
+                .withLocalCompose(true)
                 .withServices(ozoneServices.toArray(String[]::new));
         if (requiresSourceDb()) {
             ozoneCompose.withExposedService(
@@ -192,6 +193,7 @@ public abstract class BaseJobTest {
         analyticsServices.add("superset");
         analyticsCompose = new ComposeContainer(analyticsComposeFiles)
                 .withEnv(analyticsEnvs)
+                .withLocalCompose(true)
                 .withServices(analyticsServices.toArray(String[]::new))
                 .withExposedService("postgresql", 5432, Wait.forListeningPort());
         analyticsCompose.withStartupTimeout(Duration.of(WAIT, SECONDS));
@@ -207,6 +209,7 @@ public abstract class BaseJobTest {
             sourceDb = ozoneCompose
                     .getContainerByServiceName(getSourceDbServiceName())
                     .get();
+            initSourceSchema();
         }
         createAnalyticsSchema();
         setupConfig();
@@ -250,6 +253,15 @@ public abstract class BaseJobTest {
     protected void initJobAndStartCluster(BaseJob job) throws Exception {
         job.initConfig();
         cluster = job.startCluster();
+    }
+
+    /**
+     * Called once the source-DB container is available, before any test data is inserted.
+     * Subclasses can override this to create the source-DB schema (e.g. DDL tables) so that
+     * INSERT-based test-data scripts succeed even without a fully initialised application stack.
+     */
+    protected void initSourceSchema() {
+        // no-op by default
     }
 
     private void setupConfig() throws IOException {

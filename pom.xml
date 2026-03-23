@@ -47,7 +47,7 @@
     <spotless.version>2.30.0</spotless.version>
     <palantirJavaFormat.version>1.1.0</palantirJavaFormat.version>
     <mysql.connector.version>8.2.0</mysql.connector.version>
-    <testcontainers.version>1.19.7</testcontainers.version>
+    <testcontainers.version>1.21.4</testcontainers.version>
     <analytics.queries.version>1.4.0-SNAPSHOT</analytics.queries.version>
     <ozone.version>1.0.0-SNAPSHOT</ozone.version>
     <ozone.analytics.version>2.4.0</ozone.analytics.version>
@@ -409,6 +409,9 @@
           <configuration>
             <argLine>--add-opens java.base/java.lang=ALL-UNNAMED
               --add-opens java.base/java.util=ALL-UNNAMED</argLine>
+            <environmentVariables>
+              <DOCKER_API_VERSION>1.44</DOCKER_API_VERSION>
+            </environmentVariables>
           </configuration>
         </plugin>
       </plugins>
