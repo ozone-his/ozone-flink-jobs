@@ -60,7 +60,7 @@ public class StreamJob extends BaseJob {
                             {"properties.bootstrap.servers", kafkaStreamConfig.getBootstrapServers()},
                             {"properties.group.id", String.format("%s-group-id", s.fileName)},
                             {"topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName)},
-                            {"scan.startup.mode", "earliest-offset"},
+                            {"scan.startup.mode", "group-offsets"},
                             {"value.debezium-json.ignore-parse-errors", "true"},
                             {"value.format", "debezium-json"},
                         })

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class Environment {
 
-    private static Logger logger = LoggerFactory.getLogger(Environment.class);
+    private static final Logger logger = LoggerFactory.getLogger(Environment.class);
 
     public static String getEnv(String key, String defaultValue) {
         String value = System.getenv(key);
@@ -94,10 +94,12 @@ public class Environment {
         flinkConfig.setString("state.checkpoints.dir", checkpointDir);
         flinkConfig.setString("state.savepoints.dir", savepointDir);
         flinkConfig.setInteger("state.checkpoints.num-retained", 2);
-        flinkConfig.setString("taskmanager.network.numberOfBuffers", "20");
+        flinkConfig.setString("taskmanager.network.numberOfBuffers",
+                System.getenv().getOrDefault("NETWORK_NUM_BUFFERS", "2048"));
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {
-            flinkConfig.setString("table.exec.state.ttl", "60000");
+            flinkConfig.setString("table.exec.state.ttl",
+                    System.getenv().getOrDefault("STATE_TTL_MS", "3600000"));
             flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
@@ -123,7 +125,7 @@ public class Environment {
         Runnable exitOnCompleteRunnable = () -> {
             try {
                 Collection<JobStatusMessage> jobs = cluster.listJobs().get();
-                if (jobs.size() == 0) {
+                if (jobs.isEmpty()) {
                     System.exit(0);
                 }
                 Boolean[] jobStatuses = jobs.stream()
