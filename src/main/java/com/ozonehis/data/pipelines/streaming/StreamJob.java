@@ -61,6 +61,7 @@ public class StreamJob extends BaseJob {
                             {"properties.group.id", String.format("%s-group-id", s.fileName)},
                             {"topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName)},
                             {"scan.startup.mode", "group-offsets"},
+                            {"properties.auto.offset.reset", "earliest"},
                             {"value.debezium-json.ignore-parse-errors", "true"},
                             {"value.format", "debezium-json"},
                         })
