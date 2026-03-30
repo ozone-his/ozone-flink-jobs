@@ -56,15 +56,15 @@ public class StreamJob extends BaseJob {
             Stream<QueryFile> tables = CommonUtils.getSQL(kafkaStreamConfig.getTableDefinitionsPath()).stream();
             tables.forEach(s -> {
                 Map<String, String> connectorOptions = Stream.of(new String[][] {
-                            {"connector", "kafka"},
-                            {"properties.bootstrap.servers", kafkaStreamConfig.getBootstrapServers()},
-                            {"properties.group.id", String.format("%s-group-id", s.fileName)},
-                            {"topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName)},
-                            {"scan.startup.mode", "earliest-offset"},
-                            {"value.debezium-json.ignore-parse-errors", "true"},
-                            {"value.format", "debezium-json"},
-                        })
-                        .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+                    {"connector", "upsert-kafka"},
+                    {"properties.bootstrap.servers", kafkaStreamConfig.getBootstrapServers()},
+                    {"topic", kafkaStreamConfig.getTopicPrefix() + String.format(".%s", s.fileName)},
+                    {"key.format", "json"}, 
+                    {"key.json.ignore-parse-errors", "true"}, 
+                    {"value.format", "debezium-json"},
+                    {"value.debezium-json.ignore-parse-errors", "false"} 
+                })
+                .collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
                 String queryDSL = s.content + "\n" + " WITH (\n"
                         + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";

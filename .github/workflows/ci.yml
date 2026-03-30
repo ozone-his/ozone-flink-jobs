@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main,HSC-522-hotfix]
   pull_request:
     branches: [main]
   release:
