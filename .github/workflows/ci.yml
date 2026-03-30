@@ -30,7 +30,7 @@ jobs:
   #     maven-args: -Pspotless
 
   publish:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.ref == 'refs/heads/HSC-522-hotfix' }}
     # needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     with:
@@ -41,7 +41,7 @@ jobs:
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
 
   docker-ozone-flink-parquet-export:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.ref == 'refs/heads/HSC-522-hotfix' }}
     # needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
@@ -52,7 +52,7 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   docker-ozone-flink-jobs-batch:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.ref == 'refs/heads/HSC-522-hotfix' }}
     # needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
@@ -63,7 +63,7 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   docker-ozone-flink-jobs-streaming:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' || github.ref == 'refs/heads/HSC-522-hotfix' }}
     # needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
@@ -73,7 +73,7 @@ jobs:
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   docker-ozone-analytics-setup-connect:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release'  || github.ref == 'refs/heads/HSC-522-hotfix' }}
     # needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
