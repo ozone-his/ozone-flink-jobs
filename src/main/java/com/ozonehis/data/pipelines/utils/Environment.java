@@ -98,9 +98,16 @@ public class Environment {
         flinkConfig.setString("io.tmp.dirs", "/tmp/temp");
         if (isStreaming) {
             flinkConfig.setString("table.exec.state.ttl", "60000");
+            // Re-enabling Zookeeper HA for checkpoint auto-recovery
             flinkConfig.setString("high-availability.type", "ZOOKEEPER");
             flinkConfig.setString("high-availability.storageDir", "/tmp/flink/ha");
             flinkConfig.setString("high-availability.zookeeper.quorum", getEnv("ZOOKEEPER_URL", "zookeeper:2181"));
+            // Reduce ZK session timeout so stale leases expire quickly if the job crashes and restarts rapidly
+            flinkConfig.setString("high-availability.zookeeper.client.session-timeout", getEnv("FLINK_ZK_SESSION_TIMEOUT", "20000"));
+            flinkConfig.setString("high-availability.zookeeper.client.connection-timeout", getEnv("FLINK_ZK_CONNECTION_TIMEOUT", "15000"));
+            // Increase akka timeouts to allow for large JobGraph compilations
+            flinkConfig.setString("akka.ask.timeout", getEnv("FLINK_AKKA_ASK_TIMEOUT", "60 s"));
+            flinkConfig.setString("client.timeout", getEnv("FLINK_AKKA_CLIENT_TIMEOUT", "60 s"));
         }
         flinkConfig.set(MetricOptions.SCOPE_NAMING_JM, "jobmanager");
         flinkConfig.set(MetricOptions.SCOPE_NAMING_TM, "taskmanager");
