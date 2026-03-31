@@ -77,10 +77,10 @@ public class StreamJob extends BaseJob {
         // Register JDBC-backed lookup tables for streaming Lookup JOINs.
         // These tables query the source database directly instead of reading from Kafka,
         // ensuring data is always available at join time for dimension/reference data.
-        List<JdbcSourceConfig> jdbcSources = CommonUtils.getConfig(configFilePath).getJdbcSources();
-        if (jdbcSources != null) {
+        List<JdbcSourceConfig> jdbcLookups = CommonUtils.getConfig(configFilePath).getJdbcLookups();
+        if (jdbcLookups != null) {
             LOG.info("Registering JDBC lookup tables for stream processing");
-            for (JdbcSourceConfig jdbcSourceConfig : jdbcSources) {
+            for (JdbcSourceConfig jdbcSourceConfig : jdbcLookups) {
                 List<QueryFile> lookupTables = CommonUtils.getSQL(jdbcSourceConfig.getTableDefinitionsPath());
                 for (QueryFile table : lookupTables) {
                     Map<String, String> connectorOptions = Stream.of(new String[][] {

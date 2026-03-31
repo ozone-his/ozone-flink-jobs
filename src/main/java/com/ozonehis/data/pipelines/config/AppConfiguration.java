@@ -22,6 +22,16 @@ public class AppConfiguration {
 
     private List<JdbcSourceConfig> jdbcSources;
 
+    private List<JdbcSourceConfig> jdbcLookups;
+
+    public List<JdbcSourceConfig> getJdbcLookups() {
+        return jdbcLookups;
+    }
+
+    public void setJdbcLookups(List<JdbcSourceConfig> jdbcLookups) {
+        this.jdbcLookups = jdbcLookups;
+    }
+
     public List<JdbcSourceConfig> getJdbcSources() {
         return jdbcSources;
     }
