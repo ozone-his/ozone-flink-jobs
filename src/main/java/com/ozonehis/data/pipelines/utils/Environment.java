@@ -139,6 +139,6 @@ public class Environment {
         };
 
         ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
-        exec.scheduleAtFixedRate(exitOnCompleteRunnable, 0, 1, TimeUnit.MINUTES);
+        exec.scheduleAtFixedRate(exitOnCompleteRunnable, 1, 1, TimeUnit.MINUTES);
     }
 }
