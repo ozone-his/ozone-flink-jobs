@@ -19,10 +19,12 @@
 package com.ozonehis.data.pipelines.streaming;
 
 import com.ozonehis.data.pipelines.BaseJob;
+import com.ozonehis.data.pipelines.config.JdbcSourceConfig;
 import com.ozonehis.data.pipelines.config.KafkaStreamConfig;
 import com.ozonehis.data.pipelines.utils.CommonUtils;
 import com.ozonehis.data.pipelines.utils.ConnectorUtils;
 import com.ozonehis.data.pipelines.utils.QueryFile;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -70,6 +72,34 @@ public class StreamJob extends BaseJob {
                         + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
                 tableEnv.executeSql(queryDSL);
             });
+        }
+
+        // Register JDBC-backed lookup tables for streaming Lookup JOINs.
+        // These tables query the source database directly instead of reading from Kafka,
+        // ensuring data is always available at join time for dimension/reference data.
+        List<JdbcSourceConfig> jdbcSources = CommonUtils.getConfig(configFilePath).getJdbcSources();
+        if (jdbcSources != null) {
+            LOG.info("Registering JDBC lookup tables for stream processing");
+            for (JdbcSourceConfig jdbcSourceConfig : jdbcSources) {
+                List<QueryFile> lookupTables = CommonUtils.getSQL(jdbcSourceConfig.getTableDefinitionsPath());
+                for (QueryFile table : lookupTables) {
+                    Map<String, String> connectorOptions = Stream.of(new String[][] {
+                                {"connector", "jdbc"},
+                                {"url", jdbcSourceConfig.getDatabaseUrl()},
+                                {"username", jdbcSourceConfig.getUsername()},
+                                {"password", jdbcSourceConfig.getPassword()},
+                                {"table-name", table.fileName},
+                                {"lookup.cache.max-rows", "5000"},
+                                {"lookup.cache.ttl", "10min"},
+                            })
+                            .collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+                    String queryDSL = table.content + "\n" + " WITH (\n"
+                            + ConnectorUtils.propertyJoiner(",", "=").apply(connectorOptions) + ")";
+                    LOG.info("Registering JDBC lookup table: {}", table.fileName);
+                    tableEnv.executeSql(queryDSL);
+                }
+            }
         }
     }
 }
