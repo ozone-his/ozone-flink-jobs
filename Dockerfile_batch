@@ -1,4 +1,4 @@
-FROM  maven:3.8.6-eclipse-temurin-11 as builder
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
 
 ENV MAVEN_OPTS="-Xmx2g"
 
@@ -8,8 +8,8 @@ COPY ./src src/
 
 RUN mvn clean install -Pbatch -DskipTests --batch-mode
 
-FROM eclipse-temurin:11-jre
-ARG JAR_VERSION=2.7.0-SNAPSHOT
+FROM eclipse-temurin:17-jre
+ARG JAR_VERSION=3.0.0-SNAPSHOT
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=builder target/flink-jobs-${JAR_VERSION}-etl-batch.jar etl-batch.jar
