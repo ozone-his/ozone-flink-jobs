@@ -38,10 +38,12 @@
     <junit.jupiter.version>5.10.1</junit.jupiter.version>
     <log4j.version>2.20.0</log4j.version>
     <flink.version>1.17.1</flink.version>
-    <target.java.version>11</target.java.version>
+    <!-- Bytecode baseline. Artifacts built with `release` run on any JVM >= this version,
+         so 17 covers the supported 17/21/25 runtimes. Flink itself supports 11/17/21 only
+         (21 experimental), so 17 is both the baseline and the recommended runtime. -->
+    <target.java.version>17</target.java.version>
     <scala.binary.version>2.12</scala.binary.version>
-    <maven.compiler.source>${target.java.version}</maven.compiler.source>
-    <maven.compiler.target>${target.java.version}</maven.compiler.target>
+    <maven.compiler.release>${target.java.version}</maven.compiler.release>
     <jackson.version>2.15.0-rc1</jackson.version>
     <scope>compile</scope>
     <spotless.version>2.30.0</spotless.version>
@@ -59,6 +61,7 @@
     <!-- Plugins -->
     <surefire.version>3.2.5</surefire.version>
     <dependency.version>3.6.1</dependency.version>
+    <compiler.version>3.13.0</compiler.version>
   </properties>
 
   <dependencies>
@@ -420,10 +423,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>${compiler.version}</version>
         <configuration>
-          <source>${target.java.version}</source>
-          <target>${target.java.version}</target>
+          <release>${target.java.version}</release>
         </configuration>
       </plugin>
       <plugin>
