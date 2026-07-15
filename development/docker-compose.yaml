@@ -99,6 +99,67 @@ services:
       - ODOO_DB_HOST=${ODOO_DB_HOST:-${CONNECT_ODOO_DB_HOSTNAME}}
       - ODOO_DB_PORT=${ODOO_DB_PORT:-${CONNECT_ODOO_DB_PORT}}
       - FLINK_JOBMANAGER_HOST=jobmanager
+  # ---------------------------------------------------------------------------
+  # Flink cluster running the streaming pipeline in application mode.
+  #
+  # The image decides which pipeline it runs: the PIPELINE build argument becomes the baked-in
+  # command. The JobManager runs that default command; the TaskManager runs the same image with the
+  # command overridden. All runtime tuning comes from ./flink/config.yaml.
+  #
+  # For the batch and export pipelines, build the same Dockerfile with
+  # --build-arg PIPELINE=batch-flatten or PIPELINE=file-export.
+  # ---------------------------------------------------------------------------
+  jobmanager: &flink
+    image: ozone-flink-jobs
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: streaming-flatten
+    restart: on-failure
+    ports:
+      - "8081:8081"   # Flink web UI
+      - "9250:9250"   # Prometheus metrics
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${ANALYTICS_SOURCE_TABLES_PATH}:/analytics/source-tables:ro
+      - ${ANALYTICS_QUERIES_PATH}:/analytics/queries:ro
+    environment: &flink-env
+      # Resolved into /etc/analytics/config.yaml at startup. No credential is baked into an image.
+      - ANALYTICS_DB_NAME=${ANALYTICS_DB_NAME}
+      - ANALYTICS_DB_USER=${ANALYTICS_DB_USER}
+      - ANALYTICS_DB_PASSWORD=${ANALYTICS_DB_PASSWORD}
+      - ANALYTICS_DB_HOST=${ANALYTICS_DB_HOST}
+      - ANALYTICS_DB_PORT=${ANALYTICS_DB_PORT}
+      - ANALYTICS_KAFKA_URL=kafka:9092
+      - OPENMRS_DB_NAME=${OPENMRS_DB_NAME}
+      - OPENMRS_DB_USER=${OPENMRS_DB_USER}
+      - OPENMRS_DB_PASSWORD=${OPENMRS_DB_PASSWORD}
+      - OPENMRS_DB_HOST=${OPENMRS_DB_HOST}
+      - OPENMRS_DB_PORT=${OPENMRS_DB_PORT}
+      - ODOO_DB_NAME=${CONNECT_ODOO_DB_NAME}
+      - ODOO_DB_USER=${CONNECT_ODOO_DB_USER}
+      - ODOO_DB_PASSWORD=${CONNECT_ODOO_DB_PASSWORD}
+      - ODOO_DB_HOST=${CONNECT_ODOO_DB_HOSTNAME}
+      - ODOO_DB_PORT=${CONNECT_ODOO_DB_PORT}
+      # Credentials for the S3 (MinIO) checkpoint and savepoint store.
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      createbuckets:
+        condition: service_completed_successfully
+
+  taskmanager:
+    <<: *flink
+    command: taskmanager
+    ports: []
+    environment: *flink-env
+    depends_on:
+      - jobmanager
+    deploy:
+      replicas: 1
+
   kowl:
     image: rsmnarts/kowl
     container_name: "kowl"
