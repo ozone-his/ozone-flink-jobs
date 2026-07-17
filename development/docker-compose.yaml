@@ -1,4 +1,72 @@
 services:
+  # ---------------------------------------------------------------------------
+  # Source and sink databases.
+  #
+  # These make the development stack self-contained. It previously assumed an externally running
+  # Ozone HIS supplied them, which meant nothing here could be started on its own.
+  #
+  # The schemas under ./seed are generated from the Flink table definitions, so they carry exactly
+  # the columns the pipelines read and cannot drift from them. See seed/generate-schemas.py.
+  # ---------------------------------------------------------------------------
+
+  # OpenMRS source. Debezium reads its binlog, which MariaDB does not enable by default:
+  # without log-bin and ROW format the connector starts and then captures nothing.
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    restart: on-failure
+    command:
+      - --log-bin=mariadb-bin
+      - --binlog-format=ROW
+      - --binlog-row-image=FULL
+      - --server-id=${MARIADB_SERVER_ID}
+      - --log-bin-trust-function-creators=1
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${OPENMRS_DB_NAME}
+      MARIADB_USER: ${OPENMRS_DB_USER}
+      MARIADB_PASSWORD: ${OPENMRS_DB_PASSWORD}
+    ports:
+      # Off the default host port on purpose: 3306 and 5432 are routinely occupied by another
+      # project's database, and binding them makes bringing this stack up either fail or, worse,
+      # tempt someone into killing whatever holds the port.
+      - "${MARIADB_HOST_PORT}:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./seed/mariadb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # Odoo source and the analytics sink, in one instance. `wal_level=logical` is what lets Debezium
+  # create a replication slot; on the default (`replica`) the connector fails to start.
+  postgresql:
+    image: postgres:${POSTGRES_VERSION}
+    restart: on-failure
+    command:
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=4
+      - -c
+      - max_wal_senders=4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CONNECT_ODOO_DB_NAME}
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./seed/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CONNECT_ODOO_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   zookeeper:
     restart: on-failure
     image: debezium/zookeeper:${DEBEZIUM_VERSION}
@@ -91,7 +159,12 @@ services:
     restart: on-failure
     build: ./setup-connect
     depends_on:
-      - connect
+      connect:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
     environment:
       - CONNECT_HOST=connect
       - SOURCE_DB_HOST=${CONNECT_MYSQL_HOSTNAME}
@@ -149,6 +222,10 @@ services:
     depends_on:
       createbuckets:
         condition: service_completed_successfully
+      analytics-migration:
+        condition: service_completed_successfully
+      kafka-setup:
+        condition: service_completed_successfully
 
   taskmanager:
     <<: *flink
@@ -190,9 +267,15 @@ services:
     environment:
       - INSTALL_POSTGRESQL='true'
       - TABLES=${ODOO_ANALYTICS_TABLES}
+  # Creates the flattened destination tables the pipelines write into. Must complete before any
+  # job starts: Flink resolves the sink tables through the catalog at submission time and fails
+  # outright if they are missing.
   analytics-migration:
     image: liquibase/liquibase:4.24
     restart: on-failure
+    depends_on:
+      postgresql:
+        condition: service_healthy
     volumes:
       - ${ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH:-analytics-migrations}:/liquibase/changelog/
     command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
@@ -232,6 +315,8 @@ services:
       "
 
 volumes:
+  mariadb-data: ~
+  postgresql-data: ~
   kafka-data: ~
   zookeeper-data: ~
   zookeeper-txns: ~
