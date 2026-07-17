@@ -48,14 +48,25 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
 
     <!-- ================================ Flink ===============================
-         Pinned to 2.0.x deliberately. The JDBC connector's newest release (4.0.0-2.0) targets
-         Flink 2.0, so 2.0.x is the highest version where both the JDBC and Kafka connectors have
-         a matching build. Revisit when a JDBC connector for 2.1/2.2 ships. -->
-    <flink.version>2.0.2</flink.version>
-    <!-- Connectors release independently of Flink core; the `-2.0` suffix is the Flink minor they
-         are built against and must line up with flink.version. -->
+         2.3.0 is the current release. Check availability against the repository's own metadata at
+         https://repo1.maven.org/maven2/org/apache/flink/flink-core/maven-metadata.xml, not the
+         search.maven.org index: that index lags and under-reports recent releases. -->
+    <flink.version>2.3.0</flink.version>
+
+    <!-- Connectors release independently of Flink core, and the trailing `-2.x` is the Flink minor
+         they were built against. Neither is current: Kafka's newest is 5.0.0-2.2 and the JDBC
+         connector's is 4.0.0-2.0, so both run on a Flink minor they were not built against, which
+         is not a combination Apache Flink tests.
+
+         They are used here because the pairing was verified end-to-end rather than assumed: the
+         Postgres catalog registers, all 46 source tables resolve, the 12 flattening statements
+         submit as one job, a Debezium event flattens through to PostgreSQL, and checkpointing to
+         S3 succeeds, with no NoSuchMethodError, NoClassDefFoundError or
+         IncompatibleClassChangeError. Re-run that check when bumping any of these versions, and
+         prefer a matching connector release the moment one ships. If a pairing ever misbehaves,
+         Flink 2.0.2 with JDBC 4.0.0-2.0 and Kafka 4.0.1-2.0 is the exactly matched fallback. -->
     <flink.connector.jdbc.version>4.0.0-2.0</flink.connector.jdbc.version>
-    <flink.connector.kafka.version>4.0.1-2.0</flink.connector.kafka.version>
+    <flink.connector.kafka.version>5.0.0-2.2</flink.connector.kafka.version>
 
     <!-- Flink is `provided` for the shaded artifact because the cluster image already supplies it;
          bundling it causes classloader conflicts. Overridden to `compile` by the `standalone`

@@ -10,7 +10,7 @@
 # Each image runs in Flink application mode and serves both cluster roles: the JobManager runs the
 # default command below, and TaskManagers run the same image with the command overridden to
 # `taskmanager`.
-ARG FLINK_VERSION=2.0.2
+ARG FLINK_VERSION=2.3.0
 ARG JAVA_VERSION=17
 
 FROM maven:3.9.9-eclipse-temurin-17 AS builder
