@@ -216,13 +216,20 @@ services:
       timeout: 5s
       retries: 2
 
+  # Creates the bucket Flink checkpoints into. `mc config host add` was removed from newer mc
+  # releases in favour of `mc alias set`; combined with the trailing `exit 0` the failure was
+  # silent, and the only symptom was Flink failing every checkpoint with NoSuchBucket while the job
+  # still reported RUNNING (tolerable-failed-checkpoints hides it). Fail loudly instead.
   createbuckets:
     image: minio/mc
     depends_on:
       minio:
         condition: service_healthy
     entrypoint: >
-      /bin/sh -c " /usr/bin/mc config host add myminio http://minio:9099 ${AWS_ACCESS_KEY_ID} ${AWS_SECRET_ACCESS_KEY}; /usr/bin/mc mb myminio/${FLINK_STATE_BUCKET}; exit 0;"
+      /bin/sh -ec "
+      /usr/bin/mc alias set myminio http://minio:9099 '${AWS_ACCESS_KEY_ID}' '${AWS_SECRET_ACCESS_KEY}';
+      /usr/bin/mc mb --ignore-existing myminio/${FLINK_STATE_BUCKET};
+      "
 
 volumes:
   kafka-data: ~

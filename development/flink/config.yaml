@@ -15,8 +15,9 @@
 #
 # This file is mounted over the image's own conf/config.yaml, which replaces the defaults rather
 # than merging with them -- so this list has to be reproduced here. It is copied verbatim from
-# flink:2.0.2-java17. Per the Flink docs the list "must not be shortened, but only extended", so
-# add to it rather than pruning it, and re-copy it from the image when upgrading Flink.
+# flink:2.0.2-java17 and remains valid on 2.2.1, whose own list is a subset of it (2.2.1 dropped
+# --add-exports=java.base/sun.net.util). Per the Flink docs the list "must not be shortened, but
+# only extended", so a superset is safe; re-check it against the image when upgrading Flink.
 env:
   java:
     opts:
@@ -67,6 +68,18 @@ restart-strategy:
 
 table:
   exec:
+    sink:
+      # Flink 2.3 added this check, defaulting to true: it rejects a query whose upsert key differs
+      # from the sink's primary key unless the INSERT carries an explicit ON CONFLICT clause. Our
+      # flattening queries trip it (Flink infers no upsert key from them), so 2.3 refuses to submit.
+      #
+      # TEMPORARY. Disabling it restores the pre-2.3 behaviour, but the check is pointing at
+      # something real: with no inferable upsert key, two records mapping to the same primary key
+      # can be applied in a non-deterministic order. That was equally true on 2.0/2.2 -- 2.3 merely
+      # started saying so. The proper fix is an explicit ON CONFLICT policy per INSERT (DEDUPLICATE
+      # is latest-wins but retains history, so it costs state), which is a correctness decision
+      # about the queries, not something to paper over here.
+      require-on-conflict: false
     # Batch writes to PostgreSQL rather than issuing one statement per row.
     mini-batch:
       enabled: true
