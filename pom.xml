@@ -75,6 +75,7 @@
 
     <!-- ========================== Runtime libraries ========================= -->
     <jackson.version>2.18.2</jackson.version>
+    <hadoop.version>3.4.1</hadoop.version>
     <postgresql.version>42.7.4</postgresql.version>
     <mysql.connector.version>9.1.0</mysql.connector.version>
     <commons.text.version>1.12.0</commons.text.version>
@@ -156,6 +157,27 @@
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-parquet</artifactId>
       <version>${flink.version}</version>
+    </dependency>
+    <!-- flink-parquet writes through parquet-hadoop, which needs Hadoop's Configuration on the
+         classpath. Without it the export job fails at runtime with NoClassDefFoundError. Only the
+         export pipeline uses it, but the image is shared, so it is bundled here. mapreduce-client
+         is excluded down to -core: parquet needs the output-format classes, not a MapReduce
+         runtime, and the full client drags in a large transitive tree. -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
 
     <!-- ============================ JDBC drivers ============================ -->
