@@ -236,6 +236,111 @@ services:
     deploy:
       replicas: 1
 
+  # ---------------------------------------------------------------------------
+  # Batch flattening (profile: batch). An alternate mode, not run by default: it reads the source
+  # databases directly over JDBC instead of from Kafka, flattens them in one bounded pass into the
+  # same analytics tables, and exits. Use it to backfill.
+  #
+  #   docker compose --profile batch up batch-jobmanager batch-taskmanager
+  #
+  # Its own cluster on a separate UI port so it can run without disturbing the streaming cluster.
+  # ---------------------------------------------------------------------------
+  batch-jobmanager: &batch
+    image: ozone-flink-jobs-batch
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: batch-flatten
+    profiles: [batch]
+    restart: on-failure
+    # The shared flink/config.yaml points jobmanager.rpc.address at the host `jobmanager`. Batch is
+    # an alternate mode run while the streaming cluster is stopped, so this JobManager takes that
+    # name within the network and its TaskManager can find it without a separate config.
+    networks:
+      default:
+        aliases: [jobmanager]
+    ports:
+      - "${BATCH_UI_HOST_PORT}:8081"
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${ANALYTICS_SOURCE_TABLES_PATH}:/analytics/source-tables:ro
+      - ${ANALYTICS_QUERIES_PATH}:/analytics/queries:ro
+    environment: *flink-env
+    depends_on:
+      createbuckets:
+        condition: service_completed_successfully
+      analytics-migration:
+        condition: service_completed_successfully
+      mariadb:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+
+  batch-taskmanager:
+    <<: *batch
+    command: taskmanager
+    ports: []
+    # Drop the JobManager's `jobmanager` alias inherited via the YAML merge, or the name would
+    # round-robin between this container and the JobManager.
+    networks:
+      default: {}
+    depends_on:
+      - batch-jobmanager
+
+  # ---------------------------------------------------------------------------
+  # Parquet/CSV export (profile: export). Reads the flattened analytics tables and writes files
+  # under EXPORT_OUTPUT_PATH, then exits.
+  #
+  #   docker compose --profile export up export-jobmanager export-taskmanager
+  # ---------------------------------------------------------------------------
+  export-jobmanager: &export
+    image: ozone-flink-parquet-export
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: file-export
+    profiles: [export]
+    restart: on-failure
+    networks:
+      default:
+        aliases: [jobmanager]
+    ports:
+      - "${EXPORT_UI_HOST_PORT}:8081"
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${EXPORT_DESTINATION_TABLES_PATH}:/export/destination-tables:ro
+      - ${EXPORT_SOURCE_QUERIES_PATH}:/export/queries:ro
+      - ${EXPORT_OUTPUT_PATH}:/parquet
+    environment: &export-env
+      - ANALYTICS_DB_NAME=${ANALYTICS_DB_NAME}
+      - ANALYTICS_DB_USER=${ANALYTICS_DB_USER}
+      - ANALYTICS_DB_PASSWORD=${ANALYTICS_DB_PASSWORD}
+      - ANALYTICS_DB_HOST=${ANALYTICS_DB_HOST}
+      - ANALYTICS_DB_PORT=${ANALYTICS_DB_PORT}
+      - EXPORT_DESTINATION_TABLES_PATH=/export/destination-tables
+      - EXPORT_SOURCE_QUERIES_PATH=/export/queries
+      - EXPORT_OUTPUT_PATH=/parquet
+      - EXPORT_OUTPUT_TAG=${EXPORT_OUTPUT_TAG}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      analytics-migration:
+        condition: service_completed_successfully
+
+  export-taskmanager:
+    <<: *export
+    command: taskmanager
+    ports: []
+    environment: *export-env
+    networks:
+      default: {}
+    depends_on:
+      - export-jobmanager
+
   kowl:
     image: rsmnarts/kowl
     container_name: "kowl"
