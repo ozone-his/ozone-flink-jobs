@@ -71,16 +71,14 @@ services:
     restart: on-failure
     image: debezium/zookeeper:${DEBEZIUM_VERSION}
     ports:
-      - 2181:2181
-      - 2888:2888
-      - 3888:3888
+      - ${ZOOKEEPER_HOST_PORT}:2181
     volumes:
       - zookeeper-data:/zookeeper/data
       - zookeeper-txns:/zookeeper/txns
   zoonavigator:
     image: elkozmon/zoonavigator
     ports:
-      - "8000:8000"
+      - "${ZOONAVIGATOR_HOST_PORT}:8000"
     environment:
       HTTP_PORT: 8000
       AUTO_CONNECT_CONNECTION_STRING: zookeeper:2181
@@ -88,8 +86,9 @@ services:
     restart: on-failure
     image: debezium/kafka:${DEBEZIUM_VERSION}
     ports:
-      - 9092:9092
-      - 29092:29092
+      # Host-side only; in-network clients still use kafka:9092. Kept off the default
+      # because another project's broker commonly holds 9092.
+      - ${KAFKA_HOST_PORT}:29092
     environment:
       - CLUSTER_ID=5Yr1SIgYQz-b-dgRabWx4g
       - BROKER_ID=1
@@ -124,7 +123,7 @@ services:
     restart: on-failure
     image: debezium/connect:${DEBEZIUM_VERSION}
     ports:
-      - 8383:8083
+      - ${CONNECT_HOST_PORT}:8083
     volumes:
       - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-mysql/TimestampConverter-1.2.4-SNAPSHOT.jar
       - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-postgres/TimestampConverter-1.2.4-SNAPSHOT.jar
@@ -152,7 +151,7 @@ services:
       - CONNECT_ODOO_DB_USERNAME=${CONNECT_ODOO_DB_USERNAME:-${POSTGRES_USER}}
       - CONNECT_ODOO_DB_PASSWORD=${CONNECT_ODOO_DB_PASSWORD:-${POSTGRES_PASSWORD}}
       - CONNECT_ODOO_DB_PORT=${CONNECT_ODOO_DB_PORT:-5432}
-      - CONNECT_ODOO_DB_SERVER_NAME=odoo
+      - CONNECT_ODOO_DB_SERVER_NAME=erp
       - CONNECT_ODOO_DB_INCLUDE_LIST=odoo
 
   connect-setup:
@@ -191,7 +190,7 @@ services:
         PIPELINE: streaming-flatten
     restart: on-failure
     ports:
-      - "8081:8081"   # Flink web UI
+      - "${FLINK_UI_HOST_PORT}:8081"   # Flink web UI
       - "9250:9250"   # Prometheus metrics
     volumes:
       - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
@@ -244,7 +243,7 @@ services:
     entrypoint: /bin/sh
     command: -c "echo \"$$KOWL_CONFIG_FILE\" > /tmp/config.yml; /app/kowl"
     ports:
-      - "8282:8080"
+      - "${KOWL_HOST_PORT}:8080"
     environment:
       CONFIG_FILEPATH: /tmp/config.yml
       KOWL_CONFIG_FILE: |
