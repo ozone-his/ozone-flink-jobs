@@ -34,7 +34,18 @@ public final class BatchFlattenPipeline implements Pipeline {
     }
 
     @Override
-    public List<String> tableDefinitions() {
+    public List<Job> jobs() {
+        // JDBC sources carry no consumer-group state, so every job registers the same definitions;
+        // a job reads only the tables its query touches.
+        List<String> sourceTables = sourceTables();
+        List<Job> jobs = new ArrayList<>();
+        for (FlattenStatements.Insert insert : FlattenStatements.forSinks(config)) {
+            jobs.add(new Job(name() + "-" + insert.destination(), sourceTables, insert.sql()));
+        }
+        return List.copyOf(jobs);
+    }
+
+    private List<String> sourceTables() {
         List<String> definitions = new ArrayList<>();
         for (AnalyticsConfig.JdbcSource source : config.sources().jdbc()) {
             for (SqlScript table : SqlScripts.loadAll(Path.of(source.tableDefinitions()))) {
@@ -42,11 +53,6 @@ public final class BatchFlattenPipeline implements Pipeline {
             }
         }
         return List.copyOf(definitions);
-    }
-
-    @Override
-    public List<String> insertStatements() {
-        return FlattenStatements.forSinks(config);
     }
 
     private ConnectorOptions options(AnalyticsConfig.JdbcSource source, String table) {

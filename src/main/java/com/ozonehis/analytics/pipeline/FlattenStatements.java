@@ -18,17 +18,25 @@ final class FlattenStatements {
     private FlattenStatements() {}
 
     /**
+     * A flattening INSERT paired with the destination table it targets. The destination name gives
+     * each job a stable identity and, for streaming, namespaces its Kafka consumer groups.
+     */
+    record Insert(String destination, String sql) {}
+
+    /**
      * Wraps each flattening query in an INSERT into its destination table. The query file's name is
      * the destination table name.
      */
-    static List<String> forSinks(AnalyticsConfig config) {
-        List<String> statements = new ArrayList<>();
+    static List<Insert> forSinks(AnalyticsConfig config) {
+        List<Insert> statements = new ArrayList<>();
         for (AnalyticsConfig.TableSink sink : config.sinks().tables()) {
             // Fail early if the sink names a catalog that was never configured.
             config.catalog(sink.catalog());
             for (SqlScript query : SqlScripts.loadAll(Path.of(sink.queries()))) {
-                statements.add("INSERT INTO " + qualify(sink.catalog(), sink.database(), query.name()) + "\n"
-                        + query.content());
+                statements.add(new Insert(
+                        query.name(),
+                        "INSERT INTO " + qualify(sink.catalog(), sink.database(), query.name()) + "\n"
+                                + query.content()));
             }
         }
         return List.copyOf(statements);

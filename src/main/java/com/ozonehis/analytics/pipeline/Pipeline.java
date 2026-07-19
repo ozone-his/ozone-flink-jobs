@@ -13,15 +13,17 @@ import java.util.List;
  */
 public sealed interface Pipeline permits StreamingFlattenPipeline, BatchFlattenPipeline, FileExportPipeline {
 
-    /** @return a short, stable name used for the Flink job name and for logging */
+    /** @return a short, stable name used as a prefix for each job's name and for logging */
     String name();
 
     /** @return whether this pipeline runs continuously or terminates */
     ExecutionMode mode();
 
-    /** @return the {@code CREATE TABLE ... WITH (...)} statements to register before inserting */
-    List<String> tableDefinitions();
-
-    /** @return the {@code INSERT INTO ... SELECT ...} statements that move the data */
-    List<String> insertStatements();
+    /**
+     * The pipeline broken into independently submittable {@link Job}s — one per INSERT — so that
+     * each runs as its own Flink job and a failure in one does not disturb the rest.
+     *
+     * @return one job per destination, each carrying the tables it needs and its single INSERT
+     */
+    List<Job> jobs();
 }
