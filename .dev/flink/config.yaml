@@ -31,19 +31,25 @@ jobmanager:
     process:
       size: 1600m
 
+# Each flattening statement runs as its own Flink job, and a streaming job holds its slots for as
+# long as it runs. The flatten pipeline is ~12 statements, so the cluster needs at least that many
+# slots or the later jobs sit pending forever, waiting for slots that never free. 16 leaves headroom.
 taskmanager:
-  numberOfTaskSlots: 8
+  numberOfTaskSlots: 16
   memory:
     process:
       size: 4g
     managed:
       fraction: 0.7
 
+# One subtask per operator. The dev Debezium topics have a single partition, so higher parallelism
+# only adds idle subtasks -- and with each statement now its own job, low parallelism keeps the
+# per-job slot demand at 1 so all jobs fit.
 parallelism:
-  default: 2
+  default: 1
 
 # Exactly-once checkpointing to S3 (MinIO). Unaligned checkpoints keep barriers moving when a sink
-# backpressures, which matters here because every flattening sink shares a single job.
+# backpressures, so one slow sink does not stall its job's checkpoints.
 execution:
   checkpointing:
     mode: EXACTLY_ONCE

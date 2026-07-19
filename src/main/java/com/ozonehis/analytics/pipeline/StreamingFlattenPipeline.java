@@ -32,28 +32,38 @@ public final class StreamingFlattenPipeline implements Pipeline {
     }
 
     @Override
-    public List<String> tableDefinitions() {
+    public List<Job> jobs() {
+        List<Job> jobs = new ArrayList<>();
+        for (FlattenStatements.Insert insert : FlattenStatements.forSinks(config)) {
+            jobs.add(new Job(name() + "-" + insert.destination(), sourceTables(insert.destination()), insert.sql()));
+        }
+        return List.copyOf(jobs);
+    }
+
+    /**
+     * Every Kafka source table, defined afresh for one job. A job registers all of them but only
+     * the tables its query reads become running Kafka sources, so the extra definitions cost
+     * nothing. The consumer group is namespaced by the destination so that two jobs reading the
+     * same source topic keep independent offsets instead of clobbering one shared group.
+     */
+    private List<String> sourceTables(String destination) {
         List<String> definitions = new ArrayList<>();
         for (AnalyticsConfig.KafkaSource source : config.sources().kafka()) {
             for (SqlScript table : SqlScripts.loadAll(Path.of(source.tableDefinitions()))) {
-                definitions.add(options(source, table.name()).appendTo(table.content()));
+                definitions.add(options(source, table.name(), destination).appendTo(table.content()));
             }
         }
         return List.copyOf(definitions);
     }
 
-    @Override
-    public List<String> insertStatements() {
-        return FlattenStatements.forSinks(config);
-    }
-
-    private ConnectorOptions options(AnalyticsConfig.KafkaSource source, String table) {
+    private ConnectorOptions options(AnalyticsConfig.KafkaSource source, String table, String destination) {
         return ConnectorOptions.of("kafka")
                 .set("topic", source.topicPrefix() + "." + table)
                 .set("properties.bootstrap.servers", source.bootstrapServers())
-                // A stable group id per table lets the job resume from its committed offsets
-                // instead of replaying the topic after every restart.
-                .set("properties.group.id", table + "-group-id")
+                // A stable group id per (table, destination) lets each job resume from its own
+                // committed offsets instead of replaying the topic after a restart, and keeps two
+                // jobs reading the same topic from committing over each other.
+                .set("properties.group.id", table + "-" + destination + "-group-id")
                 .set("scan.startup.mode", "group-offsets")
                 // Applies only when the group has no committed offsets yet, i.e. first start.
                 .set("properties.auto.offset.reset", "earliest")

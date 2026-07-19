@@ -62,32 +62,30 @@ public final class FileExportPipeline implements Pipeline {
     }
 
     @Override
-    public List<String> tableDefinitions() {
-        String timestamp = RUN_TIMESTAMP.format(LocalDateTime.now(clock));
-        List<String> definitions = new ArrayList<>();
-        for (AnalyticsConfig.FileSink sink : config.sinks().files()) {
-            for (SqlScript table : SqlScripts.loadAll(Path.of(sink.tableDefinitions()))) {
-                definitions.add(options(sink, table.name(), timestamp).appendTo(table.content()));
-            }
-        }
-        return List.copyOf(definitions);
-    }
-
-    @Override
-    public List<String> insertStatements() {
+    public List<Job> jobs() {
         String catalog = config.singleCatalog()
                 .orElseThrow(() -> new ConfigException("The export pipeline resolves " + CATALOG_PLACEHOLDER
                         + " against a single catalog, but " + config.catalogs().size()
                         + " are configured. Configure exactly one."))
                 .name();
+        // One timestamp for the whole run, so every table this run exports lands under the same
+        // directory rather than scattering across the seconds each job happened to start in.
+        String timestamp = RUN_TIMESTAMP.format(LocalDateTime.now(clock));
 
-        List<String> statements = new ArrayList<>();
+        List<Job> jobs = new ArrayList<>();
         for (AnalyticsConfig.FileSink sink : config.sinks().files()) {
+            List<String> definitions = new ArrayList<>();
+            for (SqlScript table : SqlScripts.loadAll(Path.of(sink.tableDefinitions()))) {
+                definitions.add(options(sink, table.name(), timestamp).appendTo(table.content()));
+            }
             for (SqlScript query : SqlScripts.loadAll(Path.of(sink.queries()))) {
-                statements.add(query.content().replace(CATALOG_PLACEHOLDER, catalog));
+                jobs.add(new Job(
+                        name() + "-" + query.name(),
+                        definitions,
+                        query.content().replace(CATALOG_PLACEHOLDER, catalog)));
             }
         }
-        return List.copyOf(statements);
+        return List.copyOf(jobs);
     }
 
     private ConnectorOptions options(AnalyticsConfig.FileSink sink, String table, String timestamp) {

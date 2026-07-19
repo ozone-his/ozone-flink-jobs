@@ -2,6 +2,7 @@ package com.ozonehis.analytics.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.STRING;
 
 import com.ozonehis.analytics.config.AnalyticsConfig;
 import com.ozonehis.analytics.config.ConfigException;
@@ -64,21 +65,28 @@ class PipelineTest {
                         List.of()),
                 tableSink());
 
-        assertThat(new StreamingFlattenPipeline(config).tableDefinitions())
-                .singleElement(org.assertj.core.api.InstanceOfAssertFactories.STRING)
+        List<Job> jobs = new StreamingFlattenPipeline(config).jobs();
+
+        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("streaming-flatten-patients");
+        assertThat(jobs.get(0).tableDefinitions())
+                .singleElement(STRING)
                 .contains("'connector' = 'kafka'")
                 // The topic is the prefix plus the table definition's file name.
                 .contains("'topic' = 'emr.openmrs.patient'")
-                .contains("'properties.group.id' = 'patient-group-id'")
+                // The group id is namespaced by the destination, so jobs sharing a topic keep
+                // independent offsets.
+                .contains("'properties.group.id' = 'patient-patients-group-id'")
                 .contains("'value.format' = 'debezium-json'");
     }
 
     @Test
-    void flatteningQueryBecomesInsertIntoTableNamedAfterTheFile() {
+    void flatteningQueryBecomesOneJobInsertingIntoTheTableNamedAfterTheFile() {
         AnalyticsConfig config = config(new AnalyticsConfig.Sources(List.of(), List.of()), tableSink());
 
-        assertThat(new StreamingFlattenPipeline(config).insertStatements())
-                .containsExactly("INSERT INTO `ozone`.`analytics`.`patients`\nSELECT patient_id FROM patient");
+        assertThat(new StreamingFlattenPipeline(config).jobs())
+                .singleElement()
+                .extracting(Job::insertStatement)
+                .isEqualTo("INSERT INTO `ozone`.`analytics`.`patients`\nSELECT patient_id FROM patient");
     }
 
     @Test
@@ -95,12 +103,18 @@ class PipelineTest {
                                 "jdbc:mysql://localhost:3306/openmrs", "root", "pw", tables.toString()))),
                 tableSink());
 
-        assertThat(new BatchFlattenPipeline(batchConfig).insertStatements())
-                .isEqualTo(new StreamingFlattenPipeline(streamingConfig).insertStatements());
-        assertThat(new BatchFlattenPipeline(batchConfig).tableDefinitions())
-                .singleElement(org.assertj.core.api.InstanceOfAssertFactories.STRING)
-                .contains("'connector' = 'jdbc'")
-                .contains("'table-name' = 'patient'");
+        assertThat(inserts(new BatchFlattenPipeline(batchConfig)))
+                .isEqualTo(inserts(new StreamingFlattenPipeline(streamingConfig)));
+        assertThat(new BatchFlattenPipeline(batchConfig).jobs())
+                .singleElement()
+                .satisfies(job -> assertThat(job.tableDefinitions())
+                        .singleElement(STRING)
+                        .contains("'connector' = 'jdbc'")
+                        .contains("'table-name' = 'patient'"));
+    }
+
+    private static List<String> inserts(Pipeline pipeline) {
+        return pipeline.jobs().stream().map(Job::insertStatement).toList();
     }
 
     @Test
@@ -120,7 +134,7 @@ class PipelineTest {
                 new AnalyticsConfig.Sinks(
                         List.of(new AnalyticsConfig.TableSink("typo", "analytics", queries.toString())), List.of()));
 
-        assertThatThrownBy(() -> new StreamingFlattenPipeline(cfg).insertStatements())
+        assertThatThrownBy(() -> new StreamingFlattenPipeline(cfg).jobs())
                 .isInstanceOf(ConfigException.class)
                 .hasMessageContaining("No catalog named 'typo'");
     }
@@ -143,16 +157,17 @@ class PipelineTest {
                                 AnalyticsConfig.FileFormat.PARQUET))));
         Clock fixed = Clock.fixed(Instant.parse("2026-07-15T08:30:00Z"), ZoneOffset.UTC);
 
-        FileExportPipeline pipeline = new FileExportPipeline(cfg, fixed);
+        List<Job> jobs = new FileExportPipeline(cfg, fixed).jobs();
 
-        assertThat(pipeline.tableDefinitions())
-                .singleElement(org.assertj.core.api.InstanceOfAssertFactories.STRING)
+        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("file-export-patients");
+        assertThat(jobs.get(0).tableDefinitions())
+                .singleElement(STRING)
                 // Timestamp is colon-free so the path is valid on any filesystem.
                 .contains("'path' = '/parquet/patient/h1/20260715T083000'")
                 .contains("'format' = 'parquet'");
         // The placeholder is resolved to the configured catalog.
-        assertThat(pipeline.insertStatements())
-                .containsExactly("INSERT INTO patients SELECT * FROM ozone.analytics.patients");
+        assertThat(jobs.get(0).insertStatement())
+                .isEqualTo("INSERT INTO patients SELECT * FROM ozone.analytics.patients");
     }
 
     @Test
@@ -168,7 +183,7 @@ class PipelineTest {
                         List.of(new AnalyticsConfig.FileSink(
                                 tables.toString(), queries.toString(), "/parquet", "h1", null))));
 
-        assertThatThrownBy(() -> new FileExportPipeline(cfg).insertStatements())
+        assertThatThrownBy(() -> new FileExportPipeline(cfg).jobs())
                 .isInstanceOf(ConfigException.class)
                 .hasMessageContaining("exactly one");
     }

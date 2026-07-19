@@ -2,11 +2,12 @@ package com.ozonehis.analytics.runtime;
 
 import com.ozonehis.analytics.config.AnalyticsConfig;
 import com.ozonehis.analytics.pipeline.ExecutionMode;
+import com.ozonehis.analytics.pipeline.Job;
 import com.ozonehis.analytics.pipeline.Pipeline;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.StatementSet;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
 import org.slf4j.Logger;
@@ -34,18 +35,42 @@ public final class FlinkRunner {
     }
 
     /**
-     * Registers catalogs and tables, then submits the pipeline's INSERT statements as a single
-     * Flink job.
+     * Submits each of the pipeline's {@link Job}s as its own Flink job. A streaming pipeline returns
+     * once every job is submitted and running; a batch pipeline additionally waits for all of them
+     * to finish, so that a failure in any one surfaces as a non-zero exit.
      *
-     * @throws Exception if submission fails, or if a batch pipeline fails while running
+     * <p>Each job gets its own {@link TableEnvironment}: a source table is registered per job, which
+     * is what lets a streaming job scope its Kafka consumer group to itself instead of sharing one
+     * catalog — and one set of group ids — across every job.
+     *
+     * @throws Exception if submission fails, or if a batch job fails while running
      */
     public void run(Pipeline pipeline) throws Exception {
         LOG.info("Starting pipeline '{}' in {} mode", pipeline.name(), pipeline.mode());
 
-        TableEnvironment tableEnv = createTableEnvironment(pipeline.mode());
-        registerCatalogs(tableEnv);
-        registerTables(tableEnv, pipeline);
-        submit(tableEnv, pipeline);
+        List<Job> jobs = pipeline.jobs();
+        if (jobs.isEmpty()) {
+            throw new IllegalStateException(
+                    "Pipeline '" + pipeline.name() + "' produced no jobs; check the configured source and query paths");
+        }
+
+        LOG.info("Submitting {} as {} independent job(s)", pipeline.name(), jobs.size());
+        List<TableResult> running = new ArrayList<>(jobs.size());
+        for (Job job : jobs) {
+            running.add(submit(pipeline.mode(), job));
+        }
+
+        if (pipeline.mode() == ExecutionMode.BATCH) {
+            // Await every batch job. Without this the process would exit successfully the moment the
+            // jobs were accepted, and a failed run would look like a clean one. Submitting all first
+            // and awaiting after lets them run concurrently rather than one at a time. A streaming
+            // job runs until cancelled, so there is nothing to await.
+            LOG.info("Awaiting completion of {} batch job(s)", running.size());
+            for (TableResult result : running) {
+                result.await();
+            }
+            LOG.info("Pipeline '{}' completed", pipeline.name());
+        }
     }
 
     private TableEnvironment createTableEnvironment(ExecutionMode mode) {
@@ -71,48 +96,21 @@ public final class FlinkRunner {
         }
     }
 
-    private void registerTables(TableEnvironment tableEnv, Pipeline pipeline) {
-        List<String> definitions = pipeline.tableDefinitions();
-        if (definitions.isEmpty()) {
+    /** Builds an isolated environment for one job, registers its tables, and submits its INSERT. */
+    private TableResult submit(ExecutionMode mode, Job job) {
+        if (job.tableDefinitions().isEmpty()) {
             throw new IllegalStateException(
-                    "Pipeline '" + pipeline.name() + "' declared no tables; check the configured source paths");
+                    "Job '" + job.name() + "' declared no tables; check the configured source paths");
         }
 
-        LOG.info("Registering {} table(s)", definitions.size());
-        definitions.forEach(tableEnv::executeSql);
-    }
+        TableEnvironment tableEnv = createTableEnvironment(mode);
+        registerCatalogs(tableEnv);
+        job.tableDefinitions().forEach(tableEnv::executeSql);
 
-    /**
-     * Submits every statement as one {@link StatementSet}.
-     *
-     * <p>Submitting them together lets Flink plan them as a single job, so sinks reading the same
-     * source share one scan instead of each opening its own, and the pipeline gets a single
-     * checkpoint and recovery boundary. The trade-off is a shared failure domain: a failure in one
-     * sink restarts the whole job.
-     */
-    private void submit(TableEnvironment tableEnv, Pipeline pipeline) throws Exception {
-        List<String> statements = pipeline.insertStatements();
-        if (statements.isEmpty()) {
-            throw new IllegalStateException("Pipeline '" + pipeline.name()
-                    + "' produced no INSERT statements; check the configured query paths");
-        }
-
-        StatementSet statementSet = tableEnv.createStatementSet();
-        statements.forEach(statementSet::addInsertSql);
-
-        LOG.info("Submitting {} statement(s) as a single job", statements.size());
-        TableResult result = statementSet.execute();
+        LOG.info("Submitting job '{}'", job.name());
+        TableResult result = tableEnv.executeSql(job.insertStatement());
         result.getJobClient()
-                .ifPresent(
-                        client -> LOG.info("Submitted job {} for pipeline '{}'", client.getJobID(), pipeline.name()));
-
-        if (pipeline.mode() == ExecutionMode.BATCH) {
-            // Awaiting surfaces a batch failure as an exception. Without it the process would exit
-            // successfully the moment the job was accepted, and a failed run would look like a
-            // clean one. A streaming job runs until cancelled, so there is nothing to await.
-            LOG.info("Awaiting completion of pipeline '{}'", pipeline.name());
-            result.await();
-            LOG.info("Pipeline '{}' completed", pipeline.name());
-        }
+                .ifPresent(client -> LOG.info("Submitted Flink job {} for '{}'", client.getJobID(), job.name()));
+        return result;
     }
 }
