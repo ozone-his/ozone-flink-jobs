@@ -18,20 +18,22 @@ final class Catalogs {
 
     static JdbcCatalog create(AnalyticsConfig.Catalog catalog, ClassLoader classLoader) {
         return switch (catalog.dialect()) {
-            case POSTGRESQL -> new PostgresCatalog(
-                    classLoader,
-                    catalog.name(),
-                    catalog.defaultDatabase(),
-                    catalog.username(),
-                    catalog.password(),
-                    catalog.baseUrl());
-            case MYSQL -> new MySqlCatalog(
-                    classLoader,
-                    catalog.name(),
-                    catalog.defaultDatabase(),
-                    catalog.username(),
-                    catalog.password(),
-                    catalog.baseUrl());
+            case POSTGRESQL ->
+                new PostgresCatalog(
+                        classLoader,
+                        catalog.name(),
+                        catalog.defaultDatabase(),
+                        catalog.username(),
+                        catalog.password(),
+                        catalog.baseUrl());
+            case MYSQL ->
+                new MySqlCatalog(
+                        classLoader,
+                        catalog.name(),
+                        catalog.defaultDatabase(),
+                        catalog.username(),
+                        catalog.password(),
+                        catalog.baseUrl());
         };
     }
 }

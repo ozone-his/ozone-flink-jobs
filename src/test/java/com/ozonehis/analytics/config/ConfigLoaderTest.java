@@ -10,8 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class ConfigLoaderTest {
 
-    private static final String MINIMAL =
-            """
+    private static final String MINIMAL = """
             catalogs:
               - name: ozone
                 dialect: postgresql

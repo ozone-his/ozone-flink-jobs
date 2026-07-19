@@ -54,8 +54,8 @@ public final class AnalyticsJob {
             case "streaming-flatten" -> new StreamingFlattenPipeline(config);
             case "batch-flatten" -> new BatchFlattenPipeline(config);
             case "file-export" -> new FileExportPipeline(config);
-            default -> throw new IllegalArgumentException(
-                    "Unknown pipeline '" + name + "'. Expected one of " + names());
+            default ->
+                throw new IllegalArgumentException("Unknown pipeline '" + name + "'. Expected one of " + names());
         };
     }
 
