@@ -22,18 +22,11 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                "table.exclude.list": "${file:/kafka/config/connect-distributed.properties:table.exclude.list}",
                "schema.history.internal.kafka.bootstrap.servers": "${file:/kafka/config/connect-distributed.properties:mysql.kafka.bootstrap.servers}",
                "schema.history.internal.kafka.topic": "${file:/kafka/config/connect-distributed.properties:mysql.histroy.topic}",
-               "converters": "timestampConverter,boolean",
+               "converters": "boolean",
                "boolean.type": "io.debezium.connector.binlog.converters.TinyIntOneToBooleanConverter",
-               "timestampConverter.type": "oryanmoshe.kafka.connect.util.TimestampConverter",
-               "timestampConverter.format.time": "HH:mm:ss",
-               "timestampConverter.format.date": "YYYY-MM-dd",
-               "timestampConverter.format.datetime": "yyyy-MM-dd HH:mm:ss",
-               "timestampConverter.debug": "false",
                "snapshot.mode": "when_needed"
      }'
 fi 
-
-
 if [[ $CONNECT_ODOO = "1" ]]
 then
 echo "Waiting for Odoo database to be ready-----"
@@ -50,13 +43,7 @@ curl --fail -i -X PUT -H "Accept:application/json" -H "Content-Type:application/
                 "plugin.name": "pgoutput",
                 "topic.prefix": "${file:/kafka/config/connect-distributed.properties:odoo.db.server.name}",
                 "table.include.list": "public.(.*)",
-                "converters": "timestampConverter",
-                "timestampConverter.type": "oryanmoshe.kafka.connect.util.TimestampConverter",
-                "timestampConverter.format.time": "HH:mm:ss",
-                "timestampConverter.format.date": "YYYY-MM-dd",
-                "timestampConverter.format.datetime": "yyyy-MM-dd HH:mm:ss",
-                "timestampConverter.debug": "false",
-                "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+               "key.converter": "org.apache.kafka.connect.json.JsonConverter",
                 "key.converter.schemas.enable": "true",
                 "heartbeat.interval.ms": "5000",
                 "slot.name": "odoo_debezium",
