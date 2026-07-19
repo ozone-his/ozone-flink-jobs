@@ -58,8 +58,8 @@ restarts the job.
 
 Two files, and the split is the point:
 
-|      File       |                      Owns                       |                             Example                              |
-|-----------------|-------------------------------------------------|------------------------------------------------------------------|
+|      File       |                      Owns                       |                      Example                       |
+|-----------------|-------------------------------------------------|----------------------------------------------------|
 | Pipeline config | Catalogs, sources, sinks — **what**             | [`.dev/data/config.yaml`](.dev/data/config.yaml)   |
 | Cluster config  | Parallelism, checkpointing, state, S3 — **how** | [`.dev/flink/config.yaml`](.dev/flink/config.yaml) |
 
