@@ -14,9 +14,7 @@ class ConnectorOptionsTest {
                 .set("scan.startup.mode", "group-offsets")
                 .appendTo("CREATE TABLE patient (id INT)");
 
-        assertThat(sql)
-                .isEqualTo(
-                        """
+        assertThat(sql).isEqualTo("""
                         CREATE TABLE patient (id INT)
                         WITH (
                           'connector' = 'kafka',

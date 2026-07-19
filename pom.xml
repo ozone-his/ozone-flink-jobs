@@ -74,25 +74,28 @@
     <flink.scope>provided</flink.scope>
 
     <!-- ========================== Runtime libraries ========================= -->
-    <jackson.version>2.18.2</jackson.version>
-    <hadoop.version>3.4.1</hadoop.version>
-    <postgresql.version>42.7.4</postgresql.version>
-    <mysql.connector.version>9.1.0</mysql.connector.version>
-    <commons.text.version>1.12.0</commons.text.version>
+    <jackson.version>2.22.1</jackson.version>
+    <hadoop.version>3.5.0</hadoop.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <mysql.connector.version>9.7.0</mysql.connector.version>
+    <commons.text.version>1.15.0</commons.text.version>
 
-    <!-- ================================ Logging ============================= -->
-    <slf4j.version>2.0.16</slf4j.version>
+    <!-- ================================ Logging =============================
+         Held on the 2.0.x line: 2.1.x is still alpha. -->
+    <slf4j.version>2.0.18</slf4j.version>
 
     <!-- ================================= Test =============================== -->
-    <junit.version>5.11.3</junit.version>
-    <assertj.version>3.26.3</assertj.version>
+    <junit.version>6.1.2</junit.version>
+    <assertj.version>3.27.7</assertj.version>
 
-    <!-- =============================== Plugins ============================== -->
-    <compiler.version>3.13.0</compiler.version>
-    <surefire.version>3.5.2</surefire.version>
-    <shade.version>3.6.0</shade.version>
-    <spotless.version>2.43.0</spotless.version>
-    <palantirJavaFormat.version>2.50.0</palantirJavaFormat.version>
+    <!-- =============================== Plugins ==============================
+         compiler and surefire held on their stable lines: 4.0.0 and 3.6.0 are
+         still beta/milestone respectively. -->
+    <compiler.version>3.15.0</compiler.version>
+    <surefire.version>3.5.6</surefire.version>
+    <shade.version>3.6.2</shade.version>
+    <spotless.version>3.8.0</spotless.version>
+    <palantirJavaFormat.version>2.96.0</palantirJavaFormat.version>
   </properties>
 
   <dependencies>
@@ -177,13 +180,37 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <!-- Hadoop's embedded web UI / JAX-RS stack: Jersey 2, HK2, JAXB, javassist and their
+             jakarta.* APIs. Excluding the Jersey and JAXB roots and the jakarta APIs that hadoop-common
+             declares directly cascades the rest (hk2, javassist, jakarta.inject/validation/annotation)
+             out too. Prior Hadoop shipped Sun Jersey 1.x here; 3.5.0 moved to these coordinates. -->
         <exclusion>
-          <groupId>com.sun.jersey</groupId>
+          <groupId>org.glassfish.jersey.core</groupId>
           <artifactId>*</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.github.pjfanning</groupId>
-          <artifactId>jersey-json</artifactId>
+          <groupId>org.glassfish.jersey.containers</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jaxb</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.servlet.jsp</groupId>
+          <artifactId>jakarta.servlet.jsp-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.activation</groupId>
+          <artifactId>jakarta.activation-api</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.apache.zookeeper</groupId>
@@ -263,6 +290,12 @@
         <exclusion>
           <groupId>com.google.inject.extensions</groupId>
           <artifactId>guice-servlet</artifactId>
+        </exclusion>
+        <!-- Hadoop's Avro-based IO serialization; the Parquet write path uses parquet-hadoop, not
+             Avro, so it never loads. Excluded to drop an old (1.9.2) unused jar. -->
+        <exclusion>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
         </exclusion>
         <exclusion>
           <groupId>org.slf4j</groupId>
