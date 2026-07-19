@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,10 +50,13 @@ public final class ConfigLoader {
     }
 
     ConfigLoader(StringSubstitutor substitutor) {
-        this.mapper = new ObjectMapper(new YAMLFactory())
+        // Built via the mapper builder rather than ObjectMapper.configure(MapperFeature, ...),
+        // which is deprecated: MapperFeatures affect cached state and are meant to be set at build.
+        this.mapper = YAMLMapper.builder()
                 .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-        this.mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true);
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS)
+                .build();
         this.substitutor = substitutor;
     }
 
