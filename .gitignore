@@ -122,3 +122,6 @@ modules.xml
 .idea/codestream.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij
+
+# macOS
+.DS_Store
