@@ -10,7 +10,6 @@ import com.ozonehis.analytics.runtime.FlinkRunner;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +60,7 @@ public final class AnalyticsJob {
     }
 
     private static String names() {
-        return java.util.List.of("streaming-flatten", "batch-flatten", "file-export").stream()
-                .collect(Collectors.joining(", "));
+        return String.join(", ", java.util.List.of("streaming-flatten", "batch-flatten", "file-export"));
     }
 
     /** A system property wins over the environment, which makes local overrides easy. */
