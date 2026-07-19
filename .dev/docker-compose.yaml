@@ -118,11 +118,13 @@ services:
         condition: service_healthy
   connect:
     restart: on-failure
-    image: debezium/connect:${DEBEZIUM_VERSION}
+    image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
     ports:
       - ${CONNECT_HOST_PORT}:8083
     volumes:
-      - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-mysql/TimestampConverter-1.2.4-SNAPSHOT.jar
+      # Debezium 3.x split MariaDB into its own connector; the temporal converter is mounted into
+      # the mariadb and postgres plugin dirs (the old mysql dir is unused for our MariaDB source).
+      - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-mariadb/TimestampConverter-1.2.4-SNAPSHOT.jar
       - ./debezium-connect/jars/TimestampConverter-1.2.4-SNAPSHOT.jar:/kafka/connect/debezium-connector-postgres/TimestampConverter-1.2.4-SNAPSHOT.jar
     environment:
       - BOOTSTRAP_SERVERS=kafka:9092
