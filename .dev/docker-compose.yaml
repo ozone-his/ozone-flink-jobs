@@ -148,9 +148,14 @@ services:
       - CONNECT_ODOO_DB_SERVER_NAME=erp
       - CONNECT_ODOO_DB_INCLUDE_LIST=odoo
 
+  # Registers the Debezium connectors once Connect is up. Replaces a custom-built alpine image
+  # (curl + wait-for-it.sh + a shell script embedding the connector JSON) with a stock curl
+  # one-shot that PUTs the connector definitions from ./connect. The ${file:...} references in
+  # those files are resolved by Connect itself at registration time, so no secrets pass through
+  # here.
   connect-setup:
+    image: curlimages/curl:8.11.1
     restart: on-failure
-    build: ./setup-connect
     depends_on:
       connect:
         condition: service_started
@@ -158,13 +163,21 @@ services:
         condition: service_healthy
       postgresql:
         condition: service_healthy
-    environment:
-      - CONNECT_HOST=connect
-      - SOURCE_DB_HOST=${CONNECT_MYSQL_HOSTNAME}
-      - SOURCE_DB_PORT=${CONNECT_MYSQL_PORT}
-      - ODOO_DB_HOST=${ODOO_DB_HOST:-${CONNECT_ODOO_DB_HOSTNAME}}
-      - ODOO_DB_PORT=${ODOO_DB_PORT:-${CONNECT_ODOO_DB_PORT}}
-      - FLINK_JOBMANAGER_HOST=jobmanager
+    volumes:
+      - ./connect:/connectors:ro
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        until curl -sf http://connect:8083/connectors >/dev/null 2>&1; do
+          echo "waiting for kafka connect..."; sleep 3
+        done
+        for f in /connectors/*.json; do
+          name=$$(basename "$$f" .json)
+          echo "registering $$name"
+          curl -sS --fail -X PUT -H 'Content-Type: application/json' \
+            --data @"$$f" "http://connect:8083/connectors/$$name/config" || exit 1
+        done
+        echo "connectors registered"
   # ---------------------------------------------------------------------------
   # Flink cluster running the streaming pipeline in application mode.
   #

@@ -74,15 +74,3 @@ jobs:
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  docker-setup-connect:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: spotless
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
-    with:
-      context: ./.dev/setup-connect
-      dockerfile: Dockerfile
-      image-name: "ozone-analytics-setup-connect"
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
