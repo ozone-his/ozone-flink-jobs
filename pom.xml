@@ -36,41 +36,14 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <!-- ================================ Java ================================
-         `maven.compiler.release` validates against the Java 17 API, so artifacts load on any
-         JVM >= 17 (17, 21, 25). Flink supports Java 11/17/21 only (21 experimental, 25 not at
-         all), so 17 is both the compile baseline and the runtime we ship.
-         https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/java_compatibility/ -->
-    <!-- `release` supersedes `source`/`target`: setting those alongside it is contradictory and
-         fails the build. It also validates against the Java 17 API, not just the bytecode level,
-         so a Java 21+ method call cannot slip into an artifact that claims to run on 17. -->
+    <!-- ================================ Java ================================ -->
     <java.version>17</java.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
 
-    <!-- ================================ Flink ===============================
-         2.3.0 is the current release. Check availability against the repository's own metadata at
-         https://repo1.maven.org/maven2/org/apache/flink/flink-core/maven-metadata.xml, not the
-         search.maven.org index: that index lags and under-reports recent releases. -->
+    <!-- ================================ Flink ================================ -->
     <flink.version>2.3.0</flink.version>
-
-    <!-- Connectors release independently of Flink core, and the trailing `-2.x` is the Flink minor
-         they were built against. Neither is current: Kafka's newest is 5.0.0-2.2 and the JDBC
-         connector's is 4.0.0-2.0, so both run on a Flink minor they were not built against, which
-         is not a combination Apache Flink tests.
-
-         They are used here because the pairing was verified end-to-end rather than assumed: the
-         Postgres catalog registers, all 46 source tables resolve, the 12 flattening statements
-         submit as one job, a Debezium event flattens through to PostgreSQL, and checkpointing to
-         S3 succeeds, with no NoSuchMethodError, NoClassDefFoundError or
-         IncompatibleClassChangeError. Re-run that check when bumping any of these versions, and
-         prefer a matching connector release the moment one ships. If a pairing ever misbehaves,
-         Flink 2.0.2 with JDBC 4.0.0-2.0 and Kafka 4.0.1-2.0 is the exactly matched fallback. -->
     <flink.connector.jdbc.version>4.0.0-2.0</flink.connector.jdbc.version>
     <flink.connector.kafka.version>5.0.0-2.2</flink.connector.kafka.version>
-
-    <!-- Flink is `provided` for the shaded artifact because the cluster image already supplies it;
-         bundling it causes classloader conflicts. Overridden to `compile` by the `standalone`
-         profile for running a job outside a cluster. -->
     <flink.scope>provided</flink.scope>
 
     <!-- ========================== Runtime libraries ========================= -->
@@ -80,17 +53,14 @@
     <mysql.connector.version>9.7.0</mysql.connector.version>
     <commons.text.version>1.15.0</commons.text.version>
 
-    <!-- ================================ Logging =============================
-         Held on the 2.0.x line: 2.1.x is still alpha. -->
+    <!-- ================================ Logging =============================-->
     <slf4j.version>2.0.18</slf4j.version>
 
     <!-- ================================= Test =============================== -->
     <junit.version>6.1.2</junit.version>
     <assertj.version>3.27.7</assertj.version>
 
-    <!-- =============================== Plugins ==============================
-         compiler and surefire held on their stable lines: 4.0.0 and 3.6.0 are
-         still beta/milestone respectively. -->
+    <!-- =============================== Plugins ============================== -->
     <compiler.version>3.15.0</compiler.version>
     <surefire.version>3.5.6</surefire.version>
     <shade.version>3.6.2</shade.version>
@@ -99,8 +69,7 @@
   </properties>
 
   <dependencies>
-    <!-- ============================ Flink runtime ===========================
-         Supplied by the Flink cluster image at runtime. -->
+    <!-- ============================ Flink runtime =========================== -->
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-table-api-java-bridge</artifactId>
@@ -161,16 +130,6 @@
       <artifactId>flink-parquet</artifactId>
       <version>${flink.version}</version>
     </dependency>
-    <!-- flink-parquet writes through parquet-hadoop, which needs Hadoop's Configuration on the
-         classpath. Without it the export job fails at runtime with NoClassDefFoundError. Only the
-         export pipeline uses it, but the image is shared, so it is bundled here. mapreduce-client
-         is pulled down to -core: parquet needs the output-format classes, not a MapReduce runtime.
-
-         Both artifacts drag in Hadoop's full server stack — HDFS, YARN, an embedded Jetty web UI,
-         Jersey REST, ZooKeeper/Curator, Kerberos (Kerby), and every Netty module. None of it runs
-         when Flink writes Parquet to a local or S3 path, so it is excluded here. This keeps the
-         Kerberos code paths (which reference the excluded classes) off our execution path, so
-         nothing NoClassDefs; it also sheds ~60 MB and a large attack surface from the uber jar. -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
@@ -180,10 +139,6 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>*</artifactId>
         </exclusion>
-        <!-- Hadoop's embedded web UI / JAX-RS stack: Jersey 2, HK2, JAXB, javassist and their
-             jakarta.* APIs. Excluding the Jersey and JAXB roots and the jakarta APIs that hadoop-common
-             declares directly cascades the rest (hk2, javassist, jakarta.inject/validation/annotation)
-             out too. Prior Hadoop shipped Sun Jersey 1.x here; 3.5.0 moved to these coordinates. -->
         <exclusion>
           <groupId>org.glassfish.jersey.core</groupId>
           <artifactId>*</artifactId>
@@ -358,12 +313,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <!-- No <repositories> block by design. Every dependency resolves from Maven Central, so listing
-       the Nexus repos here only made each artifact miss twice before falling back to Central. The
-       Nexus coordinates are still needed to *publish*, which is what distributionManagement above
-       is for. Keep it that way: a dependency that requires the private Nexus would make the build
-       non-hermetic and unbuildable in a cold container. -->
 
   <build>
     <plugins>
