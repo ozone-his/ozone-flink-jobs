@@ -57,6 +57,12 @@ public final class FlinkRunner {
                 });
     }
 
+    // registerCatalog(String, Catalog) is deprecated in favour of createCatalog(String,
+    // CatalogDescriptor), which is options/factory-based. We deliberately construct dialect-specific
+    // catalog instances (PostgresCatalog/MySqlCatalog from the split JDBC connector) and register
+    // them directly, so the instance-based call is the right fit; the deprecation is suppressed
+    // rather than worked around.
+    @SuppressWarnings("deprecation")
     private void registerCatalogs(TableEnvironment tableEnv) {
         for (AnalyticsConfig.Catalog catalog : config.catalogs()) {
             LOG.info("Registering {} catalog '{}'", catalog.dialect(), catalog.name());

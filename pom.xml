@@ -161,13 +161,78 @@
     <!-- flink-parquet writes through parquet-hadoop, which needs Hadoop's Configuration on the
          classpath. Without it the export job fails at runtime with NoClassDefFoundError. Only the
          export pipeline uses it, but the image is shared, so it is bundled here. mapreduce-client
-         is excluded down to -core: parquet needs the output-format classes, not a MapReduce
-         runtime, and the full client drags in a large transitive tree. -->
+         is pulled down to -core: parquet needs the output-format classes, not a MapReduce runtime.
+
+         Both artifacts drag in Hadoop's full server stack — HDFS, YARN, an embedded Jetty web UI,
+         Jersey REST, ZooKeeper/Curator, Kerberos (Kerby), and every Netty module. None of it runs
+         when Flink writes Parquet to a local or S3 path, so it is excluded here. This keeps the
+         Kerberos code paths (which reference the excluded classes) off our execution path, so
+         nothing NoClassDefs; it also sheds ~60 MB and a large attack surface from the uber jar. -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
       <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.github.pjfanning</groupId>
+          <artifactId>jersey-json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.zookeeper</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.kerby</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>nimbus-jose-jwt</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk18on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.re2j</groupId>
+          <artifactId>re2j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.jcraft</groupId>
+          <artifactId>jsch</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>dnsjava</groupId>
+          <artifactId>dnsjava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.reload4j</groupId>
+          <artifactId>reload4j</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-reload4j</artifactId>
@@ -178,6 +243,32 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-common</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.inject.extensions</groupId>
+          <artifactId>guice-servlet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- ============================ JDBC drivers ============================ -->
@@ -277,14 +368,26 @@
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <filters>
                 <filter>
-                  <!-- Signatures from bundled dependencies do not cover the shaded JAR and cause
-                       SecurityExceptions if kept. -->
                   <artifact>*:*</artifact>
                   <excludes>
+                    <!-- Signatures from bundled dependencies do not cover the shaded JAR and cause
+                         SecurityExceptions if kept. -->
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>module-info.class</exclude>
+                    <!-- Per-dependency build and legal metadata. Every JAR ships its own copy, so
+                         they collide during shading; none is read at runtime. Dropping them silences
+                         the overlap warnings. META-INF/services is deliberately left alone — the
+                         ServicesResourceTransformer below merges those, and they are load-bearing. -->
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/*LICENSE*</exclude>
+                    <exclude>META-INF/*NOTICE*</exclude>
+                    <exclude>META-INF/*license*</exclude>
+                    <exclude>META-INF/*notice*</exclude>
+                    <exclude>LICENSE*</exclude>
+                    <exclude>NOTICE*</exclude>
                   </excludes>
                 </filter>
               </filters>
