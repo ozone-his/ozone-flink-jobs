@@ -1,9 +1,6 @@
+# Apple Silicon override. Only debezium/connect lacks an arm64 image now, so it is the only service
+# forced to amd64 emulation. Kafka (apache/kafka), Redpanda Console and the databases are all
+# multi-arch and run natively.
 services:
-  zookeeper:
-    platform: linux/amd64
-  kafka:
-    platform: linux/amd64
-  kafka-setup:
-    platform: linux/amd64
   connect:
     platform: linux/amd64
