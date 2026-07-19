@@ -60,8 +60,8 @@ Two files, and the split is the point:
 
 |      File       |                      Owns                       |                             Example                              |
 |-----------------|-------------------------------------------------|------------------------------------------------------------------|
-| Pipeline config | Catalogs, sources, sinks — **what**             | [`development/data/config.yaml`](development/data/config.yaml)   |
-| Cluster config  | Parallelism, checkpointing, state, S3 — **how** | [`development/flink/config.yaml`](development/flink/config.yaml) |
+| Pipeline config | Catalogs, sources, sinks — **what**             | [`.dev/data/config.yaml`](.dev/data/config.yaml)   |
+| Cluster config  | Parallelism, checkpointing, state, S3 — **how** | [`.dev/flink/config.yaml`](.dev/flink/config.yaml) |
 
 The pipeline config resolves `${VAR}` and `${VAR:-default}` against the environment, so no
 credential is written to a file or baked into an image. Substitution happens after the YAML is
@@ -101,7 +101,7 @@ export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flatt
 export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/queries
 export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-distro/analytics_config/liquibase/analytics
 
-cd development
+cd .dev
 docker compose up -d
 ```
 

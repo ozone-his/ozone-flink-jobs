@@ -2,7 +2,7 @@ services:
   # ---------------------------------------------------------------------------
   # Source and sink databases.
   #
-  # These make the development stack self-contained. It previously assumed an externally running
+  # These make the dev stack self-contained. It previously assumed an externally running
   # Ozone HIS supplied them, which meant nothing here could be started on its own.
   #
   # The schemas under ./seed are generated from the Flink table definitions, so they carry exactly
@@ -93,7 +93,6 @@ services:
       - CLUSTER_ID=5Yr1SIgYQz-b-dgRabWx4g
       - BROKER_ID=1
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
-      # - CREATE_TOPICS=${CREATE_TOPICS}
       - KAFKA_LISTENERS=PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093,PLAINTEXT_HOST://0.0.0.0:29092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
@@ -362,15 +361,6 @@ services:
     depends_on:
       - "kafka"
       - "connect"
-  odoo-replica-identity-migration:
-    image: liquibase/liquibase:4.24
-    restart: on-failure
-    volumes:
-      - ./liquibase/odoo/:/liquibase/changelog/
-    command: update -Dtables='databasechangelog,account_account' --username=${CONNECT_ODOO_DB_USER} --password=${CONNECT_ODOO_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${CONNECT_ODOO_DB_HOSTNAME}:${CONNECT_ODOO_DB_PORT}/${CONNECT_ODOO_DB_NAME}
-    environment:
-      - INSTALL_POSTGRESQL='true'
-      - TABLES=${ODOO_ANALYTICS_TABLES}
   # Creates the flattened destination tables the pipelines write into. Must complete before any
   # job starts: Flink resolves the sink tables through the catalog at submission time and fails
   # outright if they are missing.

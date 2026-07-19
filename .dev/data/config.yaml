@@ -2,7 +2,7 @@
 #
 # This describes WHAT the ETL computes: where data is read from, how it is flattened, and where it
 # is written. How Flink runs it (parallelism, checkpointing, state, S3) belongs to the cluster's
-# own config.yaml -- see development/flink/config.yaml.
+# own config.yaml -- see .dev/flink/config.yaml.
 #
 # ${VAR} and ${VAR:-default} are resolved against the environment at startup, so no credential is
 # ever written here. Unknown keys are rejected rather than ignored.

@@ -1,7 +1,7 @@
 # Flink cluster configuration (Flink 2.x `config.yaml` format, which replaced `flink-conf.yaml`).
 #
 # This owns HOW the pipeline runs. What it computes is defined separately in the pipeline
-# configuration -- see development/data/config.yaml.
+# configuration -- see .dev/data/config.yaml.
 #
 # These settings used to be assembled in Java to configure an embedded MiniCluster, which meant a
 # tuning change required a rebuild. They belong to the cluster, so they live here and are shared by
