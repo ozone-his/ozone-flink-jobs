@@ -28,8 +28,15 @@ jobmanager:
     address: jobmanager
     port: 6123
   memory:
+    # The JobManager runs the application main(), which plans every job and loads its Janino-generated
+    # operator classes into Metaspace. With each flattening statement now its own job, ~12 jobs are
+    # planned in this one JVM, and the 256m default Metaspace overflows -- the JobManager OOMs, and in
+    # application mode that resubmits all jobs, which reloads everything: a crash loop. Sized here to
+    # hold every job's classes at once with headroom.
     process:
-      size: 1600m
+      size: 3g
+    jvm-metaspace:
+      size: 1g
 
 # Each flattening statement runs as its own Flink job, and a streaming job holds its slots for as
 # long as it runs. The flatten pipeline is ~12 statements, so the cluster needs at least that many
