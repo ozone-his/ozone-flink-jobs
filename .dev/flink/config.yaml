@@ -76,6 +76,10 @@ state:
   savepoints:
     dir: s3://flink-state-bucket/savepoints/
 
+# NOTE: high availability is NOT set here. This file is shared with the batch and export profiles,
+# which run in application mode where multi-job HA is unsupported. HA belongs only to the streaming
+# session cluster, so it is passed there as -D overrides in docker-compose.yaml, not baked in here.
+
 restart-strategy:
   type: exponential-delay
 
