@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * Entry point for the Ozone analytics ETL pipelines.
  *
  * <p>Usage: {@code AnalyticsJob <pipeline>} where {@code pipeline} is one of {@code
- * streaming-flatten}, {@code batch-flatten} or {@code file-export}. Each published image passes its
+ * streaming}, {@code batch} or {@code export}. Each published image passes its
  * own pipeline, so which one an image runs is fixed at build time.
  *
  * <p>Failures are deliberately allowed to propagate out of {@code main}: the JVM then exits
@@ -51,16 +51,16 @@ public final class AnalyticsJob {
     /** Resolves a pipeline by name, preferring a system property over the environment. */
     private static Pipeline pipeline(String name, AnalyticsConfig config) {
         return switch (name.toLowerCase(Locale.ROOT)) {
-            case "streaming-flatten" -> new StreamingFlattenPipeline(config);
-            case "batch-flatten" -> new BatchFlattenPipeline(config);
-            case "file-export" -> new FileExportPipeline(config);
+            case "streaming" -> new StreamingFlattenPipeline(config);
+            case "batch" -> new BatchFlattenPipeline(config);
+            case "export" -> new FileExportPipeline(config);
             default ->
                 throw new IllegalArgumentException("Unknown pipeline '" + name + "'. Expected one of " + names());
         };
     }
 
     private static String names() {
-        return String.join(", ", java.util.List.of("streaming-flatten", "batch-flatten", "file-export"));
+        return String.join(", ", java.util.List.of("streaming", "batch", "export"));
     }
 
     /** A system property wins over the environment, which makes local overrides easy. */

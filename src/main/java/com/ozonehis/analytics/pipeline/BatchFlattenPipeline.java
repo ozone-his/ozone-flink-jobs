@@ -25,7 +25,7 @@ public final class BatchFlattenPipeline implements Pipeline {
 
     @Override
     public String name() {
-        return "batch-flatten";
+        return "batch";
     }
 
     @Override

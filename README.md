@@ -10,12 +10,12 @@ straightforward to query and report on.
   ───────                    ─────────                  ────                    ─────
 
   OpenMRS (MySQL) ─┐  Debezium   ┌─ Kafka topics ──┐                       ┌─ PostgreSQL
-                   ├─ CDC ──────▶│ (debezium-json) │─▶ streaming-flatten ─▶│  (analytics)
+                   ├─ CDC ──────▶│ (debezium-json) │─▶ streaming ─▶│  (analytics)
   Odoo (Postgres) ─┘             └─────────────────┘         │             └──────┬──────
                    │                                         │                    │
-                   └─ JDBC (bounded read) ─────────▶ batch-flatten ───────────────┤
+                   └─ JDBC (bounded read) ─────────▶ batch ───────────────┤
                                                                                   │
-                                                      file-export ◀───────────────┘
+                                                      export ◀───────────────┘
                                                            │
                                                            ▼
                                                    Parquet/CSV ─▶ MinIO ─▶ Drill / Superset
@@ -23,11 +23,11 @@ straightforward to query and report on.
 
 Three pipelines, all expressed as SQL:
 
-|      Pipeline       |          Extracts from          |                         Purpose                         |
-|---------------------|---------------------------------|---------------------------------------------------------|
-| `streaming-flatten` | Debezium change events on Kafka | Keeps the analytics tables continuously up to date      |
-| `batch-flatten`     | The source databases over JDBC  | Backfills in one pass, without replaying the change log |
-| `file-export`       | The flattened analytics tables  | Exports Parquet/CSV for a central warehouse             |
+|  Pipeline   |          Extracts from          |                         Purpose                         |
+|-------------|---------------------------------|---------------------------------------------------------|
+| `streaming` | Debezium change events on Kafka | Keeps the analytics tables continuously up to date      |
+| `batch`     | The source databases over JDBC  | Backfills in one pass, without replaying the change log |
+| `export`    | The flattened analytics tables  | Exports Parquet/CSV for a central warehouse             |
 
 ## Architecture
 
@@ -83,9 +83,9 @@ mvn clean verify
 Which pipeline an image runs is fixed at build time by the `PIPELINE` build argument:
 
 ```bash
-docker build --build-arg PIPELINE=streaming-flatten -t ozone-flink-jobs .
-docker build --build-arg PIPELINE=batch-flatten     -t ozone-flink-jobs-batch .
-docker build --build-arg PIPELINE=file-export       -t ozone-flink-parquet-export .
+docker build --build-arg PIPELINE=streaming -t ozone-flink-jobs .
+docker build --build-arg PIPELINE=batch -t ozone-flink-jobs-batch .
+docker build --build-arg PIPELINE=export -t ozone-flink-parquet-export .
 ```
 
 Each image serves both cluster roles: the JobManager runs the baked-in command, and TaskManagers
