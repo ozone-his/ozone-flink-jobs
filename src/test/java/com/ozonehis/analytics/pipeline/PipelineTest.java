@@ -67,7 +67,7 @@ class PipelineTest {
 
         List<Job> jobs = new StreamingFlattenPipeline(config).jobs();
 
-        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("streaming-flatten-patients");
+        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("streaming-patients");
         assertThat(jobs.get(0).tableDefinitions())
                 .singleElement(STRING)
                 .contains("'connector' = 'kafka'")
@@ -159,7 +159,7 @@ class PipelineTest {
 
         List<Job> jobs = new FileExportPipeline(cfg, fixed).jobs();
 
-        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("file-export-patients");
+        assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("export-patients");
         assertThat(jobs.get(0).tableDefinitions())
                 .singleElement(STRING)
                 // Timestamp is colon-free so the path is valid on any filesystem.

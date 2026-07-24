@@ -18,7 +18,7 @@ catalogs:
 
 # Where change data is extracted from.
 sources:
-  # Debezium change events on Kafka, used by the streaming-flatten pipeline.
+  # Debezium change events on Kafka, used by the streaming pipeline.
   # Each .sql file under tableDefinitions maps to the topic <topicPrefix>.<fileName>.
   kafka:
     - topicPrefix: emr.openmrs
@@ -28,7 +28,7 @@ sources:
       bootstrapServers: '${ANALYTICS_KAFKA_URL:-localhost:9092}'
       tableDefinitions: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/odoo'
 
-  # The same source databases read directly, used by the batch-flatten pipeline to backfill.
+  # The same source databases read directly, used by the batch pipeline to backfill.
   jdbc:
     - url: 'jdbc:mysql://${OPENMRS_DB_HOST:-localhost}:${OPENMRS_DB_PORT:-3306}/${OPENMRS_DB_NAME:-openmrs}?sslmode=disable'
       username: '${OPENMRS_DB_USER:-openmrs}'
@@ -47,7 +47,7 @@ sinks:
       database: '${ANALYTICS_DB_NAME:-analytics}'
       queries: '${ANALYTICS_QUERIES_PATH:-/analytics/queries}'
 
-  # Used by the file-export pipeline. Each run writes to its own timestamped directory.
+  # Used by the export pipeline. Each run writes to its own timestamped directory.
   files:
     - tableDefinitions: '${EXPORT_DESTINATION_TABLES_PATH:-/export/destination-tables}'
       queries: '${EXPORT_SOURCE_QUERIES_PATH:-/export/queries}'

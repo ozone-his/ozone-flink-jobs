@@ -234,7 +234,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        PIPELINE: streaming-flatten
+        PIPELINE: streaming
     restart: on-failure
     volumes:
       - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
@@ -275,7 +275,7 @@ services:
         fi
         echo "Submitting streaming jobs to the session cluster..."
         exec /opt/flink/bin/flink run -m $$JM -d \
-          -c com.ozonehis.analytics.AnalyticsJob /opt/flink/usrlib/analytics-etl.jar streaming-flatten
+          -c com.ozonehis.analytics.AnalyticsJob /opt/flink/usrlib/analytics-etl.jar streaming
     depends_on:
       jobmanager:
         condition: service_started
@@ -299,7 +299,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        PIPELINE: batch-flatten
+        PIPELINE: batch
     profiles: [ batch ]
     restart: on-failure
     # The shared flink/config.yaml points jobmanager.rpc.address at the host `jobmanager`. Batch is
@@ -349,7 +349,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        PIPELINE: file-export
+        PIPELINE: export
     profiles: [ export ]
     restart: on-failure
     networks:

@@ -3,9 +3,9 @@
 # Builds one image per pipeline. The pipeline is fixed at build time via the PIPELINE build
 # argument, which becomes the image's baked-in command:
 #
-#   docker build --build-arg PIPELINE=streaming-flatten -t ozone-flink-jobs .
-#   docker build --build-arg PIPELINE=batch-flatten     -t ozone-flink-jobs-batch .
-#   docker build --build-arg PIPELINE=file-export       -t ozone-flink-parquet-export .
+#   docker build --build-arg PIPELINE=streaming -t ozone-flink-jobs .
+#   docker build --build-arg PIPELINE=batch -t ozone-flink-jobs-batch .
+#   docker build --build-arg PIPELINE=export -t ozone-flink-parquet-export .
 #
 # Each image runs in Flink application mode and serves both cluster roles: the JobManager runs the
 # default command below, and TaskManagers run the same image with the command overridden to
@@ -22,7 +22,7 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -B clean package
 
 FROM flink:${FLINK_VERSION}-java${JAVA_VERSION}
-ARG PIPELINE=streaming-flatten
+ARG PIPELINE=streaming
 ARG JAR_VERSION=3.0.0-SNAPSHOT
 
 # Flink ships S3 support under opt/ but only loads it from plugins/.

@@ -23,7 +23,7 @@ public final class StreamingFlattenPipeline implements Pipeline {
 
     @Override
     public String name() {
-        return "streaming-flatten";
+        return "streaming";
     }
 
     @Override

@@ -53,7 +53,7 @@ public final class FileExportPipeline implements Pipeline {
 
     @Override
     public String name() {
-        return "file-export";
+        return "export";
     }
 
     @Override

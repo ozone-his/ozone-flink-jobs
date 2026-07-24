@@ -61,11 +61,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - pipeline: streaming-flatten
+          - pipeline: streaming
             image-name: ozone-flink-jobs
-          - pipeline: batch-flatten
+          - pipeline: batch
             image-name: ozone-flink-jobs-batch
-          - pipeline: file-export
+          - pipeline: export
             image-name: ozone-flink-parquet-export
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
