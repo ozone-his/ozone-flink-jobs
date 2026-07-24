@@ -76,9 +76,16 @@ state:
   savepoints:
     dir: s3://flink-state-bucket/savepoints/
 
-# NOTE: high availability is NOT set here. This file is shared with the batch and export profiles,
-# which run in application mode where multi-job HA is unsupported. HA belongs only to the streaming
-# session cluster, so it is passed there as -D overrides in docker-compose.yaml, not baked in here.
+# High availability. This is the streaming SESSION cluster's config: config.yaml plus this block.
+# Keep the shared settings above in sync with config.yaml -- only the high-availability block below
+# differs. HA stores the job graphs and each job's latest-checkpoint pointer in ZooKeeper + S3, so a
+# JobManager that restarts recovers the running jobs from their checkpoint instead of losing them.
+high-availability:
+  type: zookeeper
+  storageDir: s3://flink-state-bucket/ha/
+  cluster-id: /ozone-analytics-streaming
+  zookeeper:
+    quorum: zookeeper:2181
 
 restart-strategy:
   type: exponential-delay
