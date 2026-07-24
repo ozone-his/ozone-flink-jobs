@@ -122,7 +122,7 @@ public record AnalyticsConfig(List<Catalog> catalogs, Sources sources, Sinks sin
     }
 
     /** Flattened data exported to files for shipping to a central warehouse. */
-    @JsonIgnoreProperties(ignoreUnknown = false)
+    @JsonIgnoreProperties()
     public record FileSink(String tableDefinitions, String queries, String outputPath, String tag, FileFormat format) {
 
         public FileSink {
