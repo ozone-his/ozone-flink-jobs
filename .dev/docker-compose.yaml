@@ -34,7 +34,7 @@ services:
       - mariadb-data:/var/lib/mysql
       - ./seed/mariadb:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -62,15 +62,12 @@ services:
       - postgresql-data:/var/lib/postgresql/data
       - ./seed/postgres:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CONNECT_ODOO_DB_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CONNECT_ODOO_DB_NAME}" ]
       interval: 10s
       timeout: 5s
       retries: 12
 
-  # Apache Kafka in KRaft mode -- no ZooKeeper. The official multi-arch image runs natively on
-  # Apple Silicon (the old debezium/kafka was amd64-only), and a single node acts as both broker
-  # and controller, which is all a dev stack needs. Storage is intentionally ephemeral: a fresh
-  # `up` gives a clean slate, and Debezium re-snapshots the sources anyway.
+  # A single-node Kafka cluster in KRaft mode. It is not a production setup: it has no replication, no authentication, and no TLS. It is only for local development and testing.
   kafka:
     restart: on-failure
     image: apache/kafka:${KAFKA_VERSION}
@@ -92,7 +89,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1"]
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1" ]
       interval: 10s
       timeout: 10s
       retries: 15
@@ -148,11 +145,7 @@ services:
       - CONNECT_ODOO_DB_SERVER_NAME=erp
       - CONNECT_ODOO_DB_INCLUDE_LIST=odoo
 
-  # Registers the Debezium connectors once Connect is up. Replaces a custom-built alpine image
-  # (curl + wait-for-it.sh + a shell script embedding the connector JSON) with a stock curl
-  # one-shot that PUTs the connector definitions from ./connect. The ${file:...} references in
-  # those files are resolved by Connect itself at registration time, so no secrets pass through
-  # here.
+  # Registers the Debezium connectors once Connect is up.
   connect-setup:
     image: curlimages/curl:8.11.1
     restart: on-failure
@@ -165,7 +158,7 @@ services:
         condition: service_healthy
     volumes:
       - ./connect:/connectors:ro
-    entrypoint: ["sh", "-c"]
+    entrypoint: [ "sh", "-c" ]
     command:
       - |
         until curl -sf http://connect:8083/connectors >/dev/null 2>&1; do
@@ -178,11 +171,12 @@ services:
             --data @"$$f" "http://connect:8083/connectors/$$name/config" || exit 1
         done
         echo "connectors registered"
+
   # ---------------------------------------------------------------------------
   # Streaming: a Flink SESSION cluster with high availability.
   #
   # The streaming jobs run for as long as the pipeline exists. Rather than bake them into an
-  # application image -- application mode cannot give a cluster running many jobs HA -- they are
+  # application image. Application mode cannot give a cluster running many jobs HA; they are
   # submitted to this long-lived session cluster by the job-submitter below. HA (ZooKeeper + S3)
   # lets the JobManager recover the running jobs from their last checkpoint after a restart instead
   # of losing them.
@@ -206,7 +200,7 @@ services:
   jobmanager: &flink-cluster
     image: flink:2.3.0-java17
     restart: unless-stopped
-    command: ["jobmanager"]
+    command: [ "jobmanager" ]
     ports:
       - "${FLINK_UI_HOST_PORT}:8081"   # Flink web UI
       - "9250:9250"                    # Prometheus metrics
@@ -224,8 +218,8 @@ services:
 
   taskmanager:
     <<: *flink-cluster
-    ports: []
-    command: ["taskmanager"]
+    ports: [ ]
+    command: [ "taskmanager" ]
     depends_on:
       - jobmanager
     deploy:
@@ -248,7 +242,6 @@ services:
       - ${ANALYTICS_SOURCE_TABLES_PATH}:/analytics/source-tables:ro
       - ${ANALYTICS_QUERIES_PATH}:/analytics/queries:ro
     environment: &flink-env
-      # Resolved into /etc/analytics/config.yaml at startup. No credential is baked into an image.
       - ANALYTICS_DB_NAME=${ANALYTICS_DB_NAME}
       - ANALYTICS_DB_USER=${ANALYTICS_DB_USER}
       - ANALYTICS_DB_PASSWORD=${ANALYTICS_DB_PASSWORD}
@@ -307,14 +300,14 @@ services:
       dockerfile: Dockerfile
       args:
         PIPELINE: batch-flatten
-    profiles: [batch]
+    profiles: [ batch ]
     restart: on-failure
     # The shared flink/config.yaml points jobmanager.rpc.address at the host `jobmanager`. Batch is
     # an alternate mode run while the streaming cluster is stopped, so this JobManager takes that
     # name within the network and its TaskManager can find it without a separate config.
     networks:
       default:
-        aliases: [jobmanager]
+        aliases: [ jobmanager ]
     ports:
       - "${BATCH_UI_HOST_PORT}:8081"
     volumes:
@@ -336,11 +329,11 @@ services:
   batch-taskmanager:
     <<: *batch
     command: taskmanager
-    ports: []
+    ports: [ ]
     # Drop the JobManager's `jobmanager` alias inherited via the YAML merge, or the name would
     # round-robin between this container and the JobManager.
     networks:
-      default: {}
+      default: { }
     depends_on:
       - batch-jobmanager
 
@@ -357,11 +350,11 @@ services:
       dockerfile: Dockerfile
       args:
         PIPELINE: file-export
-    profiles: [export]
+    profiles: [ export ]
     restart: on-failure
     networks:
       default:
-        aliases: [jobmanager]
+        aliases: [ jobmanager ]
     ports:
       - "${EXPORT_UI_HOST_PORT}:8081"
     volumes:
@@ -389,15 +382,14 @@ services:
   export-taskmanager:
     <<: *export
     command: taskmanager
-    ports: []
+    ports: [ ]
     environment: *export-env
     networks:
-      default: {}
+      default: { }
     depends_on:
       - export-jobmanager
 
-  # Redpanda Console -- the maintained successor to Kowl (same config schema), for browsing topics
-  # and the Connect cluster.
+  # Redpanda Console for browsing topics and the Connect cluster.
   redpanda-console:
     image: redpandadata/console:${REDPANDA_CONSOLE_VERSION}
     restart: on-failure
