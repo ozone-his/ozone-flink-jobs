@@ -424,40 +424,57 @@ services:
     command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
     environment:
       - INSTALL_POSTGRESQL='true'
-  minio:
-    image: minio/minio
+  # SeaweedFS is the S3 store for Flink checkpoints, savepoints and the HA state. It replaces MinIO:
+  # the same S3 API (so only the endpoint changes), but lighter and without MinIO's community-edition
+  # restrictions. `weed server -s3` runs the master, volume, filer and S3 gateway in one process.
+  seaweedfs:
+    image: chrislusf/seaweedfs:${SEAWEEDFS_VERSION}
+    restart: on-failure
     ports:
-      - "9000:9000"
-      - "9099:9099"
+      - "8333:8333"   # S3 API
+      - "8888:8888"   # filer UI, to browse the bucket contents
     volumes:
-      - storage-minio:/data
+      - seaweedfs-data:/data
     environment:
-      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
-    command: server --address ":9099" --console-address ":9000" /data
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    # Write the S3 auth config from the credentials, then start the server. The identity's key pair
+    # is what Flink signs its requests with.
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        cat > /tmp/s3.json <<CFG
+        {"identities":[{"name":"flink","credentials":[{"accessKey":"$${AWS_ACCESS_KEY_ID}","secretKey":"$${AWS_SECRET_ACCESS_KEY}"}],"actions":["Admin"]}]}
+        CFG
+        exec weed server -dir=/data -s3 -s3.config=/tmp/s3.json -ip.bind=0.0.0.0
     healthcheck:
-      test: timeout 5s bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1
-      start_period: 5s
+      test: [ "CMD-SHELL", "wget -q -O /dev/null http://localhost:9333/ || exit 1" ]
+      start_period: 10s
       interval: 10s
       timeout: 5s
-      retries: 2
+      retries: 12
 
-  # Creates the bucket Flink checkpoints into. `mc config host add` was removed from newer mc
-  # releases in favour of `mc alias set`; combined with the trailing `exit 0` the failure was
-  # silent, and the only symptom was Flink failing every checkpoint with NoSuchBucket while the job
-  # still reported RUNNING (tolerable-failed-checkpoints hides it). Fail loudly instead.
+  # Creates the bucket Flink checkpoints into. Failing here loudly matters: a missing bucket makes
+  # Flink fail every checkpoint with NoSuchBucket while the job still reports RUNNING, because
+  # tolerable-failed-checkpoints hides it.
   createbuckets:
-    image: minio/mc
+    image: chrislusf/seaweedfs:${SEAWEEDFS_VERSION}
     depends_on:
-      minio:
+      seaweedfs:
         condition: service_healthy
-    entrypoint: >
-      /bin/sh -ec "
-      /usr/bin/mc alias set myminio http://minio:9099 '${AWS_ACCESS_KEY_ID}' '${AWS_SECRET_ACCESS_KEY}';
-      /usr/bin/mc mb --ignore-existing myminio/${FLINK_STATE_BUCKET};
-      "
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        for i in $$(seq 1 20); do
+          echo "s3.bucket.create -name ${FLINK_STATE_BUCKET}" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
+          if echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 2>/dev/null | grep -q "${FLINK_STATE_BUCKET}"; then
+            echo "bucket ${FLINK_STATE_BUCKET} ready"; exit 0
+          fi
+          echo "waiting for seaweedfs..."; sleep 3
+        done
+        echo "bucket creation failed"; exit 1
 
 volumes:
   mariadb-data: ~
   postgresql-data: ~
-  storage-minio: ~
+  seaweedfs-data: ~

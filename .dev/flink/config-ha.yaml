@@ -55,7 +55,7 @@ taskmanager:
 parallelism:
   default: 1
 
-# Exactly-once checkpointing to S3 (MinIO). Unaligned checkpoints keep barriers moving when a sink
+# Exactly-once checkpointing to S3 (SeaweedFS). Unaligned checkpoints keep barriers moving when a sink
 # backpressures, so one slow sink does not stall its job's checkpoints.
 execution:
   checkpointing:
@@ -114,11 +114,11 @@ table:
     state:
       ttl: 1h
 
-# Presto S3 access to MinIO. Credentials are not written here: AWS_ACCESS_KEY_ID and
+# Presto S3 access to SeaweedFS. Credentials are not written here: AWS_ACCESS_KEY_ID and
 # AWS_SECRET_ACCESS_KEY from the environment are picked up by the standard AWS credential chain.
-# Path-style access is required because MinIO does not serve virtual-host style buckets.
+# Path-style access is required because SeaweedFS does not serve virtual-host style buckets.
 s3:
-  endpoint: http://minio:9099
+  endpoint: http://seaweedfs:8333
   path:
     style:
       access: true
