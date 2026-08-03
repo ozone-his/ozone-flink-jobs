@@ -297,9 +297,7 @@
       <scope>${flink.scope}</scope>
     </dependency>
 
-    <!-- ================================= Test ===============================
-         The suite is intentionally free of Docker and of private artifacts: the pipelines are pure
-         SQL builders, so they are asserted on directly. This keeps the build hermetic and fast. -->
+    <!-- ================================= Test =============================== -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>

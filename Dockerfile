@@ -1,4 +1,4 @@
-# Ozone Analytics ETL.
+# Ozone Analytics Engine
 #
 # Builds one image per pipeline. The pipeline is fixed at build time via the PIPELINE build
 # argument, which becomes the image's baked-in command:

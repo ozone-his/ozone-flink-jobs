@@ -1,135 +1,24 @@
-# Ozone Analytics ETL
+<h1 align="center">Ozone Analytics Engine</h1>
 
+<p align="center">
 Flink SQL pipelines that flatten data from the Ozone HIS components into tables that are
 straightforward to query and report on.
+</p>
 
-## The ETL
+<hr/>
+<br/>
 
-```
-  EXTRACT                    TRANSFORM                  LOAD                    SERVE
-  ───────                    ─────────                  ────                    ─────
+<p align="center">
+    <a href="https://docs.ozone-his.com/"><img src="https://raw.githubusercontent.com/ozone-his/.github/refs/heads/main/profile/ozone-logo.png" alt="Ozone" width="30%"/></a>
+</p>
 
-  OpenMRS (MySQL) ─┐  Debezium   ┌─ Kafka topics ──┐                       ┌─ PostgreSQL
-                   ├─ CDC ──────▶│ (debezium-json) │─▶ streaming ─▶│  (analytics)
-  Odoo (Postgres) ─┘             └─────────────────┘         │             └──────┬──────
-                   │                                         │                    │
-                   └─ JDBC (bounded read) ─────────▶ batch ───────────────┤
-                                                                                  │
-                                                      export ◀───────────────┘
-                                                           │
-                                                           ▼
-                                                   Parquet/CSV ─▶ MinIO ─▶ Drill / Superset
-```
+<h3 align="center">The Instant HIS</h3>
 
-Three pipelines, all expressed as SQL:
+<p align="center">
+    Welcome to Ozone's open-source repositories!
+    <br/>Engage with the Ozone community and access useful resources below:
+</p>
 
-|  Pipeline   |          Extracts from          |                         Purpose                         |
-|-------------|---------------------------------|---------------------------------------------------------|
-| `streaming` | Debezium change events on Kafka | Keeps the analytics tables continuously up to date      |
-| `batch`     | The source databases over JDBC  | Backfills in one pass, without replaying the change log |
-| `export`    | The flattened analytics tables  | Exports Parquet/CSV for a central warehouse             |
-
-## Architecture
-
-The guiding split is **what** the ETL computes versus **how** Flink runs it.
-
-```
-com.ozonehis.analytics
-├── AnalyticsJob        entry point; selects the pipeline named by its argument
-├── config/             the pipeline definition, as validated immutable records
-├── sql/                loading .sql files and rendering connector options
-├── pipeline/           the three pipelines — pure SQL builders, no Flink
-└── runtime/            the only code that talks to Flink
-```
-
-A `Pipeline` reads configuration and SQL files and returns statements. It never touches Flink and
-never executes anything, so the SQL it generates is asserted on directly in unit tests — no
-cluster, no containers. `FlinkRunner` is what executes it.
-
-### Runtime model
-
-Jobs run on a standalone Flink cluster in **application mode**; they do not start a cluster of
-their own. All INSERT statements are submitted together as a single `StatementSet`, so Flink plans
-them as one job: sinks reading the same source share one scan, and the pipeline has a single
-checkpoint and recovery boundary. The trade-off is a shared failure domain — a failure in one sink
-restarts the job.
-
-### Configuration
-
-Two files, and the split is the point:
-
-|      File       |                      Owns                       |                      Example                       |
-|-----------------|-------------------------------------------------|----------------------------------------------------|
-| Pipeline config | Catalogs, sources, sinks — **what**             | [`.dev/data/config.yaml`](.dev/data/config.yaml)   |
-| Cluster config  | Parallelism, checkpointing, state, S3 — **how** | [`.dev/flink/config.yaml`](.dev/flink/config.yaml) |
-
-The pipeline config resolves `${VAR}` and `${VAR:-default}` against the environment, so no
-credential is written to a file or baked into an image. Substitution happens after the YAML is
-parsed, so a secret containing a quote or a colon cannot corrupt the document. Unknown keys are
-rejected rather than ignored.
-
-`ANALYTICS_CONFIG_FILE` locates the pipeline config (default `/etc/analytics/config.yaml`).
-
-## Building
-
-Requires JDK 17. Artifacts are compiled with `--release 17`, so they load on any JVM ≥ 17; Flink
-itself supports Java 11/17/21 only ([21 experimental, 25 unsupported][java-compat]), and 17 is what
-ships.
-
-```bash
-mvn clean verify
-```
-
-Which pipeline an image runs is fixed at build time by the `PIPELINE` build argument:
-
-```bash
-docker build --build-arg PIPELINE=streaming -t ozone-flink-jobs .
-docker build --build-arg PIPELINE=batch -t ozone-flink-jobs-batch .
-docker build --build-arg PIPELINE=export -t ozone-flink-parquet-export .
-```
-
-Each image serves both cluster roles: the JobManager runs the baked-in command, and TaskManagers
-run the same image with the command overridden to `taskmanager`.
-
-## Running locally
-
-The project assumes a running Ozone HIS instance — see [ozone-docker][ozone-docker] — and the
-flattening SQL and migrations from the [distro][distro]'s `analytics_config` directory.
-
-```bash
-export ANALYTICS_SOURCE_TABLES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/tables
-export ANALYTICS_QUERIES_PATH=~/ozonepro-distro/analytics_config/dsl/flattening/queries
-export ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH=~/ozonepro-distro/analytics_config/liquibase/analytics
-
-cd .dev
-docker compose up -d
-```
-
-The Flink web UI is at <http://localhost:8081>, Prometheus metrics at <http://localhost:9250>, and
-Kafka/Connect are browsable via Kowl at <http://localhost:8282>.
-
-## Testing
-
-The suite is deliberately hermetic: no Docker, no private artifacts, no network. The pipelines are
-pure SQL builders, so they are tested by asserting on the SQL they generate.
-
-```bash
-mvn test
-```
-
-## Code formatting
-
-```bash
-mvn spotless:apply -Pspotless
-```
-
-## Gotchas
-
-When streaming from PostgreSQL, see [consuming data produced by the Debezium Postgres
-connector][dbz-postgres].
-
-[java-compat]: https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/java_compatibility/
-[ozone-docker]: https://github.com/ozone-his/ozone-docker
-[distro]: https://github.com/ozone-his/ozonepro-distro
-[dbz-postgres]: https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/formats/debezium/#consuming-data-produced-by-debezium-postgres-connector
-
+<h3 align="center">
+    <a href="https://docs.ozone-his.com/">Docs</a>&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://talk.openmrs.org/c/software/ozone-his/70">Forum</a>&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://openmrs.slack.com/archives/C02PYQD5D0A">Chat Room</a>
+</h3>

@@ -8,7 +8,7 @@ import java.util.Objects;
  * that drives them.
  *
  * <p>Each job becomes its own Flink job, so a failure in one neither fails nor restarts the others.
- * That isolation is the whole point of modelling a pipeline as many jobs rather than one: the cost
+ * That isolation is the whole point of modeling a pipeline as many jobs rather than one: the cost
  * is that jobs no longer share a source scan, and each holds its own slots for the life of the job.
  *
  * @param name a short, stable, unique name used for the Flink job name and for logging
