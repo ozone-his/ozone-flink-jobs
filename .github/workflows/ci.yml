@@ -9,8 +9,6 @@ on:
     types: [published]
 
 jobs:
-  # Gating build. Java 17 is the bytecode baseline and Flink's recommended runtime.
-  # The suite needs neither Docker nor private artifacts, so it runs in seconds.
   validate:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-build-test.yml@main
     with:
@@ -19,9 +17,6 @@ jobs:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
 
-  # Non-gating early warning for newer JVMs. Flink supports 21 only experimentally and does not
-  # support 25 at all, so these are expected to be less stable than `validate`. Keep these checks
-  # non-required in branch protection.
   forward-compat:
     strategy:
       fail-fast: false
