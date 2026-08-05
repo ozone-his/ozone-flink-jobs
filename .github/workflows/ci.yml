@@ -57,11 +57,11 @@ jobs:
       matrix:
         include:
           - pipeline: streaming
-            image-name: ozone-flink-jobs
+            image-name: ozone-flink-jobs-streaming
           - pipeline: batch
             image-name: ozone-flink-jobs-batch
           - pipeline: export
-            image-name: ozone-flink-parquet-export
+            image-name: ozone-flink-jobs-export
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
       image-name: ${{ matrix.image-name }}
