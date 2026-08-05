@@ -429,7 +429,6 @@
   </build>
 
   <profiles>
-    <!-- Bundles Flink itself, for running a pipeline outside a cluster image. -->
     <profile>
       <id>standalone</id>
       <properties>
