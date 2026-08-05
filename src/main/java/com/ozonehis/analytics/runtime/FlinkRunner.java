@@ -7,6 +7,7 @@ import com.ozonehis.analytics.pipeline.Pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 import org.apache.flink.table.api.TableResult;
@@ -104,6 +105,11 @@ public final class FlinkRunner {
         }
 
         TableEnvironment tableEnv = createTableEnvironment(mode);
+        // Without this Flink assigns its own name (e.g. "insert-into_catalog.db.table"), so the job
+        // this code deliberately named would still show up unnamed everywhere that matters: the Web
+        // UI, `flink list`, metrics tags. Each job has its own TableEnvironment, so this only scopes
+        // to the one job being submitted.
+        tableEnv.getConfig().set(PipelineOptions.NAME, job.name());
         registerCatalogs(tableEnv);
         job.tableDefinitions().forEach(tableEnv::executeSql);
 
