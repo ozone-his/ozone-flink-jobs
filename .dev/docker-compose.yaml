@@ -5,8 +5,9 @@ services:
   # These make the dev stack self-contained. It previously assumed an externally running
   # Ozone HIS supplied them, which meant nothing here could be started on its own.
   #
-  # The schemas under ./seed are generated from the Flink table definitions, so they carry exactly
-  # the columns the pipelines read and cannot drift from them. See seed/generate-schemas.py.
+  # The schemas under ./seed mirror the Flink table definitions column for column. They are
+  # hand-maintained: update them alongside any change to ANALYTICS_SOURCE_TABLES_PATH, or a job
+  # will fail at submission on a missing column.
   # ---------------------------------------------------------------------------
 
   # OpenMRS source. Debezium reads its binlog, which MariaDB does not enable by default:
@@ -190,7 +191,7 @@ services:
     image: zookeeper:3.9
     restart: unless-stopped
 
-  # Session cluster. Uses the base Flink image, not ozone-flink-jobs: the application jar is not on
+  # Session cluster. Uses the base Flink image, not ozone-flink-jobs-streaming: the application jar is not on
   # the cluster classpath (usrlib is only loaded in application mode) -- it rides in with each job
   # the submitter uploads. The S3 plugin is enabled from opt/ for checkpoints and the HA store.
   #
@@ -229,7 +230,7 @@ services:
   # place the application jar and the pipeline config live. It is idempotent: if the cluster already
   # has jobs running (recovered from HA after a restart), it does not resubmit them.
   job-submitter:
-    image: ozone-flink-jobs
+    image: ozone-flink-jobs-streaming
     build:
       context: ..
       dockerfile: Dockerfile
@@ -344,7 +345,7 @@ services:
   #   docker compose --profile export up export-jobmanager export-taskmanager
   # ---------------------------------------------------------------------------
   export-jobmanager: &export
-    image: ozone-flink-parquet-export
+    image: ozone-flink-jobs-export
     build:
       context: ..
       dockerfile: Dockerfile
