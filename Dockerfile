@@ -3,9 +3,9 @@
 # Builds one image per pipeline. The pipeline is fixed at build time via the PIPELINE build
 # argument, which becomes the image's baked-in command:
 #
-#   docker build --build-arg PIPELINE=streaming -t ozone-flink-jobs .
+#   docker build --build-arg PIPELINE=streaming -t ozone-flink-jobs-streaming .
 #   docker build --build-arg PIPELINE=batch -t ozone-flink-jobs-batch .
-#   docker build --build-arg PIPELINE=export -t ozone-flink-parquet-export .
+#   docker build --build-arg PIPELINE=export -t ozone-flink-jobs-export .
 #
 # Each image runs in Flink application mode and serves both cluster roles: the JobManager runs the
 # default command below, and TaskManagers run the same image with the command overridden to
