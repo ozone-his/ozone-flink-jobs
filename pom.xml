@@ -384,6 +384,47 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <palantirJavaFormat>
+              <version>${palantirJavaFormat.version}</version>
+            </palantirJavaFormat>
+            <removeUnusedImports/>
+            <formatAnnotations/>
+          </java>
+          <pom>
+            <includes>
+              <include>pom.xml</include>
+            </includes>
+            <sortPom>
+              <encoding>UTF-8</encoding>
+              <expandEmptyElements>false</expandEmptyElements>
+              <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+              <sortProperties>false</sortProperties>
+            </sortPom>
+          </pom>
+          <markdown>
+            <includes>
+              <include>**/*.md</include>
+            </includes>
+            <flexmark/>
+          </markdown>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals>
+              <goal>apply</goal>
+              <goal>check</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -394,54 +435,6 @@
       <properties>
         <flink.scope>compile</flink.scope>
       </properties>
-    </profile>
-    <profile>
-      <id>spotless</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.diffplug.spotless</groupId>
-            <artifactId>spotless-maven-plugin</artifactId>
-            <version>${spotless.version}</version>
-            <configuration>
-              <java>
-                <palantirJavaFormat>
-                  <version>${palantirJavaFormat.version}</version>
-                </palantirJavaFormat>
-                <removeUnusedImports/>
-                <formatAnnotations/>
-              </java>
-              <pom>
-                <includes>
-                  <include>pom.xml</include>
-                </includes>
-                <sortPom>
-                  <encoding>UTF-8</encoding>
-                  <expandEmptyElements>false</expandEmptyElements>
-                  <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
-                  <sortProperties>false</sortProperties>
-                </sortPom>
-              </pom>
-              <markdown>
-                <includes>
-                  <include>**/*.md</include>
-                </includes>
-                <flexmark/>
-              </markdown>
-            </configuration>
-            <executions>
-              <execution>
-                <id>format</id>
-                <goals>
-                  <goal>apply</goal>
-                  <goal>check</goal>
-                </goals>
-                <phase>install</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>
