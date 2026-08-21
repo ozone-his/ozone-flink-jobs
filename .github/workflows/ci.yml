@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 3.0.0]
   pull_request:
     branches: [main]
   release:
@@ -37,7 +37,7 @@ jobs:
       maven-args: -Pspotless
 
   publish:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && ( github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.0.0')) || github.event_name == 'release' }}
     needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     with:
@@ -50,17 +50,20 @@ jobs:
   # One image per pipeline, all from the same Dockerfile and the same shaded JAR. The PIPELINE
   # build argument fixes which pipeline an image runs, so the choice is still made at build time.
   docker:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && ( github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.0.0')) || github.event_name == 'release' }}
     needs: spotless
     strategy:
       fail-fast: false
       matrix:
         include:
           - pipeline: streaming
+            latest-tag: false
             image-name: ozone-flink-jobs-streaming
           - pipeline: batch
+            latest-tag: false
             image-name: ozone-flink-jobs-batch
           - pipeline: export
+            latest-tag: false
             image-name: ozone-flink-jobs-export
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
