@@ -1,0 +1,104 @@
+# This owns HOW the pipeline runs. What it computes is defined separately in the pipeline
+# configuration -- see .dev/data/config.yaml.
+#
+# This is the local development baseline: sized to run on a laptop. Production overrides live in
+# the ozone-analytics distro.
+
+# JVM flags Flink requires on Java 17+ to reach JDK internals the module system closed off.
+# Without them the job fails at startup with InaccessibleObjectException.
+#
+# This file is mounted over the image's own conf/config.yaml, which replaces the defaults rather
+# than merging with them -- so this list has to be reproduced here.
+env:
+  java:
+    opts:
+      all: --add-exports=java.base/sun.net.util=ALL-UNNAMED --add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED
+
+jobmanager:
+  rpc:
+    address: jobmanager
+    port: 6123
+  memory:
+    process:
+      size: 3g
+    jvm-metaspace:
+      size: 1g
+
+# Each flattening statement runs as its own Flink job, and a streaming job holds its slots for as
+# long as it runs. The flatten pipeline is ~12 statements, so the cluster needs at least that many
+# slots or the later jobs sit pending forever, waiting for slots that never free. 16 leaves headroom.
+taskmanager:
+  numberOfTaskSlots: 16
+  memory:
+    process:
+      size: 4g
+    managed:
+      fraction: 0.7
+
+# One subtask per operator. The dev Debezium topics have a single partition, so higher parallelism
+# only adds idle subtasks -- and with each statement now its own job, low parallelism keeps the
+# per-job slot demand at 1 so all jobs fit.
+parallelism:
+  default: 1
+
+# Exactly-once checkpointing to S3 (SeaweedFS). Unaligned checkpoints keep barriers moving when a sink
+# backpressures, so one slow sink does not stall its job's checkpoints.
+execution:
+  checkpointing:
+    mode: EXACTLY_ONCE
+    interval: 10min
+    timeout: 10min
+    unaligned:
+      enabled: true
+    tolerable-failed-checkpoints: 50
+
+state:
+  backend:
+    type: rocksdb
+    incremental: true
+  checkpoints:
+    dir: s3://flink-state-bucket/checkpoints/
+    num-retained: 2
+  savepoints:
+    dir: s3://flink-state-bucket/savepoints/
+
+# NOTE: high availability is NOT set here. This file is shared with the batch and export profiles,
+# which run in application mode where multi-job HA is unsupported. HA belongs only to the streaming
+# session cluster, so it is passed there as -D overrides in docker-compose.yaml, not baked in here.
+
+restart-strategy:
+  type: exponential-delay
+
+table:
+  exec:
+    sink:
+      require-on-conflict: false
+    # Batch writes to PostgreSQL rather than issuing one statement per row.
+    mini-batch:
+      enabled: true
+      allow-latency: 5s
+      size: 5000
+    # Without a TTL a streaming join retains state forever; this is the usual cause of unbounded
+    # state growth in a long-running Flink SQL job.
+    state:
+      ttl: 1h
+
+# Presto S3 access to SeaweedFS. Credentials are not written here: AWS_ACCESS_KEY_ID and
+# AWS_SECRET_ACCESS_KEY from the environment are picked up by the standard AWS credential chain.
+# Path-style access is required because SeaweedFS does not serve virtual-host style buckets.
+s3:
+  endpoint: http://seaweedfs:8333
+  path:
+    style:
+      access: true
+
+metrics:
+  reporters: prom
+  reporter:
+    prom:
+      factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+      port: 9250
+
+rest:
+  address: 0.0.0.0
+  bind-address: 0.0.0.0

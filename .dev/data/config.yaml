@@ -1,0 +1,56 @@
+# Ozone Analytics pipeline definition.
+#
+# This describes WHAT the ETL computes: where data is read from, how it is flattened, and where it
+# is written. How Flink runs it (parallelism, checkpointing, state, S3) belongs to the cluster's
+# own config.yaml -- see .dev/flink/config.yaml.
+#
+# ${VAR} and ${VAR:-default} are resolved against the environment at startup, so no credential is
+# ever written here. Unknown keys are rejected rather than ignored.
+
+# Databases registered with Flink as catalogs, so queries can address their tables directly.
+catalogs:
+  - name: ozone
+    dialect: postgresql                 # postgresql | mysql
+    defaultDatabase: '${ANALYTICS_DB_NAME:-analytics}'
+    baseUrl: 'jdbc:postgresql://${ANALYTICS_DB_HOST:-localhost}:${ANALYTICS_DB_PORT:-5432}'
+    username: '${ANALYTICS_DB_USER:-analytics}'
+    password: '${ANALYTICS_DB_PASSWORD:-analytics}'
+
+# Where change data is extracted from.
+sources:
+  # Debezium change events on Kafka, used by the streaming pipeline.
+  # Each .sql file under tableDefinitions maps to the topic <topicPrefix>.<fileName>.
+  kafka:
+    - topicPrefix: emr.openmrs
+      bootstrapServers: '${ANALYTICS_KAFKA_URL:-localhost:9092}'
+      tableDefinitions: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/openmrs'
+    - topicPrefix: erp.public
+      bootstrapServers: '${ANALYTICS_KAFKA_URL:-localhost:9092}'
+      tableDefinitions: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/odoo'
+
+  # The same source databases read directly, used by the batch pipeline to backfill.
+  jdbc:
+    - url: 'jdbc:mysql://${OPENMRS_DB_HOST:-localhost}:${OPENMRS_DB_PORT:-3306}/${OPENMRS_DB_NAME:-openmrs}?sslmode=disable'
+      username: '${OPENMRS_DB_USER:-openmrs}'
+      password: '${OPENMRS_DB_PASSWORD:-openmrs}'
+      tableDefinitions: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/openmrs'
+    - url: 'jdbc:postgresql://${ODOO_DB_HOST:-localhost}:${ODOO_DB_PORT:-5432}/${ODOO_DB_NAME:-odoo}?sslmode=disable'
+      username: '${ODOO_DB_USER:-odoo}'
+      password: '${ODOO_DB_PASSWORD:-odoo}'
+      tableDefinitions: '${ANALYTICS_SOURCE_TABLES_PATH:-/analytics/source-tables}/odoo'
+
+# Where flattened data is written.
+sinks:
+  # Each .sql file under queries is a SELECT; its file name is the destination table.
+  tables:
+    - catalog: ozone
+      database: '${ANALYTICS_DB_NAME:-analytics}'
+      queries: '${ANALYTICS_QUERIES_PATH:-/analytics/queries}'
+
+  # Used by the export pipeline. Each run writes to its own timestamped directory.
+  files:
+    - tableDefinitions: '${EXPORT_DESTINATION_TABLES_PATH:-/export/destination-tables}'
+      queries: '${EXPORT_SOURCE_QUERIES_PATH:-/export/queries}'
+      outputPath: '${EXPORT_OUTPUT_PATH:-/tmp/parquet}'
+      tag: '${EXPORT_OUTPUT_TAG:-location1}'
+      format: parquet                   # parquet | csv

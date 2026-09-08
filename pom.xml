@@ -4,9 +4,10 @@
 
   <groupId>com.ozonehis</groupId>
   <artifactId>flink-jobs</artifactId>
-  <version>2.7.0-SNAPSHOT</version>
+  <version>3.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Ozone ETL Pipelines</name>
+  <name>Ozone Analytics ETL</name>
+  <description>Flink SQL pipelines that flatten Ozone HIS data for analytics</description>
 
   <organization>
     <name>Ozone HIS</name>
@@ -34,105 +35,89 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <hadoop.version>2.8.5</hadoop.version>
-    <junit.jupiter.version>5.10.1</junit.jupiter.version>
-    <log4j.version>2.20.0</log4j.version>
-    <flink.version>1.17.1</flink.version>
-    <target.java.version>11</target.java.version>
-    <scala.binary.version>2.12</scala.binary.version>
-    <maven.compiler.source>${target.java.version}</maven.compiler.source>
-    <maven.compiler.target>${target.java.version}</maven.compiler.target>
-    <jackson.version>2.15.0-rc1</jackson.version>
-    <scope>compile</scope>
-    <spotless.version>2.30.0</spotless.version>
-    <palantirJavaFormat.version>1.1.0</palantirJavaFormat.version>
-    <mysql.connector.version>8.2.0</mysql.connector.version>
-    <testcontainers.version>1.21.4</testcontainers.version>
-    <analytics.queries.version>1.4.0-SNAPSHOT</analytics.queries.version>
-    <ozone.version>1.0.0-SNAPSHOT</ozone.version>
-    <ozone.analytics.version>2.4.0</ozone.analytics.version>
-    <spring.version>5.3.23</spring.version>
-    <mockitoJunitVersion>5.7.0</mockitoJunitVersion>
-    <powerMockVersion>2.0.9</powerMockVersion>
-    <byteBuddyVersion>1.14.10</byteBuddyVersion>
 
-    <!-- Plugins -->
-    <surefire.version>3.2.5</surefire.version>
-    <dependency.version>3.6.1</dependency.version>
+    <!-- ================================ Java ================================ -->
+    <java.version>17</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+
+    <!-- ================================ Flink ================================ -->
+    <flink.version>2.3.0</flink.version>
+    <flink.connector.jdbc.version>4.0.0-2.0</flink.connector.jdbc.version>
+    <flink.connector.kafka.version>5.0.0-2.2</flink.connector.kafka.version>
+    <flink.scope>provided</flink.scope>
+
+    <!-- ========================== Runtime libraries ========================= -->
+    <jackson.version>2.22.1</jackson.version>
+    <hadoop.version>3.5.0</hadoop.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <mysql.connector.version>9.7.0</mysql.connector.version>
+    <commons.text.version>1.15.0</commons.text.version>
+
+    <!-- ================================ Logging =============================-->
+    <slf4j.version>2.0.18</slf4j.version>
+
+    <!-- ================================= Test =============================== -->
+    <junit.version>6.1.2</junit.version>
+    <assertj.version>3.27.7</assertj.version>
+
+    <!-- =============================== Plugins ============================== -->
+    <compiler.version>3.15.0</compiler.version>
+    <surefire.version>3.5.6</surefire.version>
+    <shade.version>3.6.2</shade.version>
+    <spotless.version>3.8.0</spotless.version>
+    <palantirJavaFormat.version>2.96.0</palantirJavaFormat.version>
   </properties>
 
   <dependencies>
-    <!-- Apache Flink dependencies -->
-    <!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
+    <!-- ============================ Flink runtime =========================== -->
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-streaming-java</artifactId>
+      <artifactId>flink-table-api-java-bridge</artifactId>
       <version>${flink.version}</version>
-      <scope>${scope}</scope>
+      <scope>${flink.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-table-planner-loader</artifactId>
       <version>${flink.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-table</artifactId>
-      <version>${flink.version}</version>
-      <type>pom</type>
-      <scope>${scope}</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-table-common</artifactId>
-      <version>${flink.version}</version>
-      <scope>${scope}</scope>
+      <scope>${flink.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-table-runtime</artifactId>
       <version>${flink.version}</version>
-      <scope>${scope}</scope>
+      <scope>${flink.scope}</scope>
     </dependency>
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-statebackend-rocksdb</artifactId>
-      <version>${flink.version}</version>
-      <scope>${scope}</scope>
-    </dependency>
-    <!-- Add connector dependencies here. They must be in the default scope (compile). -->
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-json</artifactId>
-      <version>${flink.version}</version>
-      <scope>${scope}</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-connector-jdbc</artifactId>
-      <version>3.1.1-1.17</version>
-      <scope>${scope}</scope>
-    </dependency>
+
+    <!-- ============================== Connectors ============================
+         Bundled into the shaded JAR: the cluster image does not ship these. -->
     <dependency>
       <groupId>org.apache.flink</groupId>
       <artifactId>flink-connector-kafka</artifactId>
-      <version>${flink.version}</version>
+      <version>${flink.connector.kafka.version}</version>
+    </dependency>
+    <!-- The monolithic `flink-connector-jdbc` was split per database at 4.x and has no Flink 2.x
+         release. `-core` carries JdbcCatalog; `-postgres` and `-mysql` carry the dialects. -->
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-connector-jdbc-core</artifactId>
+      <version>${flink.connector.jdbc.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-connector-files</artifactId>
-      <version>${flink.version}</version>
-      <scope>${scope}</scope>
+      <artifactId>flink-connector-jdbc-postgres</artifactId>
+      <version>${flink.connector.jdbc.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-metrics-prometheus</artifactId>
-      <version>${flink.version}</version>
-      <scope>${scope}</scope>
+      <artifactId>flink-connector-jdbc-mysql</artifactId>
+      <version>${flink.connector.jdbc.version}</version>
     </dependency>
+
+    <!-- ============================== Formats =============================== -->
     <dependency>
       <groupId>org.apache.flink</groupId>
-      <artifactId>flink-parquet</artifactId>
+      <artifactId>flink-json</artifactId>
       <version>${flink.version}</version>
     </dependency>
     <dependency>
@@ -140,531 +125,315 @@
       <artifactId>flink-csv</artifactId>
       <version>${flink.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-parquet</artifactId>
+      <version>${flink.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.containers</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jersey.inject</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.glassfish.jaxb</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.servlet.jsp</groupId>
+          <artifactId>jakarta.servlet.jsp-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.activation</groupId>
+          <artifactId>jakarta.activation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.zookeeper</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.kerby</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.nimbusds</groupId>
+          <artifactId>nimbus-jose-jwt</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk18on</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.re2j</groupId>
+          <artifactId>re2j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.jcraft</groupId>
+          <artifactId>jsch</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>dnsjava</groupId>
+          <artifactId>dnsjava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.reload4j</groupId>
+          <artifactId>reload4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-yarn-common</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.inject.extensions</groupId>
+          <artifactId>guice-servlet</artifactId>
+        </exclusion>
+        <!-- Hadoop's Avro-based IO serialization; the Parquet write path uses parquet-hadoop, not
+             Avro, so it never loads. Excluded to drop an old (1.9.2) unused jar. -->
+        <exclusion>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-runtime-web</artifactId>
-      <version>${flink.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.flink</groupId>
-      <artifactId>flink-s3-fs-presto</artifactId>
-      <version>${flink.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.28</version>
-    </dependency>
+    <!-- ============================ JDBC drivers ============================ -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.6.0</version>
+      <version>${postgresql.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <version>${mysql.connector.version}</version>
     </dependency>
+
+    <!-- ========================= Configuration parsing ====================== -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-yaml</artifactId>
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>2.10.2</version>
-      <scope>${scope}</scope>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
     </dependency>
+    <!-- Provides the ${VAR:-default} substitution used in the configuration file. -->
     <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapreduce-client-core</artifactId>
-      <version>2.10.2</version>
-      <scope>${scope}</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.5</version>
-    </dependency>
-    <!-- These dependencies are excluded from the application JAR by default. -->
-    <dependency>
-      <groupId>commons-cli</groupId>
-      <artifactId>commons-cli</artifactId>
-      <version>1.5.0</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>${commons.text.version}</version>
     </dependency>
 
-    <!-- Test dependencies -->
+    <!-- ================================ Logging ============================= -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>${flink.scope}</scope>
+    </dependency>
+
+    <!-- ================================= Test =============================== -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <version>${mysql.connector.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>mysql</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${testcontainers.version}</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>${testcontainers.version}</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.ozonehis</groupId>
-      <artifactId>ozone</artifactId>
-      <version>${ozone.version}</version>
-      <type>zip</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.ozonehis</groupId>
-      <artifactId>analytics-queries</artifactId>
-      <version>${analytics.queries.version}</version>
-      <type>zip</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>${spring.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-junit-jupiter</artifactId>
-      <version>${mockitoJunitVersion}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-core</artifactId>
-      <version>${powerMockVersion}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>net.bytebuddy</groupId>
-      <artifactId>byte-buddy</artifactId>
-      <version>${byteBuddyVersion}</version>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
 
-  <repositories>
-    <repository>
-      <id>mks-nexus-public-releases</id>
-      <name>Mekom Solutions Nexus repo for releases</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-releases</url>
-    </repository>
-    <repository>
-      <id>mks-nexus-public-snapshots</id>
-      <name>Mekom Solutions Nexus repo for snapshots</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-snapshots</url>
-    </repository>
-    <repository>
-      <id>mks-nexus-private</id>
-      <name>Mekom Solutions private Nexus repo</name>
-      <url>https://nexus.mekomsolutions.net/repository/maven-private</url>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>openmrs-repo</id>
-      <name>OpenMRS Nexus</name>
-      <url>https://mavenrepo.openmrs.org/public</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>openmrs-repo-snapshots</id>
-      <name>OpenMRS Nexus Snapshots</name>
-      <url>https://mavenrepo.openmrs.org/snapshots</url>
-    </pluginRepository>
-  </pluginRepositories>
   <build>
-
-    <pluginManagement>
-      <plugins>
-        <!-- This improves the out-of-the-box experience in Eclipse by resolving some
-				warnings. -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <versionRange>[3.1.1,)</versionRange>
-                    <goals>
-                      <goal>shade</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore/>
-                  </action>
-                </pluginExecution>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <versionRange>[3.1,)</versionRange>
-                    <goals>
-                      <goal>testCompile</goal>
-                      <goal>compile</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore/>
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>net.revelc.code.formatter</groupId>
-          <artifactId>formatter-maven-plugin</artifactId>
-          <dependencies>
-            <dependency>
-              <groupId>org.openmrs.tools</groupId>
-              <artifactId>openmrs-tools</artifactId>
-              <version>2.2.0</version>
-            </dependency>
-          </dependencies>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>${dependency.version}</version>
-          <executions>
-            <execution>
-              <id>unpack-dependencies</id>
-              <goals>
-                <goal>unpack-dependencies</goal>
-              </goals>
-              <phase>generate-test-resources</phase>
-              <configuration>
-                <includeGroupIds>com.ozonehis</includeGroupIds>
-                <includeArtifactIds>analytics-queries,ozone,ozone-analytics</includeArtifactIds>
-                <includeTypes>zip</includeTypes>
-                <includes>docker-compose-db.yaml,
-                  docker-compose-migration.yaml,
-                  docker-compose-streaming-common.yaml,
-                  docker-compose-superset.yaml,
-                  /run/docker/docker-compose-common.yml,
-                  /run/docker/docker-compose-openmrs.yml,
-                  /run/docker/docker-compose-odoo.yml,
-                  distro/configs/superset/**,
-                  superset/config/**,
-                  distro/data/**,
-                  distro/configs/openmrs/properties/**,
-                  distro/binaries/openmrs/frontend/**,
-                  distro/configs/openmrs/frontend_config/**,
-                  distro/configs/openmrs/initializer_config/**,
-                  distro/configs/odoo/config/**,
-                  distro/configs/odoo/initializer_config/**,
-                  dsl/**/*.sql,
-                  liquibase/**/*.xml</includes>
-                <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
-                <overWriteReleases>false</overWriteReleases>
-                <overWriteSnapshots>true</overWriteSnapshots>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${surefire.version}</version>
-          <configuration>
-            <argLine>--add-opens java.base/java.lang=ALL-UNNAMED
-              --add-opens java.base/java.util=ALL-UNNAMED</argLine>
-            <environmentVariables>
-              <DOCKER_API_VERSION>1.44</DOCKER_API_VERSION>
-            </environmentVariables>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
+        <version>${compiler.version}</version>
         <configuration>
-          <source>${target.java.version}</source>
-          <target>${target.java.version}</target>
+          <release>${java.version}</release>
+          <compilerArgs>
+            <arg>-Xlint:all,-serial,-processing</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
       </plugin>
+      <!-- One shaded artifact serving every pipeline. The pipeline is chosen by the argument each
+           image passes to AnalyticsJob, so it is still fixed at build time, without maintaining a
+           near-identical shade execution per pipeline. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${shade.version}</version>
+        <executions>
+          <execution>
+            <id>shade-job</id>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- Signatures from bundled dependencies do not cover the shaded JAR and cause
+                         SecurityExceptions if kept. -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                    <!-- Per-dependency build and legal metadata. Every JAR ships its own copy, so
+                         they collide during shading; none is read at runtime. Dropping them silences
+                         the overlap warnings. META-INF/services is deliberately left alone — the
+                         ServicesResourceTransformer below merges those, and they are load-bearing. -->
+                    <exclude>META-INF/DEPENDENCIES</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/*LICENSE*</exclude>
+                    <exclude>META-INF/*NOTICE*</exclude>
+                    <exclude>META-INF/*license*</exclude>
+                    <exclude>META-INF/*notice*</exclude>
+                    <exclude>LICENSE*</exclude>
+                    <exclude>NOTICE*</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.ozonehis.analytics.AnalyticsJob</mainClass>
+                </transformer>
+                <!-- Connectors and JDBC drivers are discovered via ServiceLoader; without this the
+                     per-JAR service files overwrite each other and the connectors vanish. -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+              <finalName>${project.artifactId}-${project.version}-etl</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <palantirJavaFormat>
+              <version>${palantirJavaFormat.version}</version>
+            </palantirJavaFormat>
+            <removeUnusedImports/>
+            <formatAnnotations/>
+          </java>
+          <pom>
+            <includes>
+              <include>pom.xml</include>
+            </includes>
+            <sortPom>
+              <encoding>UTF-8</encoding>
+              <expandEmptyElements>false</expandEmptyElements>
+              <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+              <sortProperties>false</sortProperties>
+            </sortPom>
+          </pom>
+          <markdown>
+            <includes>
+              <include>**/*.md</include>
+            </includes>
+            <flexmark/>
+          </markdown>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals>
+              <goal>apply</goal>
+              <goal>check</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
+
   <profiles>
     <profile>
-      <id>spotless</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <!-- Code formatting -->
-          <plugin>
-            <groupId>com.diffplug.spotless</groupId>
-            <artifactId>spotless-maven-plugin</artifactId>
-            <version>${spotless.version}</version>
-            <configuration>
-              <formats>
-                <format>
-                  <includes>
-                    <include>.gitignore</include>
-                  </includes>
-                  <trimTrailingWhitespace/>
-                  <endWithNewline/>
-                  <indent>
-                    <tabs>true</tabs>
-                    <spacesPerTab>4</spacesPerTab>
-                  </indent>
-                </format>
-              </formats>
-              <java>
-                <palantirJavaFormat>
-                  <version>${palantirJavaFormat.version}</version>
-                </palantirJavaFormat>
-                <removeUnusedImports/>
-                <formatAnnotations/>
-              </java>
-              <pom>
-                <includes>
-                  <include>pom.xml</include>
-                  <include>**/pom.xml</include>
-                </includes>
-                <sortPom>
-                  <encoding>UTF-8</encoding>
-                  <expandEmptyElements>false</expandEmptyElements>
-                  <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
-                  <sortProperties>false</sortProperties>
-                </sortPom>
-              </pom>
-              <markdown>
-                <includes>
-                  <include>**/*.md</include>
-                  <include>*.md</include>
-                </includes>
-                <flexmark/>
-              </markdown>
-            </configuration>
-            <dependencies>
-              <dependency>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>${spotless.version}</version>
-              </dependency>
-            </dependencies>
-            <executions>
-              <execution>
-                <id>format</id>
-                <goals>
-                  <goal>apply</goal>
-                  <goal>check</goal>
-                </goals>
-                <phase>install</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>streaming</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>standalone</id>
       <properties>
-        <scope>compile</scope>
+        <flink.scope>compile</flink.scope>
       </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-              <!-- Run shade goal on package phase -->
-              <execution>
-                <id>streaming-job-build</id>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <artifactSet>
-                    <excludes>
-                      <!-- <exclude>org.apache.flink:force-shading</exclude>
-											<exclude>com.google.code.findbugs:jsr305</exclude>
-											<exclude>org.slf4j:*</exclude>
-											<exclude>org.apache.logging.log4j:*</exclude> -->
-                    </excludes>
-                  </artifactSet>
-                  <filters>
-                    <filter>
-                      <!-- Do not copy the signatures in the META-INF folder.
-                                            Otherwise, this might cause SecurityExceptions when using the JAR. -->
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.streaming.StreamingETLJob</mainClass>
-                    </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/java.sql.Driver</resource>
-                    </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                      <resource>META-INF/services/java.sql.Driver</resource>
-                    </transformer>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                  </transformers>
-                  <finalName>${project.artifactId}-${project.version}-etl-streaming</finalName>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>batch</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <scope>compile</scope>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-              <execution>
-                <id>export-job-build</id>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <artifactSet>
-                    <excludes>
-                      <!--<exclude>org.apache.flink:force-shading</exclude>-->
-                      <!--<exclude>com.google.code.findbugs:jsr305</exclude>-->
-                      <!--<exclude>org.slf4j:*</exclude>-->
-                      <!--<exclude>org.apache.logging.log4j:*</exclude>-->
-                    </excludes>
-                  </artifactSet>
-                  <filters>
-                    <filter>
-                      <!-- Do not copy the signatures in the META-INF folder.
-                                            Otherwise, this might cause SecurityExceptions when using the JAR. -->
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.export.BatchExport</mainClass>
-                    </transformer>
-                  </transformers>
-                  <finalName>${project.artifactId}-${project.version}-etl-export</finalName>
-                </configuration>
-              </execution>
-              <execution>
-                <id>batch-etl-build</id>
-                <goals>
-                  <goal>shade</goal>
-                </goals>
-                <phase>package</phase>
-                <configuration>
-                  <artifactSet>
-                    <excludes>
-                      <!--<exclude>org.apache.flink:force-shading</exclude>-->
-                      <!--<exclude>com.google.code.findbugs:jsr305</exclude>-->
-                      <!--<exclude>org.slf4j:*</exclude>-->
-                      <!--<exclude>org.apache.logging.log4j:*</exclude>-->
-                    </excludes>
-                  </artifactSet>
-                  <filters>
-                    <filter>
-                      <!-- Do not copy the signatures in the META-INF folder.
-                                            Otherwise, this might cause SecurityExceptions when using the JAR. -->
-                      <artifact>*:*</artifact>
-                      <excludes>
-                        <exclude>META-INF/*.SF</exclude>
-                        <exclude>META-INF/*.DSA</exclude>
-                        <exclude>META-INF/*.RSA</exclude>
-                      </excludes>
-                    </filter>
-                  </filters>
-                  <transformers>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                      <mainClass>com.ozonehis.data.pipelines.batch.BatchETLJob</mainClass>
-                    </transformer>
-                  </transformers>
-                  <finalName>${project.artifactId}-${project.version}-etl-batch</finalName>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>

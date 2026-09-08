@@ -1,0 +1,481 @@
+services:
+  # ---------------------------------------------------------------------------
+  # Source and sink databases.
+  #
+  # These make the dev stack self-contained. It previously assumed an externally running
+  # Ozone HIS supplied them, which meant nothing here could be started on its own.
+  #
+  # The schemas under ./seed mirror the Flink table definitions column for column. They are
+  # hand-maintained: update them alongside any change to ANALYTICS_SOURCE_TABLES_PATH, or a job
+  # will fail at submission on a missing column.
+  # ---------------------------------------------------------------------------
+
+  # OpenMRS source. Debezium reads its binlog, which MariaDB does not enable by default:
+  # without log-bin and ROW format the connector starts and then captures nothing.
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    restart: on-failure
+    command:
+      - --log-bin=mariadb-bin
+      - --binlog-format=ROW
+      - --binlog-row-image=FULL
+      - --server-id=${MARIADB_SERVER_ID}
+      - --log-bin-trust-function-creators=1
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${OPENMRS_DB_NAME}
+      MARIADB_USER: ${OPENMRS_DB_USER}
+      MARIADB_PASSWORD: ${OPENMRS_DB_PASSWORD}
+    ports:
+      # Off the default host port on purpose: 3306 and 5432 are routinely occupied by another
+      # project's database, and binding them makes bringing this stack up either fail or, worse,
+      # tempt someone into killing whatever holds the port.
+      - "${MARIADB_HOST_PORT}:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./seed/mariadb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  # Odoo source and the analytics sink, in one instance. `wal_level=logical` is what lets Debezium
+  # create a replication slot; on the default (`replica`) the connector fails to start.
+  postgresql:
+    image: postgres:${POSTGRES_VERSION}
+    restart: on-failure
+    command:
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=4
+      - -c
+      - max_wal_senders=4
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${CONNECT_ODOO_DB_NAME}
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+      - ./seed/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${CONNECT_ODOO_DB_NAME}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # A single-node Kafka cluster in KRaft mode. It is not a production setup: it has no replication, no authentication, and no TLS. It is only for local development and testing.
+  kafka:
+    restart: on-failure
+    image: apache/kafka:${KAFKA_VERSION}
+    ports:
+      # Host-side only; in-network clients use kafka:9092.
+      - ${KAFKA_HOST_PORT}:29092
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      CLUSTER_ID: 5Yr1SIgYQz-b-dgRabWx4g
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,PLAINTEXT_HOST://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 20s
+  kafka-setup:
+    restart: on-failure
+    image: apache/kafka:${KAFKA_VERSION}
+    command:
+      - /bin/bash
+      - -c
+      - |
+        IFS=',' read -ra topics <<< "$$TOPICS"
+        for topic in $${topics[@]}
+          do
+            echo "Creating topic $$topic..."
+            /opt/kafka/bin/kafka-topics.sh --create --topic $$topic --partitions 1 --replication-factor 1 --if-not-exists --bootstrap-server kafka:9092
+            /opt/kafka/bin/kafka-configs.sh --bootstrap-server=kafka:9092 --entity-type topics --entity-name $$topic --alter --add-config retention.ms=31556736000
+        done
+    environment:
+      - TOPICS=${CREATE_TOPICS}
+    depends_on:
+      kafka:
+        condition: service_healthy
+  connect:
+    restart: on-failure
+    image: quay.io/debezium/connect:${DEBEZIUM_VERSION}
+    ports:
+      - ${CONNECT_HOST_PORT}:8083
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+      - CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=false
+      - CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=false
+      - CONNECT_CONFIG_PROVIDERS=file
+      - CONNECT_CONFIG_PROVIDERS_FILE_CLASS=org.apache.kafka.common.config.provider.FileConfigProvider
+      - CONNECT_MYSQL_HOSTNAME=${CONNECT_MYSQL_HOSTNAME:-mysql}
+      - CONNECT_MYSQL_USERNAME=${CONNECT_MYSQL_USERNAME:-root}
+      - CONNECT_MYSQL_PASSWORD=${CONNECT_MYSQL_PASSWORD:-${CONNECT_MYSQL_PASSWORD}}
+      - CONNECT_MYSQL_PORT=${CONNECT_MYSQL_PORT:-${CONNECT_MYSQL_PORT}}
+      - CONNECT_MYSQL_SERVER_ID=37991
+      - CONNECT_MYSQL_SERVER_NAME=emr
+      - CONNECT_MYSQL_INCLUDE_LIST=openmrs
+      - CONNECT_TABLE_EXCLUDE_LIST=openmrs.audit_log
+      - CONNECT_MYSQL_HISTROY_TOPIC=dbhistory.openmrs
+      - CONNECT_MYSQL_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - CONNECT_ODOO_DB_HOSTNAME=${CONNECT_ODOO_DB_HOSTNAME:-postgresql}
+      - CONNECT_ODOO_DB_USERNAME=${CONNECT_ODOO_DB_USERNAME:-${POSTGRES_USER}}
+      - CONNECT_ODOO_DB_PASSWORD=${CONNECT_ODOO_DB_PASSWORD:-${POSTGRES_PASSWORD}}
+      - CONNECT_ODOO_DB_PORT=${CONNECT_ODOO_DB_PORT:-5432}
+      - CONNECT_ODOO_DB_SERVER_NAME=erp
+      - CONNECT_ODOO_DB_INCLUDE_LIST=odoo
+
+  # Registers the Debezium connectors once Connect is up.
+  connect-setup:
+    image: curlimages/curl:8.11.1
+    restart: on-failure
+    depends_on:
+      connect:
+        condition: service_started
+      mariadb:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ./connect:/connectors:ro
+    entrypoint: [ "sh", "-c" ]
+    command:
+      - |
+        until curl -sf http://connect:8083/connectors >/dev/null 2>&1; do
+          echo "waiting for kafka connect..."; sleep 3
+        done
+        for f in /connectors/*.json; do
+          name=$$(basename "$$f" .json)
+          echo "registering $$name"
+          curl -sS --fail -X PUT -H 'Content-Type: application/json' \
+            --data @"$$f" "http://connect:8083/connectors/$$name/config" || exit 1
+        done
+        echo "connectors registered"
+
+  # ---------------------------------------------------------------------------
+  # Streaming: a Flink SESSION cluster with high availability.
+  #
+  # The streaming jobs run for as long as the pipeline exists. Rather than bake them into an
+  # application image. Application mode cannot give a cluster running many jobs HA; they are
+  # submitted to this long-lived session cluster by the job-submitter below. HA (ZooKeeper + S3)
+  # lets the JobManager recover the running jobs from their last checkpoint after a restart instead
+  # of losing them.
+  #
+  # HA is passed as -D overrides on the cluster commands, NOT put in flink/config.yaml: that file is
+  # shared with the application-mode batch/export profiles, which must not enable HA.
+  # ---------------------------------------------------------------------------
+
+  # Flink's HA backend. Kafka runs in KRaft mode, so this ZooKeeper is dedicated to Flink.
+  zookeeper:
+    image: zookeeper:3.9
+    restart: unless-stopped
+
+  # Session cluster. Uses the base Flink image, not ozone-flink-jobs-streaming: the application jar is not on
+  # the cluster classpath (usrlib is only loaded in application mode) -- it rides in with each job
+  # the submitter uploads. The S3 plugin is enabled from opt/ for checkpoints and the HA store.
+  #
+  # It mounts config-ha.yaml (config.yaml + the high-availability block) rather than passing HA as
+  # -D flags: the read-only config mount blocks the entrypoint's -D normalisation, so HA has to be
+  # in the file. config.yaml stays HA-free for the batch/export profiles that share it.
+  jobmanager: &flink-cluster
+    image: flink:2.3.0-java17
+    restart: unless-stopped
+    command: [ "jobmanager" ]
+    ports:
+      - "${FLINK_UI_HOST_PORT}:8081"   # Flink web UI
+      - "9250:9250"                    # Prometheus metrics
+    environment: &flink-cluster-env
+      - ENABLE_BUILT_IN_PLUGINS=flink-s3-fs-presto-2.3.0.jar
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./flink/config-ha.yaml:/opt/flink/conf/config.yaml:ro
+    depends_on:
+      zookeeper:
+        condition: service_started
+      createbuckets:
+        condition: service_completed_successfully
+
+  taskmanager:
+    <<: *flink-cluster
+    ports: [ ]
+    command: [ "taskmanager" ]
+    depends_on:
+      - jobmanager
+    deploy:
+      replicas: 1
+
+  # Client that submits the streaming jobs to the session cluster, then exits. This is the only
+  # place the application jar and the pipeline config live. It is idempotent: if the cluster already
+  # has jobs running (recovered from HA after a restart), it does not resubmit them.
+  job-submitter:
+    image: ozone-flink-jobs-streaming
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: streaming
+    restart: on-failure
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${ANALYTICS_SOURCE_TABLES_PATH}:/analytics/source-tables:ro
+      - ${ANALYTICS_QUERIES_PATH}:/analytics/queries:ro
+    environment: &flink-env
+      - ANALYTICS_DB_NAME=${ANALYTICS_DB_NAME}
+      - ANALYTICS_DB_USER=${ANALYTICS_DB_USER}
+      - ANALYTICS_DB_PASSWORD=${ANALYTICS_DB_PASSWORD}
+      - ANALYTICS_DB_HOST=${ANALYTICS_DB_HOST}
+      - ANALYTICS_DB_PORT=${ANALYTICS_DB_PORT}
+      - ANALYTICS_KAFKA_URL=kafka:9092
+      - OPENMRS_DB_NAME=${OPENMRS_DB_NAME}
+      - OPENMRS_DB_USER=${OPENMRS_DB_USER}
+      - OPENMRS_DB_PASSWORD=${OPENMRS_DB_PASSWORD}
+      - OPENMRS_DB_HOST=${OPENMRS_DB_HOST}
+      - OPENMRS_DB_PORT=${OPENMRS_DB_PORT}
+      - ODOO_DB_NAME=${CONNECT_ODOO_DB_NAME}
+      - ODOO_DB_USER=${CONNECT_ODOO_DB_USER}
+      - ODOO_DB_PASSWORD=${CONNECT_ODOO_DB_PASSWORD}
+      - ODOO_DB_HOST=${CONNECT_ODOO_DB_HOSTNAME}
+      - ODOO_DB_PORT=${CONNECT_ODOO_DB_PORT}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        JM=jobmanager:8081
+        echo "Waiting for the session cluster at $$JM ..."
+        until /opt/flink/bin/flink list -m $$JM >/dev/null 2>&1; do sleep 3; done
+        running=$$(/opt/flink/bin/flink list -m $$JM -r 2>/dev/null | grep -c '(RUNNING)' || true)
+        if [ "$${running:-0}" -gt 0 ]; then
+          echo "$$running job(s) already running (recovered from HA); not resubmitting."
+          exit 0
+        fi
+        echo "Submitting streaming jobs to the session cluster..."
+        exec /opt/flink/bin/flink run -m $$JM -d \
+          -c com.ozonehis.analytics.AnalyticsJob /opt/flink/usrlib/analytics-etl.jar streaming
+    depends_on:
+      jobmanager:
+        condition: service_started
+      kafka-setup:
+        condition: service_completed_successfully
+      analytics-migration:
+        condition: service_completed_successfully
+
+  # ---------------------------------------------------------------------------
+  # Batch flattening (profile: batch). An alternate mode, not run by default: it reads the source
+  # databases directly over JDBC instead of from Kafka, flattens them in one bounded pass into the
+  # same analytics tables, and exits. Use it to backfill.
+  #
+  #   docker compose --profile batch up batch-jobmanager batch-taskmanager
+  #
+  # Its own cluster on a separate UI port so it can run without disturbing the streaming cluster.
+  # ---------------------------------------------------------------------------
+  batch-jobmanager: &batch
+    image: ozone-flink-jobs-batch
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: batch
+    profiles: [ batch ]
+    restart: on-failure
+    # The shared flink/config.yaml points jobmanager.rpc.address at the host `jobmanager`. Batch is
+    # an alternate mode run while the streaming cluster is stopped, so this JobManager takes that
+    # name within the network and its TaskManager can find it without a separate config.
+    networks:
+      default:
+        aliases: [ jobmanager ]
+    ports:
+      - "${BATCH_UI_HOST_PORT}:8081"
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${ANALYTICS_SOURCE_TABLES_PATH}:/analytics/source-tables:ro
+      - ${ANALYTICS_QUERIES_PATH}:/analytics/queries:ro
+    environment: *flink-env
+    depends_on:
+      createbuckets:
+        condition: service_completed_successfully
+      analytics-migration:
+        condition: service_completed_successfully
+      mariadb:
+        condition: service_healthy
+      postgresql:
+        condition: service_healthy
+
+  batch-taskmanager:
+    <<: *batch
+    command: taskmanager
+    ports: [ ]
+    # Drop the JobManager's `jobmanager` alias inherited via the YAML merge, or the name would
+    # round-robin between this container and the JobManager.
+    networks:
+      default: { }
+    depends_on:
+      - batch-jobmanager
+
+  # ---------------------------------------------------------------------------
+  # Parquet/CSV export (profile: export). Reads the flattened analytics tables and writes files
+  # under EXPORT_OUTPUT_PATH, then exits.
+  #
+  #   docker compose --profile export up export-jobmanager export-taskmanager
+  # ---------------------------------------------------------------------------
+  export-jobmanager: &export
+    image: ozone-flink-jobs-export
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        PIPELINE: export
+    profiles: [ export ]
+    restart: on-failure
+    networks:
+      default:
+        aliases: [ jobmanager ]
+    ports:
+      - "${EXPORT_UI_HOST_PORT}:8081"
+    volumes:
+      - ./flink/config.yaml:/opt/flink/conf/config.yaml:ro
+      - ./data/config.yaml:/etc/analytics/config.yaml:ro
+      - ${EXPORT_DESTINATION_TABLES_PATH}:/export/destination-tables:ro
+      - ${EXPORT_SOURCE_QUERIES_PATH}:/export/queries:ro
+      - ${EXPORT_OUTPUT_PATH}:/parquet
+    environment: &export-env
+      - ANALYTICS_DB_NAME=${ANALYTICS_DB_NAME}
+      - ANALYTICS_DB_USER=${ANALYTICS_DB_USER}
+      - ANALYTICS_DB_PASSWORD=${ANALYTICS_DB_PASSWORD}
+      - ANALYTICS_DB_HOST=${ANALYTICS_DB_HOST}
+      - ANALYTICS_DB_PORT=${ANALYTICS_DB_PORT}
+      - EXPORT_DESTINATION_TABLES_PATH=/export/destination-tables
+      - EXPORT_SOURCE_QUERIES_PATH=/export/queries
+      - EXPORT_OUTPUT_PATH=/parquet
+      - EXPORT_OUTPUT_TAG=${EXPORT_OUTPUT_TAG}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    depends_on:
+      analytics-migration:
+        condition: service_completed_successfully
+
+  export-taskmanager:
+    <<: *export
+    command: taskmanager
+    ports: [ ]
+    environment: *export-env
+    networks:
+      default: { }
+    depends_on:
+      - export-jobmanager
+
+  # Redpanda Console for browsing topics and the Connect cluster.
+  redpanda-console:
+    image: redpandadata/console:${REDPANDA_CONSOLE_VERSION}
+    restart: on-failure
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    ports:
+      - "${CONSOLE_HOST_PORT}:8080"
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["kafka:9092"]
+        kafkaConnect:
+          enabled: true
+          clusters:
+            - name: Ozone
+              url: http://connect:8083
+    depends_on:
+      - "kafka"
+      - "connect"
+  # Creates the flattened destination tables the pipelines write into. Must complete before any
+  # job starts: Flink resolves the sink tables through the catalog at submission time and fails
+  # outright if they are missing.
+  analytics-migration:
+    image: liquibase/liquibase:4.24
+    restart: on-failure
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    volumes:
+      - ${ANALYTICS_DESTINATION_TABLES_MIGRATIONS_PATH:-analytics-migrations}:/liquibase/changelog/
+    command: update --username=${ANALYTICS_DB_USER} --password=${ANALYTICS_DB_PASSWORD} --changeLogFile=${CHANGELOG_FILE} --url=jdbc:postgresql://${ANALYTICS_DB_HOST}:${ANALYTICS_DB_PORT}/${ANALYTICS_DB_NAME}
+    environment:
+      - INSTALL_POSTGRESQL='true'
+  # SeaweedFS is the S3 store for Flink checkpoints, savepoints and the HA state. It replaces MinIO:
+  # the same S3 API (so only the endpoint changes), but lighter and without MinIO's community-edition
+  # restrictions. `weed server -s3` runs the master, volume, filer and S3 gateway in one process.
+  seaweedfs:
+    image: chrislusf/seaweedfs:${SEAWEEDFS_VERSION}
+    restart: on-failure
+    ports:
+      - "8333:8333"   # S3 API
+      - "8888:8888"   # filer UI, to browse the bucket contents
+    volumes:
+      - seaweedfs-data:/data
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    # Write the S3 auth config from the credentials, then start the server. The identity's key pair
+    # is what Flink signs its requests with.
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        cat > /tmp/s3.json <<CFG
+        {"identities":[{"name":"flink","credentials":[{"accessKey":"$${AWS_ACCESS_KEY_ID}","secretKey":"$${AWS_SECRET_ACCESS_KEY}"}],"actions":["Admin"]}]}
+        CFG
+        exec weed server -dir=/data -s3 -s3.config=/tmp/s3.json -ip.bind=0.0.0.0
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O /dev/null http://localhost:9333/ || exit 1" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  # Creates the bucket Flink checkpoints into. Failing here loudly matters: a missing bucket makes
+  # Flink fail every checkpoint with NoSuchBucket while the job still reports RUNNING, because
+  # tolerable-failed-checkpoints hides it.
+  createbuckets:
+    image: chrislusf/seaweedfs:${SEAWEEDFS_VERSION}
+    depends_on:
+      seaweedfs:
+        condition: service_healthy
+    entrypoint: [ "/bin/sh", "-ec" ]
+    command:
+      - |
+        for i in $$(seq 1 20); do
+          echo "s3.bucket.create -name ${FLINK_STATE_BUCKET}" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1 || true
+          if echo "s3.bucket.list" | weed shell -master=seaweedfs:9333 2>/dev/null | grep -q "${FLINK_STATE_BUCKET}"; then
+            echo "bucket ${FLINK_STATE_BUCKET} ready"; exit 0
+          fi
+          echo "waiting for seaweedfs..."; sleep 3
+        done
+        echo "bucket creation failed"; exit 1
+
+volumes:
+  mariadb-data: ~
+  postgresql-data: ~
+  seaweedfs-data: ~

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 3.0.0]
   pull_request:
     branches: [main]
   release:
@@ -12,74 +12,63 @@ jobs:
   validate:
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-build-test.yml@main
     with:
-      java-version: 11
-      maven-args: -Pbatch
-      use-secrets: true
-      login-docker: true
+      java-version: 17
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_REGISTRY_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_REGISTRY_PASSWORD }}
+
+  forward-compat:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [21, 25]
+    uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-build-test.yml@main
+    with:
+      java-version: ${{ matrix.java-version }}
+    secrets:
+      NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+      NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
 
   spotless:
     needs: validate
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-spotless-check.yml@main
     with:
-      java-version: 11
+      java-version: 17
       maven-args: -Pspotless
 
   publish:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'push' && ( github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.0.0')) || github.event_name == 'release' }}
     needs: spotless
     uses: mekomsolutions/shared-github-workflow/.github/workflows/maven-publish.yml@main
     with:
-      java-version: 11
-      maven-args: -DskipTests -Pbatch
+      java-version: 17
+      maven-args: -DskipTests
     secrets:
       NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
       NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
 
-  docker-ozone-flink-parquet-export:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
+  # One image per pipeline, all from the same Dockerfile and the same shaded JAR. The PIPELINE
+  # build argument fixes which pipeline an image runs, so the choice is still made at build time.
+  docker:
+    if: ${{ (github.event_name == 'push' && ( github.ref == 'refs/heads/main' || github.ref == 'refs/heads/3.0.0')) || github.event_name == 'release' }}
     needs: spotless
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pipeline: streaming
+            latest-tag: false
+            image-name: ozone-flink-jobs-streaming
+          - pipeline: batch
+            latest-tag: false
+            image-name: ozone-flink-jobs-batch
+          - pipeline: export
+            latest-tag: false
+            image-name: ozone-flink-jobs-export
     uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
     with:
-      dockerfile: Dockerfile_parquet_export
-      image-name: "ozone-flink-parquet-export"
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  docker-ozone-flink-jobs-batch:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: spotless
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
-    with:
-      dockerfile: Dockerfile_batch
-      image-name: "ozone-flink-jobs-batch"
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  docker-ozone-flink-jobs-streaming:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: spotless
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
-    with:
-      image-name: "ozone-flink-jobs" # ozone-flink-jobs-streaming
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  docker-ozone-analytics-setup-connect:
-    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'release' }}
-    needs: spotless
-    uses: mekomsolutions/shared-github-workflow/.github/workflows/docker-build-publish.yml@main
-    with:
-      context: ./development/setup-connect
-      dockerfile: Dockerfile
-      image-name: "ozone-analytics-setup-connect"
+      image-name: ${{ matrix.image-name }}
+      build-args: PIPELINE=${{ matrix.pipeline }}
     secrets:
       DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
