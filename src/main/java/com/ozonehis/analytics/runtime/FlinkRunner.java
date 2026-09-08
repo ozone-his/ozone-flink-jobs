@@ -7,6 +7,7 @@ import com.ozonehis.analytics.pipeline.Pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
@@ -31,8 +32,20 @@ public final class FlinkRunner {
 
     private final AnalyticsConfig config;
 
+    private final RunningJobs runningJobs;
+
     public FlinkRunner(AnalyticsConfig config) {
+        this(config, RestRunningJobs.fromEnvironment());
+    }
+
+    /**
+     * @param runningJobs consulted before a streaming pipeline is submitted, so that only the jobs
+     *     the cluster is missing are submitted. Injected so the decision is testable without a
+     *     cluster.
+     */
+    public FlinkRunner(AnalyticsConfig config, RunningJobs runningJobs) {
         this.config = Objects.requireNonNull(config, "config");
+        this.runningJobs = Objects.requireNonNull(runningJobs, "runningJobs");
     }
 
     /**
@@ -55,6 +68,26 @@ public final class FlinkRunner {
                     "Pipeline '" + pipeline.name() + "' produced no jobs; check the configured source and query paths");
         }
 
+        // Only streaming reconciles. Batch and export run in application mode on a cluster created
+        // for that run, so there is never a previous job to collide with, and skipping one would
+        // silently turn a re-run into a no-op.
+        if (pipeline.mode() == ExecutionMode.STREAMING) {
+            Set<String> active = runningJobs.names();
+            List<Job> pending = notAlreadyRunning(jobs, active);
+            if (pending.isEmpty()) {
+                LOG.info("All {} job(s) of '{}' are already running; nothing to submit", jobs.size(), pipeline.name());
+                return;
+            }
+            if (pending.size() < jobs.size()) {
+                LOG.info(
+                        "{} of {} job(s) already running; submitting only the {} that are missing",
+                        jobs.size() - pending.size(),
+                        jobs.size(),
+                        pending.size());
+            }
+            jobs = pending;
+        }
+
         LOG.info("Submitting {} as {} independent job(s)", pipeline.name(), jobs.size());
         List<TableResult> running = new ArrayList<>(jobs.size());
         for (Job job : jobs) {
@@ -72,6 +105,22 @@ public final class FlinkRunner {
             }
             LOG.info("Pipeline '{}' completed", pipeline.name());
         }
+    }
+
+    /**
+     * The jobs a cluster reporting {@code active} is missing, in the pipeline's own order. Pure, so
+     * the reconciliation rule can be asserted on directly.
+     */
+    static List<Job> notAlreadyRunning(List<Job> jobs, Set<String> active) {
+        List<Job> pending = new ArrayList<>(jobs.size());
+        for (Job job : jobs) {
+            if (active.contains(job.name())) {
+                LOG.debug("Job '{}' is already running; not resubmitting it", job.name());
+            } else {
+                pending.add(job);
+            }
+        }
+        return List.copyOf(pending);
     }
 
     private TableEnvironment createTableEnvironment(ExecutionMode mode) {
