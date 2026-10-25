@@ -76,6 +76,10 @@ class PipelineTest {
                 // The group id is namespaced by the destination, so jobs sharing a topic keep
                 // independent offsets.
                 .contains("'properties.group.id' = 'patient-patients-group-id'")
+                // A job without restored state must rebuild its table from the whole topic, not
+                // resume where an earlier job stopped.
+                .contains("'scan.startup.mode' = 'earliest-offset'")
+                .doesNotContain("group-offsets")
                 .contains("'value.format' = 'debezium-json'");
     }
 
