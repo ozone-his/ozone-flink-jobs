@@ -7,7 +7,6 @@ import com.ozonehis.analytics.pipeline.Pipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
@@ -40,8 +39,8 @@ public final class FlinkRunner {
 
     /**
      * @param runningJobs consulted before a streaming pipeline is submitted, so that only the jobs
-     *     the cluster is missing are submitted. Injected so the decision is testable without a
-     *     cluster.
+     *     the cluster is missing are submitted and jobs running an outdated query are replaced.
+     *     Injected so the decision is testable without a cluster.
      */
     public FlinkRunner(AnalyticsConfig config, RunningJobs runningJobs) {
         this.config = Objects.requireNonNull(config, "config");
@@ -72,20 +71,32 @@ public final class FlinkRunner {
         // for that run, so there is never a previous job to collide with, and skipping one would
         // silently turn a re-run into a no-op.
         if (pipeline.mode() == ExecutionMode.STREAMING) {
-            Set<String> active = runningJobs.names();
-            List<Job> pending = notAlreadyRunning(jobs, active);
-            if (pending.isEmpty()) {
-                LOG.info("All {} job(s) of '{}' are already running; nothing to submit", jobs.size(), pipeline.name());
+            Reconciliation plan = reconcile(jobs, runningJobs.active());
+            if (plan.toSubmit().isEmpty()) {
+                LOG.info(
+                        "All {} job(s) of '{}' are already running their current query; nothing to submit",
+                        jobs.size(),
+                        pipeline.name());
                 return;
             }
-            if (pending.size() < jobs.size()) {
+            // Cancel before submitting: the replacement needs the slots the outdated job holds, and
+            // two versions writing the same table at once would race. The replacement starts without
+            // state, so it reads its topics from the beginning and rebuilds the whole table.
+            for (RunningJobs.ActiveJob stale : plan.toCancel()) {
                 LOG.info(
-                        "{} of {} job(s) already running; submitting only the {} that are missing",
-                        jobs.size() - pending.size(),
-                        jobs.size(),
-                        pending.size());
+                        "Job '{}' ({}) runs an outdated query; cancelling it so it can be replaced",
+                        stale.name(),
+                        stale.id());
+                runningJobs.cancel(stale.id());
             }
-            jobs = pending;
+            if (plan.toSubmit().size() < jobs.size()) {
+                LOG.info(
+                        "{} of {} job(s) already running their current query; submitting the other {}",
+                        jobs.size() - plan.toSubmit().size(),
+                        jobs.size(),
+                        plan.toSubmit().size());
+            }
+            jobs = plan.toSubmit();
         }
 
         LOG.info("Submitting {} as {} independent job(s)", pipeline.name(), jobs.size());
@@ -107,20 +118,50 @@ public final class FlinkRunner {
         }
     }
 
+    /** What to do to bring a cluster in line with a streaming pipeline. */
+    record Reconciliation(List<RunningJobs.ActiveJob> toCancel, List<Job> toSubmit) {}
+
     /**
-     * The jobs a cluster reporting {@code active} is missing, in the pipeline's own order. Pure, so
-     * the reconciliation rule can be asserted on directly.
+     * Compares the pipeline's jobs with what the cluster reports {@code active}. Pure, so the rule
+     * can be asserted on directly.
+     *
+     * <ul>
+     *   <li>A job whose {@linkplain #clusterName cluster name}, fingerprint included, is active is
+     *       left alone.
+     *   <li>Otherwise every active job of the same table is outdated: cancel it, then submit the
+     *       job. That covers a changed query and a job submitted by a build that did not name jobs
+     *       with a fingerprint yet, which is replaced once.
+     *   <li>Jobs on the cluster that belong to no job of this pipeline are never touched.
+     * </ul>
+     *
+     * Both lists keep the pipeline's own order.
      */
-    static List<Job> notAlreadyRunning(List<Job> jobs, Set<String> active) {
-        List<Job> pending = new ArrayList<>(jobs.size());
+    static Reconciliation reconcile(List<Job> jobs, List<RunningJobs.ActiveJob> active) {
+        List<RunningJobs.ActiveJob> toCancel = new ArrayList<>();
+        List<Job> toSubmit = new ArrayList<>();
         for (Job job : jobs) {
-            if (active.contains(job.name())) {
-                LOG.debug("Job '{}' is already running; not resubmitting it", job.name());
-            } else {
-                pending.add(job);
+            String current = clusterName(job);
+            if (active.stream().anyMatch(running -> running.name().equals(current))) {
+                LOG.debug("Job '{}' is already running its current query; not resubmitting it", current);
+                continue;
             }
+            active.stream().filter(running -> sameTable(running.name(), job)).forEach(toCancel::add);
+            toSubmit.add(job);
         }
-        return List.copyOf(pending);
+        return new Reconciliation(List.copyOf(toCancel), List.copyOf(toSubmit));
+    }
+
+    /**
+     * The name a streaming job runs under on the cluster: its own name, {@code @}, and the
+     * {@linkplain JobFingerprint fingerprint} of what it runs, e.g. {@code streaming-patients@1a2b3c4d}.
+     * A changed query gives a different name, which is how an outdated job is recognized.
+     */
+    static String clusterName(Job job) {
+        return job.name() + "@" + JobFingerprint.of(job);
+    }
+
+    private static boolean sameTable(String clusterName, Job job) {
+        return clusterName.equals(job.name()) || clusterName.startsWith(job.name() + "@");
     }
 
     private TableEnvironment createTableEnvironment(ExecutionMode mode) {
@@ -157,12 +198,13 @@ public final class FlinkRunner {
         // Without this Flink assigns its own name (e.g. "insert-into_catalog.db.table"), so the job
         // this code deliberately named would still show up unnamed everywhere that matters: the Web
         // UI, `flink list`, metrics tags. Each job has its own TableEnvironment, so this only scopes
-        // to the one job being submitted.
-        tableEnv.getConfig().set(PipelineOptions.NAME, job.name());
+        // to the one job being submitted. Streaming jobs carry the fingerprint of their query in the
+        // name, which is what the next run compares against to spot an outdated job.
+        tableEnv.getConfig().set(PipelineOptions.NAME, mode == ExecutionMode.STREAMING ? clusterName(job) : job.name());
         registerCatalogs(tableEnv);
         job.tableDefinitions().forEach(tableEnv::executeSql);
 
-        LOG.info("Submitting job '{}'", job.name());
+        LOG.info("Submitting job '{}'", tableEnv.getConfig().get(PipelineOptions.NAME));
         TableResult result = tableEnv.executeSql(job.insertStatement());
         result.getJobClient()
                 .ifPresent(client -> LOG.info("Submitted Flink job {} for '{}'", client.getJobID(), job.name()));

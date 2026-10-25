@@ -60,13 +60,16 @@ public final class StreamingFlattenPipeline implements Pipeline {
         return ConnectorOptions.of("kafka")
                 .set("topic", source.topicPrefix() + "." + table)
                 .set("properties.bootstrap.servers", source.bootstrapServers())
-                // A stable group id per (table, destination) lets each job resume from its own
-                // committed offsets instead of replaying the topic after a restart, and keeps two
-                // jobs reading the same topic from committing over each other.
+                // Offsets are committed to this group on every checkpoint, so Kafka tools can show
+                // how far behind each job is. Namespaced by destination so two jobs reading the same
+                // topic report separately. The job never reads its position back from here.
                 .set("properties.group.id", table + "-" + destination + "-group-id")
-                .set("scan.startup.mode", "group-offsets")
-                // Applies only when the group has no committed offsets yet, i.e. first start.
-                .set("properties.auto.offset.reset", "earliest")
+                // A job restored from a checkpoint or savepoint resumes from the offsets saved with
+                // its state, whatever this says. This applies only to a job that starts without
+                // state, and that job must read every topic from the start. Resuming from the
+                // group's committed offsets instead would skip rows that rarely change, such as
+                // locations and concept names, and every join on them would stay NULL for good.
+                .set("scan.startup.mode", "earliest-offset")
                 .set("value.format", "debezium-json")
                 .set("value.debezium-json.ignore-parse-errors", "true");
     }
