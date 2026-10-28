@@ -1,4 +1,4 @@
-<h1 align="center">Ozone Analytics Engine</h1>
+<h1 align="center">Ozone Flink Jobs</h1>
 
 <p align="center">
 Flink SQL pipelines that flatten data from the Ozone HIS components into tables that are
