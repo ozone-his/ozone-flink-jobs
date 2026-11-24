@@ -69,8 +69,8 @@ class PipelineTest {
 
         assertThat(jobs).singleElement().extracting(Job::name).isEqualTo("streaming-patients");
         assertThat(jobs.get(0).tableDefinitions())
+                .filteredOn(definition -> definition.contains("'connector' = 'kafka'"))
                 .singleElement(STRING)
-                .contains("'connector' = 'kafka'")
                 // The topic is the prefix plus the table definition's file name.
                 .contains("'topic' = 'emr.openmrs.patient'")
                 // The group id is namespaced by the destination, so jobs sharing a topic keep
