@@ -1,6 +1,7 @@
 package com.ozonehis.analytics.pipeline;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.ozonehis.analytics.runtime.JobFingerprint;
 import com.ozonehis.analytics.sql.ConnectorOptions;
@@ -40,6 +41,34 @@ class DebeziumSourceTablesTest {
                 .contains("CAST(DEBEZIUM_TEMPORAL(`birthdate`, 'DATE') AS DATE) AS `birthdate`")
                 .contains("CAST(DEBEZIUM_TEMPORAL(`date_created`, 'TIMESTAMP') AS TIMESTAMP(6)) AS `date_created`")
                 .contains("FROM `person$debezium`");
+    }
+
+    @Test
+    void readsADefinitionHoweverItIsLaidOut() {
+        SqlScript untidy = new SqlScript("person", """
+                -- People, patients included.
+                /* CREATE TABLE `not_this_one` (`id` int) */
+
+                create   table
+                    if not exists person(person_id int,birthdate date
+                  , primary key (person_id) not enforced)  -- trailing note""");
+
+        List<String> definitions = tables.definitions(untidy, KAFKA);
+
+        assertThat(definitions).hasSize(2);
+        assertThat(definitions.get(0))
+                .startsWith("CREATE TABLE `person$debezium`")
+                .contains("`birthdate` STRING", "PRIMARY KEY (`person_id`) NOT ENFORCED");
+        assertThat(definitions.get(1)).startsWith("CREATE TEMPORARY VIEW `person`");
+    }
+
+    @Test
+    void namesTheFileWhenADefinitionCannotBeRead() {
+        SqlScript qualified = new SqlScript("person", "CREATE TABLE `default_database`.`person` (`birthdate` DATE)");
+
+        assertThatThrownBy(() -> tables.definitions(qualified, KAFKA))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("'person'");
     }
 
     @Test

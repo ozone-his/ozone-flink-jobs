@@ -31,6 +31,9 @@ final class DebeziumSourceTables {
     static final String FUNCTION = "CREATE TEMPORARY SYSTEM FUNCTION IF NOT EXISTS DEBEZIUM_TEMPORAL AS '"
             + DebeziumTemporal.class.getName() + "'";
 
+    /** Lets the parser accept a definition, which has no connector of its own yet. */
+    private static final ConnectorOptions PARSE_ONLY = ConnectorOptions.of("datagen");
+
     /** Only parses definitions; nothing is ever executed in it. */
     private final TableEnvironment parser = TableEnvironment.create(EnvironmentSettings.inStreamingMode());
 
@@ -41,11 +44,19 @@ final class DebeziumSourceTables {
      *     date or time column, or has computed columns a view could not reproduce
      */
     List<String> definitions(SqlScript table, ConnectorOptions options) {
-        String probe = "`probe_" + parsed++ + "`";
-        parser.executeSql(
-                table.content().replaceFirst("(?is)^\\s*CREATE\\s+TABLE\\s+(`[^`]+`|[\\w.]+)", "CREATE TABLE " + probe)
-                        + " WITH ('connector' = 'datagen')");
-        ResolvedSchema schema = parser.from(probe).getResolvedSchema();
+        // Flink reads the definition as written, in an empty database, and reports the table it
+        // made. Nothing here depends on how the file is laid out.
+        String database = "parse_" + parsed++;
+        parser.executeSql("CREATE DATABASE `" + database + "`");
+        parser.useDatabase(database);
+        parser.executeSql(PARSE_ONLY.appendTo(table.content()));
+        String[] created = parser.listTables();
+        if (created.length != 1) {
+            throw new IllegalArgumentException("Table definition '" + table.name()
+                    + "' must create one table, named without a catalog or database");
+        }
+        String tableName = created[0];
+        ResolvedSchema schema = parser.from("`" + tableName + "`").getResolvedSchema();
         List<Column> columns = schema.getColumns();
         if (columns.stream().noneMatch(column -> kind(column) != null)
                 || !columns.stream().allMatch(Column::isPhysical)) {
@@ -69,11 +80,11 @@ final class DebeziumSourceTables {
                 .ifPresent(
                         key -> raw.add("PRIMARY KEY (`" + String.join("`, `", key.getColumns()) + "`) NOT ENFORCED"));
 
-        String rawName = "`" + table.name() + RAW_SUFFIX + "`";
+        String rawName = "`" + tableName + RAW_SUFFIX + "`";
         return List.of(
                 options.appendTo("CREATE TABLE " + rawName + " (\n  " + String.join(",\n  ", raw) + "\n)"),
-                "CREATE TEMPORARY VIEW `" + table.name() + "` AS\nSELECT\n  " + String.join(",\n  ", converted)
-                        + "\nFROM " + rawName);
+                "CREATE TEMPORARY VIEW `" + tableName + "` AS\nSELECT\n  " + String.join(",\n  ", converted) + "\nFROM "
+                        + rawName);
     }
 
     private static String kind(Column column) {
