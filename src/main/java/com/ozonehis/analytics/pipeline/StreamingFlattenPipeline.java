@@ -17,6 +17,8 @@ public final class StreamingFlattenPipeline implements Pipeline {
 
     private final AnalyticsConfig config;
 
+    private final DebeziumSourceTables debezium = new DebeziumSourceTables();
+
     public StreamingFlattenPipeline(AnalyticsConfig config) {
         this.config = Objects.requireNonNull(config, "config");
     }
@@ -44,13 +46,14 @@ public final class StreamingFlattenPipeline implements Pipeline {
      * Every Kafka source table, defined afresh for one job. A job registers all of them but only
      * the tables its query reads become running Kafka sources, so the extra definitions cost
      * nothing. The consumer group is namespaced by the destination so that two jobs reading the
-     * same source topic keep independent offsets instead of clobbering one shared group.
+     * same source topic keep independent offsets instead of clobbering one shared group. Each table
+     * is read through {@link DebeziumSourceTables}, so dates and times survive the trip.
      */
     private List<String> sourceTables(String destination) {
-        List<String> definitions = new ArrayList<>();
+        List<String> definitions = new ArrayList<>(List.of(DebeziumSourceTables.FUNCTION));
         for (AnalyticsConfig.KafkaSource source : config.sources().kafka()) {
             for (SqlScript table : SqlScripts.loadAll(Path.of(source.tableDefinitions()))) {
-                definitions.add(options(source, table.name(), destination).appendTo(table.content()));
+                definitions.addAll(debezium.definitions(table, options(source, table.name(), destination)));
             }
         }
         return List.copyOf(definitions);

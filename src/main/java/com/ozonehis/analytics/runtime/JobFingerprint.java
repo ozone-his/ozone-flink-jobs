@@ -27,8 +27,8 @@ public final class JobFingerprint {
     /** Hex characters kept from the hash. Eight are plenty to tell versions of one job apart. */
     static final int LENGTH = 8;
 
-    private static final Pattern TABLE_NAME =
-            Pattern.compile("(?i)CREATE\\s+TABLE\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?`?([\\w.]+)`?");
+    private static final Pattern TABLE_NAME = Pattern.compile(
+            "(?i)CREATE\\s+(?:TEMPORARY\\s+)?(?:TABLE|VIEW)\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?`?([\\w.]+)`?");
 
     private JobFingerprint() {}
 
