@@ -44,8 +44,8 @@ final class DebeziumSourceTables {
      *     date or time column, or has computed columns a view could not reproduce
      */
     List<String> definitions(SqlScript table, ConnectorOptions options) {
-        // Flink reads the definition as written, in an empty database, and reports the table it
-        // made. Nothing here depends on how the file is laid out.
+        // The parser needs a database to create the table in, and a unique one per definition avoids
+        // collisions. The database is never used for anything else, so it can be named anything.
         String database = "parse_" + parsed++;
         parser.executeSql("CREATE DATABASE `" + database + "`");
         parser.useDatabase(database);
